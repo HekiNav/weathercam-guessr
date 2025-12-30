@@ -14,9 +14,14 @@
 	},
 	"dependencies": {
 		"@opennextjs/cloudflare": "^1.14.4",
+		"@prisma/adapter-better-sqlite3": "^7.2.0",
+		"@prisma/client": "^7.2.0",
+		"better-sqlite3": "^12.5.0",
 		"next": "15.5.9",
+		"prisma": "^7.2.0",
 		"react": "19.1.4",
 		"react-dom": "19.1.4",
+		"resend": "^6.6.0",
 		"zod": "^4.2.1"
 	},
 	"devDependencies": {

@@ -10,6 +10,9 @@
 !.yarn/releases
 !.yarn/versions
 
+# Databases to avoid large file commits
+*.db
+
 # testing
 /coverage
 
@@ -50,3 +53,5 @@ next-env.d.ts
 
 
 !.dev.vars.example
+
+/src/generated/prisma
