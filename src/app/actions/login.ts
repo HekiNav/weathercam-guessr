@@ -41,6 +41,9 @@ export async function login(state: OTPFormState, {type, email, otp}: OTPFormData
       <p>Expires in 10 minutes.</p>
     `,
     })
+    return {
+      step: "otp"
+    }
   } else if (type == "verify") {
     if (!otp) return {
       step: state?.step,
