@@ -14,7 +14,7 @@ export interface OTPFormData {
   otp?: string
 }
 
-export async function login(state: OTPFormState, {type, email, otp}: OTPFormData): OTPFormState {
+export async function login(state: OTPFormState, {type, email, otp}: OTPFormData): Promise<OTPFormState> {
   if (type == "send") {
     console.log(email)
     const otp = Math.floor(100000 + Math.random() * 900000).toString()
@@ -100,5 +100,7 @@ export async function login(state: OTPFormState, {type, email, otp}: OTPFormData
       step: "success"
     }
   }
-
+  return {
+    step: "email"
+  }
 }
