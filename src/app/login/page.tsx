@@ -45,7 +45,6 @@ export default function Login() {
               className="bg-green-600 rounded shadow-xl/20 p-2"
               disabled={pending}
               onClick={() => {
-                console.log("sending otp!")
 
                 startTransition(() => action({ type: "send", email: email }))
               }}

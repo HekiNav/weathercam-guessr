@@ -17,7 +17,6 @@ export interface OTPFormData {
 
 export async function login(state: OTPFormState, { type, email, otp }: OTPFormData): Promise<OTPFormState> {
   if (type == "send") {
-    console.log(email)
     const otp = Math.floor(100000 + Math.random() * 900000).toString()
 
     const hash = crypto.createHash("sha256").update(otp).digest("hex")
@@ -40,7 +39,6 @@ export async function login(state: OTPFormState, { type, email, otp }: OTPFormDa
         expiresAt: new Date(Date.now() + 10 * 60 * 1000),
       },
     })
-    console.log(`generated otp for ${email}`)
     await resend.emails.send({
       from: process.env.FROM_EMAIL!,
       to: email,
