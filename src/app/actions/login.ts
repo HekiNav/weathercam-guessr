@@ -4,28 +4,38 @@ import crypto from "crypto";
 import { Resend } from "resend";
 import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
-import { OTPFormState } from "@/lib/definitions";
+import { EmailSchema, OTPFormState } from "@/lib/definitions";
+import z from "zod";
 
 const resend = new Resend(process.env.RESEND_API_KEY!)
 
 export interface OTPFormData {
-  type: "send" | "verify", 
-  email: string, 
+  type: "send" | "verify",
+  email: string,
   otp?: string
 }
 
-export async function login(state: OTPFormState, {type, email, otp}: OTPFormData): Promise<OTPFormState> {
+export async function login(state: OTPFormState, { type, email, otp }: OTPFormData): Promise<OTPFormState> {
   if (type == "send") {
     console.log(email)
     const otp = Math.floor(100000 + Math.random() * 900000).toString()
 
     const hash = crypto.createHash("sha256").update(otp).digest("hex")
 
-    console.log(hash)
+
+    const { data, error, success } = EmailSchema.safeParse(email)
+
+
+    if (!success) return {
+      errors: {
+        email: z.treeifyError(error).errors
+      },
+      step: state.step
+    }
 
     await prisma.otpCode.create({
       data: {
-        email,
+        email: data,
         codeHash: hash,
         expiresAt: new Date(Date.now() + 10 * 60 * 1000),
       },
@@ -48,10 +58,10 @@ export async function login(state: OTPFormState, {type, email, otp}: OTPFormData
     if (!otp) return {
       step: state?.step,
       errors: {
-        otp:["Empty code"]
+        otp: ["Empty code"]
       }
-    } 
-    
+    }
+
     const hash = crypto.createHash("sha256").update(otp).digest("hex")
 
     const record = await prisma.otpCode.findFirst({

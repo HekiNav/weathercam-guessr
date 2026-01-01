@@ -1,8 +1,7 @@
 "use client";
 
-import { useActionState, useContext, useEffect, useState } from "react";
+import { startTransition, useActionState, useContext, useEffect, useState } from "react";
 import { login } from "@/app/actions/login";
-import { verifyOtp } from "@/app/actions/verify-otp";
 import Card from "../ui/card";
 import { OTPFormState } from "@/lib/definitions";
 import { useRouter } from "next/navigation";
@@ -32,20 +31,23 @@ export default function Login() {
 
         {step === "email" && (
           <>
+            <h1 className="text-md max-w-60">Enter an email address for your account.</h1>
             <input
               placeholder="Email"
               value={email}
               disabled={pending}
               onChange={(e) => setEmail(e.target.value)}
-              className="my-2 border-black border-3 rounded p-1"
+              className="my-1 border-black border-3 rounded p-1"
             />
+            <div className="text-red-600">{errors?.email?.join(", ")}</div>
+            <small className="text-gray-600 mb-4">Other login methods coming soon</small>
             <button
               className="bg-green-600 rounded shadow-xl/20 p-2"
               disabled={pending}
               onClick={() => {
                 console.log("sending otp!")
 
-                action({ type: "send", email: email })
+                startTransition(() => action({ type: "send", email: email }))
               }}
             >
               Send code
@@ -63,13 +65,13 @@ export default function Login() {
               disabled={pending}
               className="my-2 border-black border-3 rounded p-1"
             />
+            <div className="text-red-600">{errors?.otp?.join(", ")}</div>
             <button
               className="bg-green-600 rounded shadow-xl/20 p-2"
               disabled={pending}
 
               onClick={() => {
-                action({ type: "verify", email: email, otp: otp })
-
+                startTransition(() => action({ type: "verify", email: email, otp: otp }))
               }}>
               Verify
             </button>

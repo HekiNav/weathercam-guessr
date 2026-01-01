@@ -16,7 +16,7 @@ export default function NavBar() {
             <div>
                 {user ?
                     <div className="flex flex-row flex-nowrap gap-2">
-                        <IconItem icon={{ icon: faUser }}>{user.email}</IconItem>
+                        <IconItem icon={{ icon: faUser }}>{user.id}</IconItem>
                         <Link href="/logout" className="text-nowrap">
                             <button className="px-2 py-1 rounded bg-green-600 shadow-lg/20 font-medium">Log out</button>
                         </Link>
