@@ -112,7 +112,6 @@ export async function login(state: OTPFormState, { type, email, otp, username }:
       step: "success"
     }
   } else if (type == "username") {
-    console.log(await prisma.user.findFirst({where: {email: email}}), email, username)
     if (!(await prisma.user.findFirst({where: {email: email}}))) return {
       step: "email"
     }

@@ -33,7 +33,7 @@ export default async function RootLayout({
 			<head>
 				<link rel="icon" href="/favicon.svg" type="image/svg+xml"></link>
 			</head>
-			<body className={`${karla.variable} ${shareTechMono.variable} antialiased`}>
+			<body className={`${karla.variable} ${shareTechMono.variable} antialiased bg-white`}>
 				<UserProvider user={user}>
 					<div className="flex flex-col min-h-screen">
 						<NavBar></NavBar>

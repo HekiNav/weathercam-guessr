@@ -7,7 +7,6 @@ import Link from "next/link"
 
 export default function NavBar() {
     const user = useContext(UserContext)
-    console.log(user)
     return (
         <div className="shadow-lg/20 w-full flex flex-row justify-between p-2 items-center font-sans">
             <div className="flex flex-row w-full h-min divide-green-600 divide-x-2 font-medium">
