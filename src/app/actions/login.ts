@@ -4,18 +4,19 @@ import crypto from "crypto";
 import { Resend } from "resend";
 import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
-import { EmailSchema, OTPFormState } from "@/lib/definitions";
+import { EmailSchema, OTPFormState, UsernameSchema } from "@/lib/definitions";
 import z from "zod";
 
 const resend = new Resend(process.env.RESEND_API_KEY!)
 
 export interface OTPFormData {
-  type: "send" | "verify",
+  type: "send" | "verify" | "username",
   email: string,
-  otp?: string
+  otp?: string,
+  username?: string
 }
 
-export async function login(state: OTPFormState, { type, email, otp }: OTPFormData): Promise<OTPFormState> {
+export async function login(state: OTPFormState, { type, email, otp, username }: OTPFormData): Promise<OTPFormState> {
   if (type == "send") {
     const otp = Math.floor(100000 + Math.random() * 900000).toString()
 
@@ -104,6 +105,31 @@ export async function login(state: OTPFormState, { type, email, otp }: OTPFormDa
         sameSite: "lax",
         path: "/",
       })
+    if (!user.name) return {
+      step: "username"
+    }
+    else return {
+      step: "success"
+    }
+  } else if (type == "username") {
+    console.log(await prisma.user.findFirst({where: {email: email}}), email, username)
+    if (!(await prisma.user.findFirst({where: {email: email}}))) return {
+      step: "email"
+    }
+
+    const { success, error, data } = UsernameSchema.safeParse(username)
+
+    if (!success) return {
+      errors: {
+        username: z.treeifyError(error).errors
+      },
+      step: state.step
+    }
+
+    await prisma.user.update({
+      where: { email: email },
+      data: { name: data }
+    })
     return {
       step: "success"
     }

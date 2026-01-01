@@ -1,11 +1,18 @@
 "use client";
 
-import { redirect, useRouter } from "next/navigation";
+import {useRouter } from "next/navigation";
 import { logout } from "../actions/logout";
 import Card from "../ui/card";
+import { useContext } from "react";
+import { UserContext } from "../user-provider";
 
 export default function Logout() {
   const router = useRouter()
+
+  const user = useContext(UserContext)
+
+  if (!user?.id) router.back()
+
   return (
     <div className="w-full h-full flex items-center grow justify-center">
       <Card title="Logout">
