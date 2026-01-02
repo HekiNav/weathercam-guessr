@@ -8,8 +8,8 @@ export interface ToastProps extends PropsWithChildren {
 
 export default function Toast({ children, type }: ToastProps) {
     useEffect(() => {
-        if (type) toast[type](children)
-        else toast(children)
+        if (type) toast[type](children);
+        else toast(children);
     })
 
     return (

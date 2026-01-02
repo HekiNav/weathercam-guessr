@@ -35,13 +35,14 @@ export default async function RootLayout({
 				<link rel="icon" href="/favicon.svg" type="image/svg+xml"></link>
 			</head>
 			<body className={`${karla.variable} ${shareTechMono.variable} antialiased bg-white`}>
+				<Toaster richColors position="top-right"></Toaster>
+
 				<UserProvider user={user}>
 					<div className="flex flex-col min-h-screen">
 						<div className="min-h-screen shadow-lg/20">
 							<NavBar></NavBar>
 							{children}
 						</div>
-						<Toaster richColors position="top-right"></Toaster>
 						<footer className="p-8 w-full">
 							<span className="text-green-600 font-mono mr-2">Weathercam-guessr</span>	© Hekinav {new Date().getFullYear()}
 						</footer>

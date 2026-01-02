@@ -2,6 +2,7 @@
 
 import { setToastCookie } from "@/app/actions/toast"
 import Toast from "@/app/ui/toast"
+import UserUI from "@/app/ui/user"
 import { getUser } from "@/lib/public"
 import { redirect } from "next/navigation"
 
@@ -12,8 +13,6 @@ export default async function UserPage({ params }: { params: Promise<{ user_iden
 
     const user = await getUser(user_identifier)
 
-    console.log(user)
-
     if (!user) {
         return (
             <div>
@@ -21,12 +20,9 @@ export default async function UserPage({ params }: { params: Promise<{ user_iden
             </div>
         )
     }
-
-
-
     return (
         <div>
-            {user?.name} {user?.id} {user?.createdAt.toISOString()}
+            <UserUI user={{...user, email: ""}}></UserUI>
         </div>
     )
 }

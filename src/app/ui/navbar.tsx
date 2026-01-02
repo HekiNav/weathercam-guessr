@@ -9,16 +9,20 @@ export default function NavBar() {
     const user = useContext(UserContext)
 
     const items = [
-        { url: "/", item: (<span className="font-mono text-green-600">Weathercam-guessr</span>) },
-        { url: "" }
+        { url: "https://github.com/HekiNav/weathercam-guessr", item: "GitHub" },
+        { url: "/play", item: "Play" }
     ]
 
     return (
         <div className="shadow-lg/20 w-full flex flex-row justify-between p-2 items-center font-sans">
-            <div className="flex flex-row w-full h-min divide-green-600 divide-x-2 font-medium">
-                {...items.map(({ url, item }) => (
-                    <Link href={url} className="px-1">{item}</Link>
-                ))}
+            <div className="flex flex-row w-full h-min font-medium">
+                <Link href="/" className="font-mono pr-4 text-green-600">Weathercam-guessr</Link>
+                <div className="divide-x-2 divide-green-600">
+                    {...items.map(({ url, item }) => (
+                        <Link href={url} className="px-1">{item}</Link>
+                    ))}
+                </div>
+
             </div>
             <div>
                 {user ?
