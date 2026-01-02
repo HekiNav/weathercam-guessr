@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Karla, Share_Tech_Mono } from "next/font/google";
+import { Toaster } from "sonner"
 import "./globals.css";
 import NavBar from "./ui/navbar";
 import { getCurrentUser } from "@/lib/auth";
@@ -36,9 +37,14 @@ export default async function RootLayout({
 			<body className={`${karla.variable} ${shareTechMono.variable} antialiased bg-white`}>
 				<UserProvider user={user}>
 					<div className="flex flex-col min-h-screen">
-						<NavBar></NavBar>
-						{children}
-
+						<div className="min-h-screen shadow-lg/20">
+							<NavBar></NavBar>
+							{children}
+						</div>
+						<Toaster richColors position="top-right"></Toaster>
+						<footer className="p-8 w-full">
+							<span className="text-green-600 font-mono mr-2">Weathercam-guessr</span>	© Hekinav {new Date().getFullYear()}
+						</footer>
 					</div>
 				</UserProvider>
 

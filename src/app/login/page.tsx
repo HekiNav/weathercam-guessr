@@ -4,10 +4,14 @@ import { startTransition, useActionState, useContext, useEffect, useState } from
 import { login } from "@/app/actions/login";
 import Card from "../ui/card";
 import { OTPFormState } from "@/lib/definitions";
-import { redirect, useRouter } from "next/navigation";
+import { redirect, useRouter, useSearchParams } from "next/navigation";
 import { UserContext } from "../user-provider";
 
 export default function Login() {
+
+  const params = useSearchParams()
+
+  const successPath = params.get("to") || "/"
 
   const user = useContext(UserContext)
 
@@ -20,10 +24,10 @@ export default function Login() {
   const router = useRouter()
 
   if (user?.id) {
-    if (user.name) redirect("/")
+    if (user.name) redirect(successPath)
   }
   useEffect(() => {
-    if (step == "success") router.push("/")
+    if (step == "success") router.push(successPath)
   }, [step])
 
   return (

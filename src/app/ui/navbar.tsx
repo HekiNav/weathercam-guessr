@@ -7,16 +7,25 @@ import Link from "next/link"
 
 export default function NavBar() {
     const user = useContext(UserContext)
+
+    const items = [
+        { url: "/", item: (<span className="font-mono text-green-600">Weathercam-guessr</span>) },
+        { url: "" }
+    ]
+
     return (
         <div className="shadow-lg/20 w-full flex flex-row justify-between p-2 items-center font-sans">
             <div className="flex flex-row w-full h-min divide-green-600 divide-x-2 font-medium">
-                <div className="px-1">Home</div>
-                <div className="px-1">Play</div>
+                {...items.map(({ url, item }) => (
+                    <Link href={url} className="px-1">{item}</Link>
+                ))}
             </div>
             <div>
                 {user ?
-                    <div className="flex flex-row flex-nowrap gap-2">
-                        <IconItem icon={{ icon: faUser, title: user.admin ? "Admin user" : "Normal user", className:`${user.admin ?  "text-red-600" : "text-green-600"}` }}>{user.name || user.id}</IconItem>
+                    <div className="flex flex-row flex-nowrap gap-2 items-center ">
+                        <Link href="/user/me" className="h-full flex flex-col content-center">
+                            <IconItem icon={{ icon: faUser, title: user.admin ? "Admin user" : "Normal user", className: `${user.admin ? "text-red-600" : "text-green-600"}` }}>{user.name || user.id}</IconItem>
+                        </Link>
                         <Link href="/logout" className="text-nowrap">
                             <button className="px-2 py-1 rounded bg-green-600 shadow-lg/20 font-medium">Log out</button>
                         </Link>
