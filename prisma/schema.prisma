@@ -7,9 +7,37 @@ datasource db {
   provider = "sqlite"
 }
 
+model Image {
+  id         String @id @default(cuid())
+  externalId String
+  blurRect   Rect?
+  type  ImageType
+  difficulty ImageDifficulty
+}
+
+enum ImageType {
+  ROAD_SURFACE
+  SCENERY
+  ROAD
+}
+enum ImageDifficulty {
+  EASY
+  MEDIUM
+  HARD
+}
+
+model Rect {
+  image Image @relation(fields: [id], references: [id] )
+  id String @id @default(cuid())
+  x Float
+  y Float
+  width Float
+  height Float
+}
+
 model User {
   id        String    @id @default(cuid())
-  name      String?  
+  name      String?
   admin     Boolean   @default(false)
   email     String    @unique
   createdAt DateTime  @default(now())

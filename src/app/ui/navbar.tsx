@@ -1,5 +1,5 @@
 "use client"
-import { useContext } from "react"
+import { ReactNode, useContext } from "react"
 import { UserContext } from "../user-provider"
 import IconItem from "./iconitem"
 import { faUser } from "@fortawesome/free-solid-svg-icons"
@@ -8,10 +8,12 @@ import Link from "next/link"
 export default function NavBar() {
     const user = useContext(UserContext)
 
-    const items = [
+    const items: {url: string, item: ReactNode}[] = [
+        { url: "/play", item: "Play" },
         { url: "https://github.com/HekiNav/weathercam-guessr", item: "GitHub" },
-        { url: "/play", item: "Play" }
+
     ]
+    if (user?.admin) items.splice(items.length-1, 0, { url: "/review", item: (<span className="text-red-600">Review</span>) })
 
     return (
         <div className="shadow-lg/20 w-full flex flex-row justify-between p-2 items-center font-sans">
