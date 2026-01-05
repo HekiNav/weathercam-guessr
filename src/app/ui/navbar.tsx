@@ -4,6 +4,7 @@ import { UserContext } from "../user-provider"
 import IconItem from "./iconitem"
 import { faUser } from "@fortawesome/free-solid-svg-icons"
 import Link from "next/link"
+import Button from "./button"
 
 export default function NavBar() {
     const user = useContext(UserContext)
@@ -33,11 +34,11 @@ export default function NavBar() {
                             <IconItem icon={{ icon: faUser, title: user.admin ? "Admin user" : "Normal user", className: `${user.admin ? "text-red-600" : "text-green-600"}` }}>{user.name || user.id}</IconItem>
                         </Link>
                         <Link href="/logout" className="text-nowrap">
-                            <button className="px-2 py-1 rounded bg-green-600 shadow-lg/20 font-medium">Log out</button>
+                            <Button className="px-2 py-1 font-medium">Log out</Button>
                         </Link>
                     </div> :
                     <Link href="/login" className="text-nowrap">
-                        <button className="px-2 py-1 rounded bg-green-600 shadow-lg/20 font-medium">Log in</button>
+                        <Button className="px-2 py-1 font-medium">Log in</Button>
                     </Link>
                 }
             </div>

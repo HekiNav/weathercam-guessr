@@ -6,6 +6,7 @@ import Card from "../ui/card";
 import { OTPFormState } from "@/lib/definitions";
 import { redirect, useRouter, useSearchParams } from "next/navigation";
 import { UserContext } from "../user-provider";
+import Button from "../ui/button";
 
 export default function Login() {
 
@@ -46,15 +47,14 @@ export default function Login() {
             />
             <div className="text-red-600">{errors?.email?.join(", ")}</div>
             <small className="text-gray-600 mb-4">Other login methods coming soon</small>
-            <button
-              className="bg-green-600 rounded shadow-xl/20 p-2"
+            <Button
               disabled={pending}
               onClick={() => {
                 startTransition(() => action({ type: "send", email: email }))
               }}
             >
               Send code
-            </button>
+            </Button>
           </>
         )}
 
@@ -69,15 +69,14 @@ export default function Login() {
               className="my-2 border-black border-3 rounded p-1"
             />
             <div className="text-red-600">{errors?.otp?.join(", ")}</div>
-            <button
-              className="bg-green-600 rounded shadow-xl/20 p-2"
+            <Button
               disabled={pending}
 
               onClick={() => {
                 startTransition(() => action({ type: "verify", email: email, otp: otp }))
               }}>
               Verify
-            </button>
+            </Button>
           </>
         )}
         {step === "username" && (
@@ -91,15 +90,14 @@ export default function Login() {
               className="my-2 border-black border-3 rounded p-1"
             />
             <div className="text-red-600">{errors?.username?.join(", ")}</div>
-            <button
-              className="bg-green-600 rounded shadow-xl/20 p-2"
+            <Button
               disabled={pending}
 
               onClick={() => {
                 startTransition(() => action({ type: "username", email: email, otp: otp, username: username }))
               }}>
               Save
-            </button>
+            </Button>
           </>
         )}
         {step == "success" && (

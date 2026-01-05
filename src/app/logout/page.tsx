@@ -5,6 +5,7 @@ import { logout } from "../actions/logout";
 import Card from "../ui/card";
 import { useContext } from "react";
 import { UserContext } from "../user-provider";
+import Button from "../ui/button";
 
 export default function Logout() {
   const router = useRouter()
@@ -18,13 +19,13 @@ export default function Logout() {
       <Card title="Logout">
         <h1 className="text-xl mt-2 mb-6">Are you sure you want to log out?</h1>
         <div>
-          <button className="bg-red-600 p-2 rounded shadow-xl/20 mr-2" onClick={() => {
+          <Button className="bg-red-600 mr-2" onClick={() => {
             router.back()
-          }}>Cancel</button>
-          <button className="bg-green-600 p-2 rounded shadow-xl/20" onClick={() => {
+          }}>Cancel</Button>
+          <Button onClick={() => {
             logout()
             router.push("/")
-          }}>Confirm</button>
+          }}>Confirm</Button>
         </div>
       </Card>
 

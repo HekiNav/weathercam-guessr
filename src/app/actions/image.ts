@@ -1,3 +1,4 @@
+import { FormState } from "@/lib/definitions"
 import { Image, Prisma } from "@prisma/client"
 import * as GeoJSON from "geojson"
 let lastUpdateTime = Date.now()
@@ -19,9 +20,9 @@ async function fetchImages() {
     lastUpdateTime = Date.now()
     return await (await fetch("https://tie.digitraffic.fi/api/weathercam/v1/stations")).json() as ImageData
 }
-async function getImages(where?: Prisma.ImageWhereInput) {
+async function getImages(prismaArgs?: Prisma.ImageFindManyArgs) {
     if (Date.now() - lastUpdateTime > 3600_000) return await parseImageData(await fetchImages()) // 5s "cache"
-    return prisma?.image.findMany({ where: where })
+    return prisma?.image.findMany(prismaArgs)
 }
 async function parseImageData(data: ImageData,) {
     const items = data.features.flatMap(({ properties }) => properties.presets.map(preset => ({
@@ -64,8 +65,25 @@ async function parseImageData(data: ImageData,) {
 
 
 }
+export interface ImageReviewFormState extends FormState<["difficulty", "blurRect", "type"]> {
+    currentImage: Image | null
+}
+export interface ImageReviewData {
+    type: "begin" | "submit"
+}
+export async function reviewImages(state: ImageReviewFormState, { type }: ImageReviewData): Promise<ImageReviewFormState> {
+    switch (type) {
+        case "submit":
+        case "begin":
+            const images = await getImages({ where: { reviewState: { not: "COMPLETE" } }, take: 1 })
+            if (images && images[0]) return {
+                step: "review",
+                currentImage: images[0]
+            }
+            else return {
+                step: "complete",
+                currentImage: null
+            }
+    }
 
-export async function getReviewableImages() {
-    const images = await getImages({reviewState: {not: "COMPLETE"}})
-    return images
 }

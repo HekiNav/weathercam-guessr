@@ -30,7 +30,7 @@ export default async function RootLayout({
 }>) {
 	const user = await getCurrentUser()
 	return (
-		<html lang="en">
+		<html lang="en" style={{height: "100%"}}>
 			<head>
 				<link rel="icon" href="/favicon.svg" type="image/svg+xml"></link>
 			</head>
@@ -39,7 +39,7 @@ export default async function RootLayout({
 
 				<UserProvider user={user}>
 					<div className="flex flex-col min-h-screen">
-						<div className="min-h-screen shadow-lg/20">
+						<div className="min-h-screen shadow-lg/20 flex flex-col">
 							<NavBar></NavBar>
 							{children}
 						</div>

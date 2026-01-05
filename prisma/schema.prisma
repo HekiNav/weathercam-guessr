@@ -10,12 +10,16 @@ datasource db {
 model Image {
   id          String           @id @default(cuid())
   externalId  String           @unique
+  source      ImageSource      @default(DIGITRAFFIC)
   blurRect    Rect?
   type        ImageType        @default(UNCLASSIFIED)
   difficulty  ImageDifficulty  @default(UNCLASSIFIED)
   updateTime  DateTime         @default(now())
   reviewState ImageReviewState @default(INCOMPLETE)
   available   Boolean          @default(true)
+}
+enum ImageSource {
+  DIGITRAFFIC
 }
 
 enum ImageReviewState {
