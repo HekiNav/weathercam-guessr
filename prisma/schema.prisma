@@ -8,30 +8,42 @@ datasource db {
 }
 
 model Image {
-  id         String @id @default(cuid())
-  externalId String
-  blurRect   Rect?
-  type  ImageType
-  difficulty ImageDifficulty
+  id          String           @id @default(cuid())
+  externalId  String           @unique
+  blurRect    Rect?
+  type        ImageType        @default(UNCLASSIFIED)
+  difficulty  ImageDifficulty  @default(UNCLASSIFIED)
+  updateTime  DateTime         @default(now())
+  reviewState ImageReviewState @default(INCOMPLETE)
+  available   Boolean          @default(true)
+}
+
+enum ImageReviewState {
+  INCOMPLETE
+  COMPLETE
+  REPORTED
 }
 
 enum ImageType {
   ROAD_SURFACE
   SCENERY
   ROAD
+  UNCLASSIFIED
 }
+
 enum ImageDifficulty {
   EASY
   MEDIUM
   HARD
+  UNCLASSIFIED
 }
 
 model Rect {
-  image Image @relation(fields: [id], references: [id] )
-  id String @id @default(cuid())
-  x Float
-  y Float
-  width Float
+  image  Image  @relation(fields: [id], references: [id])
+  id     String @id @default(cuid())
+  x      Float
+  y      Float
+  width  Float
   height Float
 }
 
