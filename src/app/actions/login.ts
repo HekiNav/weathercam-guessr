@@ -2,7 +2,7 @@
 
 import crypto from "crypto";
 import { Resend } from "resend";
-import { prisma } from "@/lib/prisma";
+import { createPrismaClient } from "@/lib/prisma";
 import { cookies } from "next/headers";
 import { EmailSchema, OTPFormState, UsernameSchema } from "@/lib/definitions";
 import z from "zod";
@@ -17,6 +17,7 @@ export interface OTPFormData {
 }
 
 export async function login(state: OTPFormState, { type, email, otp, username }: OTPFormData): Promise<OTPFormState> {
+  const prisma = createPrismaClient()
   if (type == "send") {
     const otp = Math.floor(100000 + Math.random() * 900000).toString()
 

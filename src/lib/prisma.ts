@@ -1,19 +1,9 @@
-import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from '@prisma/client'
+import { PrismaD1 } from '@prisma/adapter-d1'
+import { getCloudflareContext } from '@opennextjs/cloudflare'
 
-declare global {
-  // eslint-disable-next-line no-var
-  var prisma: PrismaClient | undefined
-}
-const adapter = new PrismaBetterSqlite3({
-  url: process.env.DATABASE_URL
-})
-
-export const prisma =
-  globalThis.prisma ?? new PrismaClient({
-    adapter: adapter
-  })
-
-if (process.env.NODE_ENV !== "production") {
-  globalThis.prisma = prisma
+export function createPrismaClient() {
+  const { env } = getCloudflareContext()
+  const adapter = new PrismaD1((env as any).weathercam_guessr_prod)
+  return new PrismaClient({ adapter })
 }

@@ -34,7 +34,14 @@
 	],
 	"observability": {
 		"enabled": true
-	}
+	},
+	"d1_databases": [
+		{
+			"binding": "weathercam_guessr_prod",
+			"database_name": "weathercam-guessr-prod",
+			"database_id": "d86a089a-732a-4241-a6c1-d51854714665"
+		}
+	]
 	/**
 	 * Smart Placement
 	 * https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement

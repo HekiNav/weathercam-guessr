@@ -1,9 +1,12 @@
 "use server";
 
+import { createPrismaClient } from "@/lib/prisma";
 import { cookies } from "next/headers";
-import { prisma } from "@/lib/prisma";
+
 
 export async function logout() {
+  const prisma = createPrismaClient()
+  
   const sessionId = (await cookies()).get("session")?.value
 
   if (sessionId) {

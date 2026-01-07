@@ -18,6 +18,7 @@ model Image {
   reviewState ImageReviewState @default(INCOMPLETE)
   available   Boolean          @default(true)
 }
+
 enum ImageSource {
   DIGITRAFFIC
 }

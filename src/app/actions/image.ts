@@ -1,7 +1,10 @@
 import { FormState } from "@/lib/definitions"
+import { createPrismaClient } from "@/lib/prisma"
 import { Image, Prisma } from "@prisma/client"
 import * as GeoJSON from "geojson"
 let lastUpdateTime = Date.now()
+
+const prisma = createPrismaClient()
 
 export type ImageData = GeoJSON.FeatureCollection<GeoJSON.Point, ImageDataProperties>
 export interface ImageDataProperties {
@@ -21,7 +24,7 @@ async function fetchImages() {
     return await (await fetch("https://tie.digitraffic.fi/api/weathercam/v1/stations")).json() as ImageData
 }
 async function getImages(prismaArgs?: Prisma.ImageFindManyArgs) {
-    if (Date.now() - lastUpdateTime > 3600_000) return await parseImageData(await fetchImages()) // 5s "cache"
+    if (Date.now() - lastUpdateTime > 3600_000) await parseImageData(await fetchImages()) // 5s "cache"
     return prisma?.image.findMany(prismaArgs)
 }
 async function parseImageData(data: ImageData,) {
@@ -30,7 +33,6 @@ async function parseImageData(data: ImageData,) {
         available: preset.inCollection,
     })))
     const now = new Date()
-    console.log("aaa")
 
     await prisma?.$transaction(async tx => {
         // Upsert all items from external source
