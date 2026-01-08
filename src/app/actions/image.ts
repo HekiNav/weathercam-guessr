@@ -25,7 +25,7 @@ async function fetchImages() {
 }
 async function getImages(prismaArgs?: Prisma.ImageFindManyArgs) {
     if (Date.now() - lastUpdateTime > 3600_000) await parseImageData(await fetchImages()) // 1h "cache"
-    return prisma?.image.findMany(prismaArgs)
+    return await (await prisma)?.image.findMany(prismaArgs)
 }
 async function parseImageData(data: ImageData,) {
     const items = data.features.flatMap(({ properties }) => properties.presets.map(preset => ({
@@ -34,7 +34,7 @@ async function parseImageData(data: ImageData,) {
     })))
     const now = new Date()
 
-    await prisma?.$transaction(async tx => {
+    await (await prisma)?.$transaction(async tx => {
         // Upsert all items from external source
         await Promise.all(
             items.map(item =>

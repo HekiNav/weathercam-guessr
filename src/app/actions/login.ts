@@ -15,13 +15,16 @@ export interface OTPFormData {
   otp?: string,
   username?: string
 }
+export async function makeHash(text: string) {
+  return Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", Buffer.from(text)))).map(b => b.toString(16).padStart(2, '0')).join('')
+}
 
 export async function login(state: OTPFormState, { type, email, otp, username }: OTPFormData): Promise<OTPFormState> {
-  const prisma = createPrismaClient()
+  const prisma = await createPrismaClient()
   if (type == "send") {
     const otp = Math.floor(100000 + Math.random() * 900000).toString()
 
-    const hash = crypto.createHash("sha256").update(otp).digest("hex")
+    const hash = await makeHash(otp)
 
 
     const { data, error, success } = EmailSchema.safeParse(email)
@@ -62,7 +65,8 @@ export async function login(state: OTPFormState, { type, email, otp, username }:
       }
     }
 
-    const hash = crypto.createHash("sha256").update(otp).digest("hex")
+    const hash = await makeHash(otp)
+
 
     const record = await prisma.otpCode.findFirst({
       where: {
@@ -113,7 +117,7 @@ export async function login(state: OTPFormState, { type, email, otp, username }:
       step: "success"
     }
   } else if (type == "username") {
-    if (!(await prisma.user.findFirst({where: {email: email}}))) return {
+    if (!(await prisma.user.findFirst({ where: { email: email } }))) return {
       step: "email"
     }
 

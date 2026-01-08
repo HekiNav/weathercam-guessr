@@ -2,11 +2,11 @@
 
 import { startTransition, useActionState, useContext, useEffect, useState } from "react";
 import { login } from "@/app/actions/login";
-import Card from "../ui/card";
+import Card from "../../components/card";
 import { OTPFormState } from "@/lib/definitions";
 import { redirect, useRouter, useSearchParams } from "next/navigation";
 import { UserContext } from "../user-provider";
-import Button from "../ui/button";
+import Button from "../../components/button";
 
 export default function Login() {
 
@@ -29,7 +29,7 @@ export default function Login() {
   }
   useEffect(() => {
     if (step == "success") router.push(successPath)
-  }, [step])
+  }, [step, router, successPath])
 
   return (
     <div className="w-full h-full flex items-center grow justify-center">

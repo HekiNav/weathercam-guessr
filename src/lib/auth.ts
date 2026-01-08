@@ -7,7 +7,7 @@ export async function getCurrentUser() {
   const sessionId = (await cookies()).get("session")?.value
   if (!sessionId) return null;
 
-  const session = await prisma.session.findFirst({
+  const session = await (await prisma).session.findFirst({
     where: {
       id: sessionId,
       expiresAt: { gt: new Date() },

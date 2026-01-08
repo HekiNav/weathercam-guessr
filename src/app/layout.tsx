@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Karla, Share_Tech_Mono } from "next/font/google";
 import { Toaster } from "sonner"
 import "./globals.css";
-import NavBar from "./ui/navbar";
+import NavBar from "@/components/navbar";
 import { getCurrentUser } from "@/lib/auth";
 import UserProvider from "./user-provider";
 

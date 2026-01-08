@@ -1,5 +1,5 @@
 "use client"
-import UserUI from "@/app/ui/user";
+import UserUI from "@/components/user";
 import { UserContext } from "@/app/user-provider";
 import { redirect } from "next/navigation";
 import { useContext } from "react";

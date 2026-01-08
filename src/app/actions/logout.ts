@@ -10,7 +10,7 @@ export async function logout() {
   const sessionId = (await cookies()).get("session")?.value
 
   if (sessionId) {
-    await prisma.session.delete({ where: { id: sessionId } });
+    await (await prisma).session.delete({ where: { id: sessionId } });
   }
 
   (await cookies()).delete("session");

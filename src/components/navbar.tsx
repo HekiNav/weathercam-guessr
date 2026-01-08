@@ -1,6 +1,6 @@
 "use client"
 import { ReactNode, useContext } from "react"
-import { UserContext } from "../user-provider"
+import { UserContext } from "../app/user-provider"
 import IconItem from "./iconitem"
 import { faUser } from "@fortawesome/free-solid-svg-icons"
 import Link from "next/link"
@@ -21,8 +21,8 @@ export default function NavBar() {
             <div className="flex flex-row w-full h-min font-medium">
                 <Link href="/" className="font-mono pr-4 text-green-600">Weathercam-guessr</Link>
                 <div className="divide-x-2 divide-green-600">
-                    {...items.map(({ url, item }) => (
-                        <Link href={url} className="px-1">{item}</Link>
+                    {...items.map(({ url, item },i) => (
+                        <Link key={i} href={url} className="px-1">{item}</Link>
                     ))}
                 </div>
 

@@ -2,10 +2,10 @@
 
 import {useRouter } from "next/navigation";
 import { logout } from "../actions/logout";
-import Card from "../ui/card";
+import Card from "../../components/card";
 import { useContext } from "react";
 import { UserContext } from "../user-provider";
-import Button from "../ui/button";
+import Button from "../../components/button";
 
 export default function Logout() {
   const router = useRouter()
