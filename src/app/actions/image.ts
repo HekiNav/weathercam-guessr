@@ -1,7 +1,8 @@
 import { FormState } from "@/lib/definitions"
 import { createDB } from "@/lib/db"
-import { Image, Prisma } from "@prisma/client"
 import * as GeoJSON from "geojson"
+import { image } from "@/db/schema"
+import { lt, ne, SQL } from "drizzle-orm"
 let lastUpdateTime = Date.now()
 
 const db = createDB()
@@ -23,46 +24,44 @@ async function fetchImages() {
     lastUpdateTime = Date.now()
     return await (await fetch("https://tie.digitraffic.fi/api/weathercam/v1/stations")).json() as ImageData
 }
-async function getImages(prismaArgs?: Prisma.ImageFindManyArgs) {
+async function getImages(condition: SQL, amount = 100) {
     if (Date.now() - lastUpdateTime > 3600_000) await parseImageData(await fetchImages()) // 1h "cache"
-    return await (await db).query.image.findMany()
+    return await (await db).select().from(image).where(condition).limit(amount)
 }
 async function parseImageData(data: ImageData,) {
     const items = data.features.flatMap(({ properties }) => properties.presets.map(preset => ({
         externalId: preset.id,
-        available: preset.inCollection,
+        available: `${preset.inCollection}`,
     })))
     const now = new Date()
 
-    await (await prisma)?.$transaction(async tx => {
-        // Upsert all items from external source
-        await Promise.all(
-            items.map(item =>
-                tx.image.upsert({
-                    where: { externalId: item.externalId },
-                    update: {
+    await Promise.all(
+        items.map(async item =>
+            await (await db)
+                .insert(image)
+                .values({
+                    externalId: item.externalId,
+                    id: crypto.randomUUID(),
+                    available: item.available,
+                    updateTime: now.toISOString(),
+                })
+                .onConflictDoUpdate({
+                    target: image.externalId,
+                    set: {
                         available: item.available,
-                        updateTime: now,
-                    },
-                    create: {
-                        externalId: item.externalId,
-                        available: item.available,
-                        updateTime: now,
+                        updateTime: now.toISOString(),
                     },
                 })
-            )
         )
+    );
 
-        // Mark items missing from digitraffic as unavailable
-        await tx.image.updateMany({
-            where: {
-                updateTime: { lt: now },
-            },
-            data: {
-                available: false,
-            },
+    // Mark items missing from external source as unavailable
+    await (await db)
+        .update(image)
+        .set({
+            available: "false",
         })
-    })
+        .where(lt(image.updateTime, now.toISOString()));
 
 
 
@@ -77,10 +76,11 @@ export async function reviewImages(state: ImageReviewFormState, { type }: ImageR
     switch (type) {
         case "submit":
         case "begin":
-            const images = await getImages({ where: { reviewState: { not: "COMPLETE" } }, take: 1 })
+            const images = Array.from(await getImages(ne(image.reviewState, "COMPLETE"), 1))
+
             if (images && images[0]) return {
                 step: "review",
-                currentImage: images[0]
+                currentImage: {...images[0], updateTime: new Date(images[0].updateTime), available: images[0].available == "true"} as Image
             }
             else return {
                 step: "complete",
