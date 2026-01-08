@@ -6,7 +6,7 @@ import { cookies } from "next/headers";
 import { EmailSchema, OTPFormState, UsernameSchema } from "@/lib/definitions";
 import z from "zod";
 import { createDB } from "@/lib/db";
-import { otpCode } from "@/db/schema";
+import { otpCode, session, user } from "@/db/schema";
 import { and, eq, gt } from "drizzle-orm";
 
 export const runtime = 'edge';
@@ -90,24 +90,19 @@ export async function login(state: OTPFormState, { type, email, otp, username }:
       }
     }
 
-    await prisma.otpCode.update({
-      where: { id: record.id },
-      data: { used: true },
-    })
+    await db.update(otpCode).set({ used: "true" }).where(eq(otpCode.id, record.id))
 
-    const user =
-      (await prisma.user.findUnique({ where: { email } })) ??
-      (await prisma.user.create({ data: { email } }));
-
+    const userData =
+      (await db.query.user.findFirst({ where: eq(user.email, email) })) ??
+      (await db.insert(user).values({ email: email, admin: "false", id: crypto.randomUUID() }).returning())[0];
     // create session
-    const session = await prisma.session.create({
-      data: {
-        userId: user.id,
-        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-      },
-    })
+    const sessionData = (await db.insert(session).values({
+      userId: userData.id,
+      id: crypto.randomUUID(),
+      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+    }).returning())[0]
       // dang parentheses ruining things
-      ; (await cookies()).set("session", session.id, {
+      ; (await cookies()).set("session", sessionData.id, {
         httpOnly: true,
         secure: true,
         sameSite: "lax",
@@ -120,7 +115,7 @@ export async function login(state: OTPFormState, { type, email, otp, username }:
       step: "success"
     }
   } else if (type == "username") {
-    if (!(await prisma.user.findFirst({ where: { email: email } }))) return {
+    if (!(await db.query.user.findFirst({ where: eq(user.email, email) }))) return {
       step: "email"
     }
 
@@ -133,10 +128,8 @@ export async function login(state: OTPFormState, { type, email, otp, username }:
       step: state.step
     }
 
-    await prisma.user.update({
-      where: { email: email },
-      data: { name: data }
-    })
+    await db.update(user).set({name: data}).where(eq(user.email, email))
+
     return {
       step: "success"
     }
