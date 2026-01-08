@@ -24,7 +24,7 @@ async function fetchImages() {
     return await (await fetch("https://tie.digitraffic.fi/api/weathercam/v1/stations")).json() as ImageData
 }
 async function getImages(prismaArgs?: Prisma.ImageFindManyArgs) {
-    if (Date.now() - lastUpdateTime > 3600_000) await parseImageData(await fetchImages()) // 5s "cache"
+    if (Date.now() - lastUpdateTime > 3600_000) await parseImageData(await fetchImages()) // 1h "cache"
     return prisma?.image.findMany(prismaArgs)
 }
 async function parseImageData(data: ImageData,) {
