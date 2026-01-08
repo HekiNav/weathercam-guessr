@@ -9,8 +9,6 @@ import { createDB } from "@/lib/db";
 import { otpCode, session, user } from "@/db/schema";
 import { and, eq, gt } from "drizzle-orm";
 
-export const runtime = 'edge';
-
 const resend = new Resend(process.env.RESEND_API_KEY!)
 
 export interface OTPFormData {

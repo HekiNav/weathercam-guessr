@@ -1,4 +1,4 @@
-import { sqliteTable, AnySQLiteColumn, integer, text, numeric, uniqueIndex, foreignKey, real } from "drizzle-orm/sqlite-core"
+import { sqliteTable, integer, text, numeric, uniqueIndex, real } from "drizzle-orm/sqlite-core"
   import { sql } from "drizzle-orm"
 
 export const d1Migrations = sqliteTable("d1_migrations", {
@@ -15,7 +15,7 @@ export const image = sqliteTable("Image", {
 	difficulty: text().default("UNCLASSIFIED").notNull(),
 	updateTime: numeric().default(sql`(CURRENT_TIMESTAMP)`).notNull(),
 	reviewState: text().default("INCOMPLETE").notNull(),
-	available: numeric().default(true).notNull(),
+	available: numeric().default("true").notNull(),
 },
 (table) => [
 	uniqueIndex("Image_externalId_key").on(table.externalId),

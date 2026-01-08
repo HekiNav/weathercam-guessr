@@ -11,5 +11,5 @@ export async function getCurrentUser() {
 
   const sessionData = await (await db).query.user.findFirst({where: and(eq(session.id, sessionId), gt(session.expiresAt, new Date().toISOString()))})
 
-  return sessionData?.name ?? null
+  return sessionData ?? null
 }

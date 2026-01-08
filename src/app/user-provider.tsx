@@ -1,5 +1,4 @@
 "use client"
-import { User } from "@prisma/client";
 import { createContext, PropsWithChildren } from "react";
 
 export interface userProviderProps extends PropsWithChildren { user: User | null }
