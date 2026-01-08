@@ -1,10 +1,10 @@
 import { FormState } from "@/lib/definitions"
-import { createPrismaClient } from "@/lib/prisma"
+import { createDB } from "@/lib/db"
 import { Image, Prisma } from "@prisma/client"
 import * as GeoJSON from "geojson"
 let lastUpdateTime = Date.now()
 
-const prisma = createPrismaClient()
+const db = createDB()
 
 export type ImageData = GeoJSON.FeatureCollection<GeoJSON.Point, ImageDataProperties>
 export interface ImageDataProperties {
@@ -25,7 +25,7 @@ async function fetchImages() {
 }
 async function getImages(prismaArgs?: Prisma.ImageFindManyArgs) {
     if (Date.now() - lastUpdateTime > 3600_000) await parseImageData(await fetchImages()) // 1h "cache"
-    return await (await prisma)?.image.findMany(prismaArgs)
+    return await (await db).query.image.findMany()
 }
 async function parseImageData(data: ImageData,) {
     const items = data.features.flatMap(({ properties }) => properties.presets.map(preset => ({

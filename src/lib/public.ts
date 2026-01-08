@@ -1,7 +1,10 @@
-import { createPrismaClient } from "./prisma"
+import { user } from "@/db/schema"
+import { createDB } from "./db"
+import { eq, or } from "drizzle-orm"
 
 // public data functions for users
-const prisma = createPrismaClient()
 export async function getUser(identifier: string) {
-    return (await prisma)?.user.findFirst({where: {OR: [{id: identifier}, {name: identifier}]}, select: {id: true, name: true, createdAt: true, admin: true}})
+    const db = createDB()
+
+    return (await db).select({}).from(user).where(or(eq(user.id, identifier), eq(user.name, identifier)))
 }

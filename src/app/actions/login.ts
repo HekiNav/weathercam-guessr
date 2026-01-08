@@ -2,10 +2,14 @@
 
 import crypto from "crypto";
 import { Resend } from "resend";
-import { createPrismaClient } from "@/lib/prisma";
 import { cookies } from "next/headers";
 import { EmailSchema, OTPFormState, UsernameSchema } from "@/lib/definitions";
 import z from "zod";
+import { createDB } from "@/lib/db";
+import { otpCode } from "@/db/schema";
+import { and, eq, gt } from "drizzle-orm";
+
+export const runtime = 'edge';
 
 const resend = new Resend(process.env.RESEND_API_KEY!)
 
@@ -20,7 +24,7 @@ export async function makeHash(text: string) {
 }
 
 export async function login(state: OTPFormState, { type, email, otp, username }: OTPFormData): Promise<OTPFormState> {
-  const prisma = await createPrismaClient()
+  const db = await createDB()
   if (type == "send") {
     const otp = Math.floor(100000 + Math.random() * 900000).toString()
 
@@ -37,12 +41,12 @@ export async function login(state: OTPFormState, { type, email, otp, username }:
       step: state.step
     }
 
-    await prisma.otpCode.create({
-      data: {
-        email: data,
-        codeHash: hash,
-        expiresAt: new Date(Date.now() + 10 * 60 * 1000),
-      },
+    await db.insert(otpCode).values({
+      email: data,
+      codeHash: hash,
+      expiresAt: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
+      used: "false",
+      id: crypto.randomUUID()
     })
     await resend.emails.send({
       from: process.env.FROM_EMAIL!,
@@ -68,14 +72,13 @@ export async function login(state: OTPFormState, { type, email, otp, username }:
     const hash = await makeHash(otp)
 
 
-    const record = await prisma.otpCode.findFirst({
-      where: {
-        email,
-        codeHash: hash,
-        used: false,
-        expiresAt: { gt: new Date() },
-      },
-      orderBy: { createdAt: "desc" },
+    const record = await db.query.otpCode.findFirst({
+      where: and(
+        eq(otpCode.email, email),
+        eq(otpCode.codeHash, hash),
+        eq(otpCode.used, "false"),
+        gt(otpCode.expiresAt, new Date().toISOString()),
+      )
     })
 
     if (!record) {
