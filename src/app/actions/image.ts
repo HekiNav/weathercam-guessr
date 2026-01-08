@@ -66,6 +66,16 @@ async function parseImageData(data: ImageData,) {
 
 
 }
+export interface Image {
+    id: string
+    externalId: string
+    source: string
+    type: string
+    difficulty: string
+    updateTime: string,
+    reviewState: string
+    available: boolean
+}
 export interface ImageReviewFormState extends FormState<["difficulty", "blurRect", "type"]> {
     currentImage: Image | null
 }
@@ -80,7 +90,7 @@ export async function reviewImages(state: ImageReviewFormState, { type }: ImageR
 
             if (images && images[0]) return {
                 step: "review",
-                currentImage: {...images[0], updateTime: new Date(images[0].updateTime), available: images[0].available == "true"} as Image
+                currentImage: { ...images[0], available: images[0].available == "true" } as Image
             }
             else return {
                 step: "complete",
