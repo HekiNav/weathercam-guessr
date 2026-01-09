@@ -1,3 +1,4 @@
+"use server"
 import { FormState } from "@/lib/definitions"
 import { createDB } from "@/lib/db"
 import * as GeoJSON from "geojson"
@@ -25,7 +26,8 @@ async function fetchImages() {
     return await (await fetch("https://tie.digitraffic.fi/api/weathercam/v1/stations")).json() as ImageData
 }
 async function getImages(condition: SQL, amount = 100, db: DrizzleD1Database<typeof schema>) {
-    if (Date.now() - lastUpdateTime > 3600_000) await parseImageData(await fetchImages(), db) // 1h "cache"
+    // TODO: migrate this to a Cron trigger
+    //if (Date.now() - lastUpdateTime > 3600_000) await parseImageData(await fetchImages(), db) // 1h "cache"
     return await db.select().from(image).where(condition).limit(amount)
 }
 async function parseImageData(data: ImageData, db: DrizzleD1Database<typeof schema>) {
@@ -88,6 +90,8 @@ export async function reviewImages(state: ImageReviewFormState, { type }: ImageR
         case "submit":
         case "begin":
             const images = Array.from(await getImages(ne(image.reviewState, "COMPLETE"), 1, db))
+
+            console.log(images)
 
             if (images && images[0]) return {
                 step: "review",
