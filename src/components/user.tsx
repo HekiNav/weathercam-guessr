@@ -1,4 +1,4 @@
-import { User } from "@prisma/client";
+import { User } from "@/lib/definitions";
 import CopyItem from "./copy";
 import moment from "moment"
 

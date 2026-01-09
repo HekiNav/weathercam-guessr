@@ -20,11 +20,11 @@ export type OTPFormState = FormState<["email", "otp", "username"]>
 
 export interface User {
   id:        string    
-  name?:      string
+  name:      string | null
   admin:     boolean   
   email:     string    
-  createdAt: string  
-  sessions:  Session[]
+  createdAt: number  
+  sessions?:  Session[]
 }
 
 

@@ -7,5 +7,5 @@ export async function getUser(identifier: string) {
     const db = createDB()
     const data = (await (await db).select().from(user).where(or(eq(user.id, identifier), eq(user.name, identifier))))[0]
     console.log(data)
-    return data
+    return {...data, admin: data.admin == "true"}
 }

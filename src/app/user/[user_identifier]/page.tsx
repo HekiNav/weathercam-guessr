@@ -20,7 +20,7 @@ export default async function UserPage({ params }: { params: Promise<{ user_iden
     }
     return (
         <div>
-            <UserUI user={{...user, email: ""}}></UserUI>
+            <UserUI user={{...user, email: "", admin: user.admin}}></UserUI>
         </div>
     )
 }
