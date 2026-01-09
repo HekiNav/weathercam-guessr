@@ -17,3 +17,19 @@ export type FormState<E extends readonly string[]> =
     step?: string
   }
 export type OTPFormState = FormState<["email", "otp", "username"]>
+
+export interface User {
+  id:        string    
+  name?:      string
+  admin:     boolean   
+  email:     string    
+  createdAt: string  
+  sessions:  Session[]
+}
+
+
+export interface Session {
+  id:        string
+  userId:    string
+  expiresAt: string
+}
