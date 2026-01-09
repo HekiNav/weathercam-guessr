@@ -1,11 +1,11 @@
 import { FormState } from "@/lib/definitions"
 import { createDB } from "@/lib/db"
 import * as GeoJSON from "geojson"
-import { image } from "@/db/schema"
+import * as schema from "@/db/schema"
 import { lt, ne, SQL } from "drizzle-orm"
+import { DrizzleD1Database } from "drizzle-orm/d1"
+import { image } from "@/db/schema"
 let lastUpdateTime = Date.now()
-
-const db = createDB()
 
 export type ImageData = GeoJSON.FeatureCollection<GeoJSON.Point, ImageDataProperties>
 export interface ImageDataProperties {
@@ -24,44 +24,44 @@ async function fetchImages() {
     lastUpdateTime = Date.now()
     return await (await fetch("https://tie.digitraffic.fi/api/weathercam/v1/stations")).json() as ImageData
 }
-async function getImages(condition: SQL, amount = 100) {
-    if (Date.now() - lastUpdateTime > 3600_000) await parseImageData(await fetchImages()) // 1h "cache"
-    return await (await db).select().from(image).where(condition).limit(amount)
+async function getImages(condition: SQL, amount = 100, db: DrizzleD1Database<typeof schema>) {
+    if (Date.now() - lastUpdateTime > 3600_000) await parseImageData(await fetchImages(), db) // 1h "cache"
+    return await db.select().from(image).where(condition).limit(amount)
 }
-async function parseImageData(data: ImageData,) {
+async function parseImageData(data: ImageData, db: DrizzleD1Database<typeof schema>) {
     const items = data.features.flatMap(({ properties }) => properties.presets.map(preset => ({
         externalId: preset.id,
         available: `${preset.inCollection}`,
     })))
-    const now = new Date()
+    const now = Date.now()
 
     await Promise.all(
         items.map(async item =>
-            await (await db)
+            await db
                 .insert(image)
                 .values({
                     externalId: item.externalId,
                     id: crypto.randomUUID(),
                     available: item.available,
-                    updateTime: now.toISOString(),
+                    updateTime: now,
                 })
                 .onConflictDoUpdate({
                     target: image.externalId,
                     set: {
                         available: item.available,
-                        updateTime: now.toISOString(),
+                        updateTime: now,
                     },
                 })
         )
     );
 
     // Mark items missing from external source as unavailable
-    await (await db)
+    await db
         .update(image)
         .set({
             available: "false",
         })
-        .where(lt(image.updateTime, now.toISOString()));
+        .where(lt(image.updateTime, now));
 
 
 
@@ -72,7 +72,7 @@ export interface Image {
     source: string
     type: string
     difficulty: string
-    updateTime: string,
+    updateTime: number,
     reviewState: string
     available: boolean
 }
@@ -83,10 +83,11 @@ export interface ImageReviewData {
     type: "begin" | "submit"
 }
 export async function reviewImages(state: ImageReviewFormState, { type }: ImageReviewData): Promise<ImageReviewFormState> {
+    const db = await createDB()
     switch (type) {
         case "submit":
         case "begin":
-            const images = Array.from(await getImages(ne(image.reviewState, "COMPLETE"), 1))
+            const images = Array.from(await getImages(ne(image.reviewState, "COMPLETE"), 1, db))
 
             if (images && images[0]) return {
                 step: "review",

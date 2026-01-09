@@ -42,7 +42,7 @@ export async function login(state: OTPFormState, { type, email, otp, username }:
     await db.insert(otpCode).values({
       email: data,
       codeHash: hash,
-      expiresAt: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
+      expiresAt: new Date(Date.now() + 10 * 60 * 1000).getTime(),
       used: "false",
       id: crypto.randomUUID()
     })
@@ -75,7 +75,7 @@ export async function login(state: OTPFormState, { type, email, otp, username }:
         eq(otpCode.email, email),
         eq(otpCode.codeHash, hash),
         eq(otpCode.used, "false"),
-        gt(otpCode.expiresAt, new Date().toISOString()),
+        gt(otpCode.expiresAt, new Date().getTime()),
       )
     })
 
@@ -97,7 +97,7 @@ export async function login(state: OTPFormState, { type, email, otp, username }:
     const sessionData = (await db.insert(session).values({
       userId: userData.id,
       id: crypto.randomUUID(),
-      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).getTime(),
     }).returning())[0]
       // dang parentheses ruining things
       ; (await cookies()).set("session", sessionData.id, {
@@ -113,9 +113,11 @@ export async function login(state: OTPFormState, { type, email, otp, username }:
       step: "success"
     }
   } else if (type == "username") {
+
     if (!(await db.query.user.findFirst({ where: eq(user.email, email) }))) return {
       step: "email"
     }
+
 
     const { success, error, data } = UsernameSchema.safeParse(username)
 
@@ -126,7 +128,7 @@ export async function login(state: OTPFormState, { type, email, otp, username }:
       step: state.step
     }
 
-    await db.update(user).set({name: data}).where(eq(user.email, email))
+    await db.update(user).set({ name: data }).where(eq(user.email, email))
 
     return {
       step: "success"
