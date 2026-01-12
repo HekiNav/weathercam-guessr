@@ -9,18 +9,20 @@ import { toast } from "sonner"
 import Dropdown, { DropdownItem } from "@/components/dropdown"
 import ImageWithBlur from "@/components/blurredimage"
 
+export enum UnclassifiedEnum {
+    UNCLASSIFIED = "UNCLASSIFIED",
+}
+
 export enum ImageType {
     ROAD_SURFACE = "ROAD_SURFACE",
     SCENERY = "SCENERY",
     ROAD = "ROAD",
-    UNCLASSIFIED = "UNCLASSIFIED",
 }
 
 export enum ImageDifficulty {
     EASY = "EASY",
     MEDIUM = "MEDIUM",
     HARD = "HARD",
-    UNCLASSIFIED = "UNCLASSIFIED"
 }
 export interface BlurRect {
     x: number
@@ -39,8 +41,8 @@ export default function ReviewPage() {
     }
     const [{ step, errors, currentImage }, action, pending] = useActionState(reviewImages, { currentImage: null, step: "start" } as ImageReviewFormState)
 
-    const [difficulty, setDifficulty] = useState<ImageDifficulty>((currentImage?.difficulty as ImageDifficulty) || ImageDifficulty.UNCLASSIFIED)
-    const [type, setType] = useState<ImageType>((currentImage?.type as ImageType) || ImageType.UNCLASSIFIED)
+    const [difficulty, setDifficulty] = useState<ImageDifficulty | UnclassifiedEnum>((currentImage?.difficulty as ImageDifficulty) || UnclassifiedEnum.UNCLASSIFIED)
+    const [type, setType] = useState<ImageType | UnclassifiedEnum>((currentImage?.type as ImageType) || UnclassifiedEnum.UNCLASSIFIED)
     const [blurRect, setBlurRect] = useState<BlurRect | null>((currentImage?.rect as BlurRect | undefined) || null)
     const [tempBlurRect, setTempBlurRect] = useState<BlurRect>((currentImage?.rect as BlurRect | undefined) || {
         x: 0,
@@ -89,12 +91,24 @@ export default function ReviewPage() {
                 )}
                 {(step == "review" && currentImage) && (
                     <div className="w-full flex flex-row divide-x-2 divide-green-600 p-4">
-                        <div className="flex flex-col w-full pb-2 shrink w-min pr-2">
-                            <span>Difficulty</span>
+                        {/* Sidebar */}
+                        <div className="flex flex-col w-full pb-2 shrink w-min pr-2 text-nowrap">
+                            <span>Reason for review:</span>
+                            <span className={`capitalize shadow-lg/20 p-1 rounded ${currentImage.reviewState == "REPORTED" ? "bg-red-600" : "bg-yellow-600"}`}>{currentImage.reviewState}</span>
+                            <span className="mt-2">Difficulty</span>
                             <Dropdown onSet={(item) => item.id && setDifficulty(item.id)} items={difficultyItems} initial={difficultyItems.find(i => i.id == difficulty)?.content || "Unclassified"}></Dropdown>
+                            <div className="text-red-600">{errors?.imageDifficulty?.join(", ")}</div>
                             <span className="mt-2">Type</span>
                             <Dropdown onSet={(item) => item.id && setType(item.id)} items={typeItems} initial={typeItems.find(i => i.id == type)?.content || "Unclassified"}></Dropdown>
+                            <div className="text-red-600">{errors?.imageType?.join(", ")}</div>
+                            <span className="mt-2">Blur rect</span>
+                            <div className="p-1 rounded border-2 border-green-600 shadow-lg/20">
+                                {(blurRect) ? (<>Left: {blurRect.x}<br /> Top: {blurRect.y}<br /> Right: {blurRect.width}<br /> Bottom: {blurRect.height}</>) : (<>Unset</>)}
+                            </div>
+                            <div className="text-red-600">{errors?.blurRect?.join(", ")}</div>
+                            <Button className="mt-2" onClick={() => { startTransition(() => action({ type: "submit", imageDifficulty: difficulty, imageType: type, blurRect: blurRect })) }}>Submit</Button>
                         </div>
+
                         <ImageWithBlur src={getImageUrl(currentImage?.externalId, currentImage?.source)} className="w-full h-full grow ml-2" alt="image" blur={tempBlurRect} onMouseMove={(e) => {
                             const el = (e.target as HTMLDivElement)
                             const rect = el.getBoundingClientRect()
@@ -103,7 +117,7 @@ export default function ReviewPage() {
                             const y = e.clientY - rect.top
                             if (Math.pow(x, 2) + Math.pow(y, 2) < Math.pow(rect.width * 0.6, 2) + Math.pow(rect.height * 0.6, 2))
                                 setTempBlurRect({ x: 0, y: 0, width: Math.round(x / rect.width * 100), height: Math.round(y / rect.height * 100) })
-                            else setTempBlurRect({ x: Math.round(x / rect.width * 100), y: Math.round(y / rect.height * 100), width: 100, height: 100})
+                            else setTempBlurRect({ x: Math.round(x / rect.width * 100), y: Math.round(y / rect.height * 100), width: 100, height: 100 })
                         }} onClick={() => setBlurRect(tempBlurRect)} />
                     </div>
                 )}

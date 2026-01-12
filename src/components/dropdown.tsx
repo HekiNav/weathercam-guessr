@@ -40,7 +40,7 @@ export default function Dropdown<T extends string>(props: DropdownProps<T>) {
                 onClick={toggleDropdown}
             >
                 {selectedLanguage.content}
-                <Icon icon={faCaretDown}></Icon>
+                <Icon className="ml-1" icon={faCaretDown}></Icon>
             </button>
 
             {isOpen && (
