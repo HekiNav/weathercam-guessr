@@ -58,8 +58,8 @@ export const rectRelations = relations(rect, ({ one }) => ({
 	}),
 }));
 
-export const imageRelations = relations(image, ({ many }) => ({
-	rects: many(rect),
+export const imageRelations = relations(image, ({ one }) => ({
+	rect: one(rect),
 }));
 
 export const sessionRelations = relations(session, ({ one }) => ({

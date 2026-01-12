@@ -34,12 +34,12 @@ export default async function RootLayout({
 			<head>
 				<link rel="icon" href="/favicon.svg" type="image/svg+xml"></link>
 			</head>
-			<body className={`${karla.variable} ${shareTechMono.variable} antialiased bg-white`}>
+			<body className={`${karla.variable} ${shareTechMono.variable} antialiased bg-white h-full`}>
 				<Toaster richColors position="top-right"></Toaster>
 
 				<UserProvider user={user}>
-					<div className="flex flex-col min-h-screen">
-						<div className="min-h-screen shadow-lg/20 flex flex-col">
+					<div className="flex flex-col min-h-screen h-screen">
+						<div className="min-h-screen shadow-lg/20 flex flex-col h-fit">
 							<NavBar></NavBar>
 							{children}
 						</div>

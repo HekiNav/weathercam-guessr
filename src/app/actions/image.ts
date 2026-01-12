@@ -6,6 +6,7 @@ import * as schema from "@/db/schema"
 import { lt, ne, SQL } from "drizzle-orm"
 import { DrizzleD1Database } from "drizzle-orm/d1"
 import { image } from "@/db/schema"
+import { BlurRect } from "../review/page"
 let lastUpdateTime = Date.now()
 
 export type ImageData = GeoJSON.FeatureCollection<GeoJSON.Point, ImageDataProperties>
@@ -28,7 +29,9 @@ async function fetchImages() {
 async function getImages(condition: SQL, amount = 100, db: DrizzleD1Database<typeof schema>) {
     // TODO: migrate this to a Cron trigger
     //if (Date.now() - lastUpdateTime > 3600_000) await parseImageData(await fetchImages(), db) // 1h "cache"
-    return await db.select().from(image).where(condition).limit(amount)
+    return await db.query.image.findMany({
+        with: {rect: true}
+    })//.where(condition).limit(amount)
 }
 async function parseImageData(data: ImageData, db: DrizzleD1Database<typeof schema>) {
     const items = data.features.flatMap(({ properties }) => properties.presets.map(preset => ({
@@ -76,7 +79,8 @@ export interface Image {
     difficulty: string
     updateTime: number,
     reviewState: string
-    available: boolean
+    available: boolean,
+    rect: BlurRect
 }
 export interface ImageReviewFormState extends FormState<["difficulty", "blurRect", "type"]> {
     currentImage: Image | null
