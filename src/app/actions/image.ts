@@ -31,8 +31,10 @@ async function getImages(condition: SQL, amount = 100, db: DrizzleD1Database<typ
     // TODO: migrate this to a Cron trigger
     //if (Date.now() - lastUpdateTime > 3600_000) await parseImageData(await fetchImages(), db) // 1h "cache"
     return await db.query.image.findMany({
-        with: { rect: true }
-    })//.where(condition).limit(amount)
+        with: { rect: true },
+        where: condition,
+        limit: amount
+    })
 }
 async function parseImageData(data: ImageData, db: DrizzleD1Database<typeof schema>) {
     const items = data.features.flatMap(({ properties }) => properties.presets.map(preset => ({

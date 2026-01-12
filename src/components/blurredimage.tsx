@@ -21,6 +21,7 @@ export default function ImageWithBlur(props: ImageWithBlurProps) {
         }}>
 
             <img className="max-h-100" style={{
+                margin: "-5px -10px -10px -5px",
                 height: "100%",
                 filter: "blur(4px)",
                 backgroundSize: "100%",

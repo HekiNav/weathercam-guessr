@@ -115,7 +115,7 @@ export default function ReviewPage() {
                             if (!rect) return
                             const x = e.clientX - rect.left
                             const y = e.clientY - rect.top
-                            if (Math.pow(x, 2) + Math.pow(y, 2) < Math.pow(rect.width * 0.6, 2) + Math.pow(rect.height * 0.6, 2))
+                            if (y < rect.height * 0.5)
                                 setTempBlurRect({ x: 0, y: 0, width: Math.round(x / rect.width * 100), height: Math.round(y / rect.height * 100) })
                             else setTempBlurRect({ x: Math.round(x / rect.width * 100), y: Math.round(y / rect.height * 100), width: 100, height: 100 })
                         }} onClick={() => setBlurRect(tempBlurRect)} />
