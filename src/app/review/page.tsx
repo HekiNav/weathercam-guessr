@@ -106,19 +106,19 @@ export default function ReviewPage() {
                                 {(blurRect) ? (<>Left: {blurRect.x}<br /> Top: {blurRect.y}<br /> Right: {blurRect.width}<br /> Bottom: {blurRect.height}</>) : (<>Unset</>)}
                             </div>
                             <div className="text-red-600">{errors?.blurRect?.join(", ")}</div>
-                            <Button className="mt-2" onClick={() => { startTransition(() => action({ type: "submit", imageDifficulty: difficulty, imageType: type, blurRect: blurRect })) }}>Submit</Button>
+                            <Button disabled={pending} className="mt-2" onClick={() => { startTransition(() => action({ type: "submit", imageDifficulty: difficulty, imageType: type, blurRect: blurRect })) }}>Submit</Button>
                         </div>
 
                         <ImageWithBlur src={getImageUrl(currentImage?.externalId, currentImage?.source)} className="w-full h-full grow ml-2" alt="image" blur={tempBlurRect} onMouseMove={(e) => {
-                            const el = (e.target as HTMLDivElement)
-                            const rect = el.getBoundingClientRect()
+                            const el = (e.target as HTMLImageElement).classList.contains("image") ? (e.target as HTMLImageElement) : (e.target as HTMLImageElement).parentElement?.querySelector(".image")
+                            const rect = el?.getBoundingClientRect()
                             if (!rect) return
-                            const x = e.clientX - rect.left
-                            const y = e.clientY - rect.top
+                            let x = e.clientX - rect.left
+                            let y = e.clientY - rect.top
                             if (y < rect.height * 0.5)
                                 setTempBlurRect({ x: 0, y: 0, width: Math.round(x / rect.width * 100), height: Math.round(y / rect.height * 100) })
                             else setTempBlurRect({ x: Math.round(x / rect.width * 100), y: Math.round(y / rect.height * 100), width: 100, height: 100 })
-                        }} onClick={() => setBlurRect(tempBlurRect)} />
+                        }} onClick={() => setBlurRect(tempBlurRect)} onMouseOut={() => blurRect && setTempBlurRect(blurRect)} />
                     </div>
                 )}
                 {step == "complete" && (

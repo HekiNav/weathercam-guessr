@@ -1,3 +1,4 @@
+import { ReactNode } from 'react';
 import * as z from 'zod'
 
 export const EmailSchema = z.email({ error: 'Please enter a valid email.' }).trim()
@@ -19,17 +20,40 @@ export type FormState<E extends readonly string[]> =
 export type OTPFormState = FormState<["email", "otp", "username"]>
 
 export interface User {
-  id:        string    
-  name:      string | null
-  admin:     boolean   
-  email:     string    
-  createdAt: number  
-  sessions?:  Session[]
+  id: string
+  name: string | null
+  admin: boolean
+  email: string
+  createdAt: number
+  sessions?: Session[]
 }
 
 
 export interface Session {
-  id:        string
-  userId:    string
+  id: string
+  userId: string
   expiresAt: string
+}
+
+export interface GameMode {
+  id: string,
+  name: ReactNode,
+  description: ReactNode,
+  available: boolean
+}
+
+export const gameModes: GameMode[] = [{
+  id: "daily",
+  name: "Daily challenge",
+  description: "Play a daily game of five images",
+  available: false
+}, {
+  id: "practice",
+  name: "Practice",
+  description: "Practice your skills with a customizable, endless game",
+  available: false
+}]
+
+export function rib(a: number, b: number) {
+  return Math.floor(Math.random() * (b - a) + a)
 }
