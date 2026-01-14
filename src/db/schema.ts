@@ -11,6 +11,8 @@ export const image = sqliteTable("Image", {
 	updateTime: integer().default(sql`(CURRENT_TIMESTAMP)`).notNull(),
 	reviewState: text().default("INCOMPLETE").notNull(),
 	available: numeric().default("true").notNull(),
+	lat: real().notNull().default(0),
+	lon: real().notNull().default(0),
 },
 	(table) => [
 		uniqueIndex("Image_externalId_key").on(table.externalId),

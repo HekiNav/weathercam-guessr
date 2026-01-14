@@ -29,7 +29,7 @@ async function fetchImages() {
 }
 async function getImages(condition: SQL, amount = 100, db: DrizzleD1Database<typeof schema>) {
     // TODO: migrate this to a Cron trigger
-    //if (Date.now() - lastUpdateTime > 3600_000) await parseImageData(await fetchImages(), db) // 1h "cache"
+    /* if (Date.now() - lastUpdateTime > 3600_000)await parseImageData(await fetchImages(), db) // 1h "cache"  */
     return await db.query.image.findMany({
         with: { rect: true },
         where: condition,
@@ -37,9 +37,11 @@ async function getImages(condition: SQL, amount = 100, db: DrizzleD1Database<typ
     })
 }
 async function parseImageData(data: ImageData, db: DrizzleD1Database<typeof schema>) {
-    const items = data.features.flatMap(({ properties }) => properties.presets.map(preset => ({
+    const items = data.features.flatMap(({ properties, geometry }) => properties.presets.map(preset => ({
         externalId: preset.id,
         available: `${preset.inCollection}`,
+        lat: geometry.coordinates[0],
+        lon: geometry.coordinates[1]
     })))
     const now = Date.now()
 
@@ -52,12 +54,16 @@ async function parseImageData(data: ImageData, db: DrizzleD1Database<typeof sche
                     id: crypto.randomUUID(),
                     available: item.available,
                     updateTime: now,
+                    lat: item.lat,
+                    lon: item.lon
                 })
                 .onConflictDoUpdate({
                     target: image.externalId,
                     set: {
                         available: item.available,
                         updateTime: now,
+                        lat: item.lat,
+                        lon: item.lon
                     },
                 })
         )
@@ -83,7 +89,9 @@ export interface Image {
     updateTime: number,
     reviewState: string
     available: boolean,
-    rect: BlurRect
+    rect: BlurRect,
+    lat: number,
+    lon: number
 }
 export interface ImageReviewFormState extends FormState<["difficulty", "blurRect", "type"]> {
     currentImage: Image | null
