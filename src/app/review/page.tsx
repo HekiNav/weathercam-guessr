@@ -1,5 +1,5 @@
 "use client"
-import { startTransition, useActionState, useContext, useState } from "react"
+import { startTransition, useActionState, useContext, useEffect, useState } from "react"
 import { ImageReviewFormState, reviewImages } from "../actions/image"
 import Card from "../../components/card"
 import Button from "../../components/button"
@@ -36,8 +36,12 @@ export default function ReviewPage() {
 
 
     if (!user?.admin) {
-        toast.error("You aren't supposed to be there")
-        redirect("/")
+        useEffect(() => {
+            toast.error("You aren't supposed to be there")
+            redirect("/")
+        })
+        return <div></div>
+
     }
     const [{ step, errors, currentImage }, action, pending] = useActionState(reviewImages, { currentImage: null, step: "start" } as ImageReviewFormState)
 

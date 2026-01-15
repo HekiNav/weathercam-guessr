@@ -27,7 +27,7 @@ export default async function Home() {
 					</div>
 				) : (
 					<div>
-						<Link href="/play/practice"><Button>Practice without account</Button></Link> or <Link href="/play/practice"><Button>Log in</Button></Link>
+						<Link href="/play/practice"><Button>Practice without account</Button></Link> or <Link href="/login"><Button>Log in</Button></Link>
 					</div>
 				)}
 			</div>

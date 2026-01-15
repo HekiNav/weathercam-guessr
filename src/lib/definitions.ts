@@ -51,7 +51,7 @@ export const gameModes: GameMode[] = [{
   id: "practice",
   name: "Practice",
   description: "Practice your skills with a customizable, endless game",
-  available: false
+  available: true
 }]
 
 export function rib(a: number, b: number) {

@@ -3,12 +3,11 @@ import game from "@/app/actions/game"
 import Card from "@/components/card"
 import Dropdown, { DropdownItem } from "@/components/dropdown"
 import { gameModes } from "@/lib/definitions"
+import { use, useActionState, useEffect } from "react"
+import Cookies from "js-cookie"
 import { redirect } from "next/navigation"
-import { use, useActionState } from "react"
-import Map from "react-map-gl/maplibre"
-import { toast } from "react-hot-toast"
-import { setToastCookie } from "@/app/actions/toast"
-import { ToastCookieSetter } from "@/components/toast"
+import toast from "react-hot-toast"
+
 
 export default function BlogPostPage({
   params,
@@ -19,14 +18,20 @@ export default function BlogPostPage({
 
   const gameMode = gameModes.find(m => m.id == type)
 
-  if (!gameMode) { 
-    return (
-      <div>
-        <ToastCookieSetter message={`Invalid game mode: ${type}`} redirect="/play"/>
-      </div>
-    )
+  if (!gameMode) {
+    useEffect(() => {
+      toast.error(`Invalid game mode: ${type}`)
+      redirect("/play")
+    })
+    return <div></div>
   }
-
+  if (!gameMode.available) {
+    useEffect(() => {
+      toast.error(`Not available yet: ${gameMode.name}`)
+      redirect("/play")
+    })
+    return <div></div>
+  }
 
   const [{ errors, image, points, step }, action, pending] = useActionState(game, { step: "init" })
 
