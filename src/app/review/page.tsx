@@ -5,7 +5,7 @@ import Card from "../../components/card"
 import Button from "../../components/button"
 import { UserContext } from "../user-provider"
 import { redirect } from "next/navigation"
-import { toast } from "sonner"
+import { toast } from "react-hot-toast"
 import Dropdown, { DropdownItem } from "@/components/dropdown"
 import ImageWithBlur from "@/components/blurredimage"
 
@@ -36,7 +36,7 @@ export default function ReviewPage() {
 
 
     if (!user?.admin) {
-        toast.warning("You aren't supposed to be there")
+        toast.error("You aren't supposed to be there")
         redirect("/")
     }
     const [{ step, errors, currentImage }, action, pending] = useActionState(reviewImages, { currentImage: null, step: "start" } as ImageReviewFormState)

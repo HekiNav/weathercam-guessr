@@ -2,7 +2,7 @@
 import { faCheck, faCopy, faX } from "@fortawesome/free-solid-svg-icons";
 import Icon from "./icon";
 import { useState } from "react";
-import { toast } from "sonner";
+import { toast } from "react-hot-toast";
 
 export default function CopyItem({content, prefix}:{content: string, prefix: string}){
     const [icon, setIcon] = useState(faCopy)

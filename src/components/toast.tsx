@@ -1,18 +1,16 @@
-"use client"
-import { PropsWithChildren, useEffect } from "react";
-import { toast } from "sonner";
+"use server"
 
-export interface ToastProps extends PropsWithChildren {
-    type?: "error" | "info" | "warning",
-}
+import { setToastCookie } from "@/app/actions/toast"
+import { redirect } from "next/navigation"
+import { useEffect } from "react"
 
-export default function Toast({ children, type }: ToastProps) {
+export async function ToastCookieSetter(props: { message: string, type?: "error" | "success" | "warning", redirect?: string }) {
     useEffect(() => {
-        if (type) toast[type](children);
-        else toast(children);
+        setToastCookie(props.message, props.type)
+        if (props.redirect) redirect(props.redirect)
     })
 
     return (
-        <></>
+        <div></div>
     )
 }

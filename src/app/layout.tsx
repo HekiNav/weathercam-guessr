@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Karla, Share_Tech_Mono } from "next/font/google";
-import { Toaster } from "sonner"
+import { Toaster } from "react-hot-toast"
 import "./globals.css";
 import NavBar from "@/components/navbar";
 import { getCurrentUser } from "@/lib/auth";
@@ -35,7 +35,7 @@ export default async function RootLayout({
 				<link rel="icon" href="/favicon.svg" type="image/svg+xml"></link>
 			</head>
 			<body className={`${karla.variable} ${shareTechMono.variable} antialiased bg-white h-full`}>
-				<Toaster richColors position="top-right"></Toaster>
+				<Toaster position="top-right"></Toaster>
 
 				<UserProvider user={user}>
 					<div className="flex flex-col min-h-screen h-screen">
