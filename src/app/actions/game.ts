@@ -19,7 +19,7 @@ export default function game(state: GameState, data: GameInitData): GameState {
             switch (data.gameMode) {
                 case "practice":
                     return {
-                        step: "config_prectice",
+                        step: "config_practice",
                         title: "Configure Practice Mode",
                     }
                 case "daily":

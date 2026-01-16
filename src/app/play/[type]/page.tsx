@@ -3,10 +3,11 @@ import game, { GameMode } from "@/app/actions/game"
 import Card from "@/components/card"
 import Dropdown, { DropdownItem } from "@/components/dropdown"
 import { GameModeDef, gameModes } from "@/lib/definitions"
-import { startTransition, use, useActionState, useEffect, useState } from "react"
+import { Dispatch, SetStateAction, startTransition, use, useActionState, useEffect, useState } from "react"
 import { redirect } from "next/navigation"
 import toast from "react-hot-toast"
 import Button from "@/components/button"
+import Checkbox from "@/components/checkbox"
 
 
 export default function BlogPostPage({
@@ -33,6 +34,15 @@ export default function BlogPostPage({
     return <div></div>
   }
 
+  const practiceConfig = {
+    imageTypes: {
+      description: "Image types",
+      road: { description: "Road", state: useState<boolean>(true) },
+      road_surface: { description: "Road surface", state: useState<boolean>(false) },
+      scenery: { description: "Scenery", state: useState<boolean>(true) },
+    }
+  }
+
   const [{ errors, image, points, step, title }, action, pending] = useActionState(game, { step: "init", title: "Start game" })
   const [selectedGameMode, setSelectedGameMode] = useState<GameMode>(gameMode.id)
   return (
@@ -52,9 +62,9 @@ export default function BlogPostPage({
               </>
             )}
             {step == "config_practice" && (
-              <>
-
-              </>
+              <div className="w-full px-4">
+                {Object.values(practiceConfig).map(({ description, ...keys }, i) => (<Option description={description} keys={keys} key={i}></Option>))}
+              </div>
             )}
           </Card>
         </div>
@@ -63,6 +73,25 @@ export default function BlogPostPage({
     </div>
   )
 }
+
+function Option({ description, keys }: { description: string, keys: { [key: string]: { description: string, state: [boolean, Dispatch<SetStateAction<boolean>>] } } }) {
+  const [all, setAll] = useState(true)
+  const states = Object.values(keys).map(e => e.state)
+  useEffect(() => {
+    if (states.every(s => s[0] == all)) return
+    setAll(states.every(s => s[0]))
+  }, [...states])
+  return (<div>
+    <span className="font-medium text-lg">{description}</span>
+    <div className="flex flex-row flex-wrap gap-2">
+      <Checkbox onChange={(e) => states.forEach(([value, setter]) => setter(((e.target as HTMLInputElement).checked)))} checked={all} setChecked={setAll}>All</Checkbox>
+      {Object.values(keys).map(({ description, state }, i) => (
+        <Checkbox key={i} checked={state[0]} setChecked={state[1]}>{description}</Checkbox>
+      ))}
+    </div>
+  </div>)
+}
+
 function GameModeItem(m: GameModeDef) {
   return <div className="flex flex-col">
     <div className="text-md">{m.name}</div>
