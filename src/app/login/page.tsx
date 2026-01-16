@@ -44,12 +44,14 @@ export default function Login() {
               disabled={pending}
               onChange={(e) => setEmail(e.target.value)}
               className="my-1 border-black border-3 rounded p-1"
+              onKeyDown={(e) => e.key == "Enter" && startTransition(() => action({ type: "send", email: email }))}
             />
             <div className="text-red-600">{errors?.email?.join(", ")}</div>
             <small className="text-gray-600 mb-4">Other login methods coming soon</small>
             <Button
               disabled={pending}
-              onClick={() => {
+              autoFocus
+              onPress={() => {
                 startTransition(() => action({ type: "send", email: email }))
               }}
             >
@@ -67,12 +69,13 @@ export default function Login() {
               onChange={(e) => setOtp(e.target.value)}
               disabled={pending}
               className="my-2 border-black border-3 rounded p-1"
+              onKeyDown={(e) => e.key == "Enter" && startTransition(() => action({ type: "verify", email: email, otp: otp }))}
             />
             <div className="text-red-600">{errors?.otp?.join(", ")}</div>
             <Button
               disabled={pending}
-
-              onClick={() => {
+              autoFocus
+              onPress={() => {
                 startTransition(() => action({ type: "verify", email: email, otp: otp }))
               }}>
               Verify
@@ -92,8 +95,8 @@ export default function Login() {
             <div className="text-red-600">{errors?.username?.join(", ")}</div>
             <Button
               disabled={pending}
-
-              onClick={() => {
+              autoFocus
+              onPress={() => {
                 startTransition(() => action({ type: "username", email: email, otp: otp, username: username }))
               }}>
               Save

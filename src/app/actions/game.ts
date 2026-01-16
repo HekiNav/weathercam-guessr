@@ -3,7 +3,8 @@ import { Image } from "./image";
 
 export interface GameState extends FormState<[]> {
     image?: Image,
-    points?: number
+    points?: number,
+    title: string
 }
 export interface GameData<T extends string> {
     type: T
@@ -18,11 +19,13 @@ export default function game(state: GameState, data: GameInitData): GameState {
             switch (data.gameMode) {
                 case "practice":
                     return {
-                        step: "config"
+                        step: "config_prectice",
+                        title: "Configure Practice Mode",
                     }
                 case "daily":
                     return {
-                        step: "wip"
+                        step: "wip",
+                        title: "WIP"
                     }
             }
     }

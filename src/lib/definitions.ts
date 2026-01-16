@@ -1,3 +1,4 @@
+import { GameMode } from '@/app/actions/game';
 import { ReactNode } from 'react';
 import * as z from 'zod'
 
@@ -35,14 +36,14 @@ export interface Session {
   expiresAt: string
 }
 
-export interface GameMode {
-  id: string,
+export interface GameModeDef {
+  id: GameMode,
   name: ReactNode,
   description: ReactNode,
   available: boolean
 }
 
-export const gameModes: GameMode[] = [{
+export const gameModes: GameModeDef[] = [{
   id: "daily",
   name: "Daily challenge",
   description: "Play a daily game of five images",

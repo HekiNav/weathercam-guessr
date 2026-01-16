@@ -88,7 +88,8 @@ export default function ReviewPage() {
             <Card className={`capitalize font-sans ${step == "review" ? "grow h-full m-5" : ""}`} title={step || "unknown step"}>
                 {step == "start" && (
                     <div>
-                        <Button disabled={pending} onClick={() => startTransition(() => action({ type: "begin" }))}>
+                        <Button disabled={pending}
+                            autoFocus onPress={() => startTransition(() => action({ type: "begin" }))}>
                             Begin reviewing images
                         </Button>
                     </div>
@@ -129,7 +130,8 @@ export default function ReviewPage() {
                     <>
                         All done!
                         <br />
-                        <Button className="mt-2" disabled={pending} onClick={() => redirect("/")}>
+                        <Button className="mt-2" disabled={pending}
+                            autoFocus onPress={() => redirect("/")}>
                             Go to home
                         </Button>
                     </>
