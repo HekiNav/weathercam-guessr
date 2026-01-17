@@ -7,6 +7,7 @@ import { OTPFormState } from "@/lib/definitions";
 import { redirect, useRouter, useSearchParams } from "next/navigation";
 import { UserContext } from "../user-provider";
 import Button from "../../components/button";
+import toast from "react-hot-toast";
 
 export default function Login() {
 
@@ -20,15 +21,24 @@ export default function Login() {
   const [otp, setOtp] = useState("")
   const [username, setUsername] = useState(user?.name || "")
 
-  const [{ step, errors }, action, pending] = useActionState(login, { step:  (user?.id && !user?.name) ? "username" : "email" } as OTPFormState)
+  const [{ step, errors }, action, pending] = useActionState(login, { step: (user?.id && !user?.name) ? "username" : "email" } as OTPFormState)
 
   const router = useRouter()
 
-  if (user?.id) {
-    if (user.name) redirect(successPath)
+  if (user?.id && user.name) {
+    useEffect(() => {
+      toast(() => (
+        <>
+          Aleady logged in. Do you want to <a className="ml-1 text-green-600 underline" href="/logout">log out</a>?
+        </>
+      ))
+      redirect(successPath)
+    })
   }
   useEffect(() => {
-    if (step == "success") router.push(successPath)
+    if (step == "success") {
+      router.push(successPath)
+    }
   }, [step, router, successPath])
 
   return (
