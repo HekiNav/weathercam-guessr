@@ -21,7 +21,7 @@ type ConfigSection<Keys extends string, T> = {
   [K in Keys]: ConfigItem<T>;
 };
 
-export default function BlogPostPage({
+export default function GamePage({
   params,
 }: {
   params: Promise<{ type: string }>
@@ -29,6 +29,8 @@ export default function BlogPostPage({
   const { type } = use(params)
 
   const gameMode = gameModes.find(m => m.id == type)
+
+
 
   if (!gameMode) {
     useEffect(() => {
@@ -72,6 +74,11 @@ export default function BlogPostPage({
   }
 
   const [{ errors, image, points, step, title }, action, pending] = useActionState(game, { step: "init", title: "Start game" })
+
+  useEffect(() => {
+    if (errors?.server) errors.server.forEach((err) => toast.error(err))
+  }, [errors?.server])
+
   const [selectedGameMode, setSelectedGameMode] = useState<GameMode>(gameMode.id)
   return (
     <div className="h-full">

@@ -3,8 +3,10 @@ import { FormState } from "@/lib/definitions";
 import { Image } from "./image";
 import { createDB } from "@/lib/db";
 import z, { object, ZodBoolean } from "zod";
+import { and, eq, or, SQL } from "drizzle-orm";
+import { image } from "@/db/schema";
 
-export interface GameState extends FormState<["practiceConfig"]> {
+export interface GameState extends FormState<["practiceConfig", "server"]> {
     image?: Image,
     points?: number,
     title: string
@@ -77,11 +79,26 @@ export default async function game(state: GameState, data: GameInitData | GamePr
             }
             const db = await createDB()
 
-
-            const image = await db.query.image.findFirst()
+            const newPracticeImage = await db.query.image.findFirst({
+                where: and(
+                    or(...Object.entries(result.data.difficulties).reduce((prev ,[key, value]) => value ? [...prev, eq(image.difficulty, key.toUpperCase())] : prev, new Array<SQL>())),
+                    or(...Object.entries(result.data.imageTypes).reduce((prev ,[key, value]) => value ? [...prev, eq(image.type, key.toUpperCase())] : prev, new Array<SQL>())),
+                    eq(image.available, "true"),
+                    eq(image.reviewState, "COMPLETE")
+                ),
+                with: {rect: true}
+                })
+            if (!newPracticeImage || !newPracticeImage.rect) return {
+                step: state.step,
+                title: state.title,
+                errors: {
+                    server: ["Failed to find image matching selected options. Please broaden selection and try again."]
+                }
+            }
             return {
                 step: "play_practice",
-                title: "Practice"
+                title: "Practice",
+                image: {...newPracticeImage, available: newPracticeImage.available == "true", rect: newPracticeImage.rect!}
             }
     }
 }
