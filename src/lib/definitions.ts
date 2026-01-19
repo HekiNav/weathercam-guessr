@@ -58,3 +58,5 @@ export const gameModes: GameModeDef[] = [{
 export function rib(a: number, b: number) {
   return Math.floor(Math.random() * (b - a) + a)
 }
+
+export const FINLAND_BOUNDS: [number, number, number, number] = [20.6455928891, 59.846373196, 31.5160921567, 70.1641930203]

@@ -2,7 +2,7 @@
 import game, { GameMode, GamePracticeBeginDataConfig } from "@/app/actions/game"
 import Card from "@/components/card"
 import Dropdown, { DropdownItem } from "@/components/dropdown"
-import { GameModeDef, gameModes } from "@/lib/definitions"
+import { FINLAND_BOUNDS, GameModeDef, gameModes } from "@/lib/definitions"
 import { Dispatch, SetStateAction, startTransition, use, useActionState, useEffect, useRef, useState } from "react"
 import { redirect } from "next/navigation"
 import toast from "react-hot-toast"
@@ -12,6 +12,8 @@ import ImageWithBlur from "@/components/blurredimage"
 import { getImageUrl } from "@/app/review/page"
 import { Image } from "@/app/actions/image"
 import { TransformWrapper, TransformComponent, ReactZoomPanPinchRef } from "react-zoom-pan-pinch"
+import { Map, MapRef } from "react-map-gl/maplibre"
+import { map } from "zod"
 
 type BooleanState<T> = [T, React.Dispatch<React.SetStateAction<T>>];
 
@@ -72,6 +74,11 @@ export default function GamePage({
       }
     }
   }
+  let mapOpen: boolean = false
+  const [mapWidth, setMapWidth] = useState<number>(20)
+  const [mapHeight, setMapHeight] = useState<number>(30)
+
+  const mapRef = useRef<MapRef>(null)
 
   const [{ errors, image, points, step, title, maxRound, round }, action, pending] = useActionState(game, { step: "init", title: "Start game" })
 
@@ -130,13 +137,38 @@ export default function GamePage({
             <div className="texl-lg bg-white p-2 border-2 border-green-600 border-l-0 rounded-tr-lg rounded-br-lg">Round {round || 0} {maxRound && ` / ${maxRound}`} - {gameMode.name}</div>
             <div className="text-sm mt-2 border-2 border-green-600 border-l-0 bg-white p-1 rounded-tr-md rounded-br-md w-fit">{points} points</div>
           </div>
+          <div onTransitionStart={(e) => {
+            if (!mapRef.current) return
 
+            const rect = (e.target as HTMLDivElement).getBoundingClientRect()
+            const mapState = rect.width / window.innerWidth < 0.4
+            if (mapState != mapOpen) {
+
+              setMapWidth(mapState ? 20 : 60)
+              setMapHeight(mapState ? 30 : 80)
+              mapRef.current?.resize()
+
+              mapOpen = mapState
+              mapRef.current.zoomTo(mapRef.current.getZoom() + (1 * (mapState ? 1 : -1)))
+            }
+          }} className="overflow-hidden m-5 w-[20vw] h-[30vh] border-2 rounded-lg border-green-600 absolute bottom-0 right-0
+          hover:h-[80vh] hover:w-[60vw] transition-all ease-in-out duration-500 flex items-center justify-center">
+            <div style={{
+              width: `${mapWidth}vw`,
+              height: `${mapHeight}vh`,
+            }}>
+              <Map initialViewState={{ bounds: FINLAND_BOUNDS, fitBoundsOptions: { padding: 10 } }} ref={mapRef} mapStyle="/map_style.json">
+              </Map>
+            </div>
+
+          </div>
 
 
         </div>
-      )}
+      )
+      }
 
-    </div>
+    </div >
   )
 }
 
@@ -189,7 +221,6 @@ function MovableImage({ image }: MovableImageProps) {
       <TransformWrapper ref={ref} onTransformed={() => {
         if (!ref.current) return
         const { positionX, positionY, scale } = ref.current?.instance.transformState
-        console.log(ref.current?.instance.transformState)
         setResetButtonHidden(positionX == 0 && positionY == 0 && scale == 1)
       }}>
         <TransformComponent>

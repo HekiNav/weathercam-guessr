@@ -1,4 +1,3 @@
-import Image from "next/image";
 import React from "react";
 
 export interface ImageWithBlurProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -15,8 +14,8 @@ export interface ImageWithBlurProps extends React.HTMLAttributes<HTMLDivElement>
 export default function ImageWithBlur(props: ImageWithBlurProps) {
     return (
         <div {...props} className={`relative z-10 ${props.className}`}>
-            <Image alt="" className="image max-h-100 absolute left-0 right-0" style={{zIndex: -100}} src={props.src} />
-            <Image className="max-h-100 relative" style={{
+            <img className="image max-h-100 absolute left-0 right-0" style={{zIndex: -100}} src={props.src} />
+            <img className="max-h-100 relative" style={{
                 zIndex: -10,
                 outline: "10px solid white",
                 filter: "blur(4px)",
