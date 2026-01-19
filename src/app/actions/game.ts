@@ -9,7 +9,9 @@ import { image } from "@/db/schema";
 export interface GameState extends FormState<["practiceConfig", "server"]> {
     image?: Image,
     points?: number,
-    title: string
+    title: string,
+    round?: number,
+    maxRound?: number
 }
 export interface GameData<T extends string> {
     type: T
@@ -96,9 +98,11 @@ export default async function game(state: GameState, data: GameInitData | GamePr
                 }
             }
             return {
-                step: "play_practice",
+                step: "game",
                 title: "Practice",
-                image: {...newPracticeImage, available: newPracticeImage.available == "true", rect: newPracticeImage.rect!}
+                image: {...newPracticeImage, available: newPracticeImage.available == "true", rect: newPracticeImage.rect!},
+                points: 0,
+                round: 0
             }
     }
 }

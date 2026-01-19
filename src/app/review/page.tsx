@@ -140,7 +140,7 @@ export default function ReviewPage() {
         </div>
     )
 }
-function getImageUrl(id: string, source: string) {
+export function getImageUrl(id: string, source: string) {
     switch (source) {
         case "DIGITRAFFIC":
             return `https://weathercam.digitraffic.fi/${id}.jpg`

@@ -8,6 +8,10 @@ import { redirect } from "next/navigation"
 import toast from "react-hot-toast"
 import Button from "@/components/button"
 import Checkbox from "@/components/checkbox"
+import ImageWithBlur from "@/components/blurredimage"
+import { getImageUrl } from "@/app/review/page"
+import { Image } from "@/app/actions/image"
+import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch"
 
 type BooleanState<T> = [T, React.Dispatch<React.SetStateAction<T>>];
 
@@ -29,8 +33,6 @@ export default function GamePage({
   const { type } = use(params)
 
   const gameMode = gameModes.find(m => m.id == type)
-
-
 
   if (!gameMode) {
     useEffect(() => {
@@ -73,7 +75,7 @@ export default function GamePage({
     }
   }
 
-  const [{ errors, image, points, step, title }, action, pending] = useActionState(game, { step: "init", title: "Start game" })
+  const [{ errors, image, points, step, title, maxRound, round }, action, pending] = useActionState(game, { step: "init", title: "Start game" })
 
   useEffect(() => {
     if (errors?.server) errors.server.forEach((err) => toast.error(err))
@@ -81,7 +83,7 @@ export default function GamePage({
 
   const [selectedGameMode, setSelectedGameMode] = useState<GameMode>(gameMode.id)
   return (
-    <div className="h-full">
+    <div className="h-full w-full">
       {step != "game" && (
         <div className="h-full w-full flex justify-center items-center">
           <Card title={title} className="h-min w-max">
@@ -121,6 +123,20 @@ export default function GamePage({
           </Card>
         </div>
       )}
+      {step == "game" && image && (
+        <div className="relative w-full h-full flex items-center justify-center overflow-hidden">
+          <MovableImage
+            image={image}
+          />
+          <div className="z-1000 absolute top-4 left-0 text-green-600 font-mono ">
+            <div className="texl-lg bg-white p-2 border-2 border-green-600 border-l-0 rounded-tr-lg rounded-br-lg">Round {round || 0} {maxRound && ` / ${maxRound}`} - {gameMode.name}</div>
+            <div className="text-sm mt-2 border-2 border-green-600 border-l-0 bg-white p-1 rounded-tr-md rounded-br-md w-fit">{points} points</div>
+          </div>
+
+
+
+        </div>
+      )}
 
     </div>
   )
@@ -156,4 +172,29 @@ function GameModeItem(m: GameModeDef) {
     <div className="text-md">{m.name}</div>
     <div className="text-xs text-gray-600">{m.description}</div>
   </div>
+}
+
+
+
+interface MovableImageProps {
+  image: Image
+}
+
+
+function MovableImage({ image }: MovableImageProps) {
+  return (
+    <TransformWrapper>
+      <TransformComponent>
+        <div className="w-full h-full">
+          <ImageWithBlur className="noselect" onTransitionEnd={() => {
+            document.body.style.overflow = "auto"
+          }} style={{
+            zIndex: -10,
+            transition: "0.5s ease-in-out",
+          }} alt="" blur={image.rect} src={getImageUrl(image?.externalId, image?.source)}></ImageWithBlur>
+        </div>
+      </TransformComponent>
+    </TransformWrapper>
+
+  );
 }
