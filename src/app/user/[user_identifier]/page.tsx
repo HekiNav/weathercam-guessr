@@ -11,18 +11,15 @@ export default async function UserPage({ params }: { params: Promise<{ user_iden
 
 
     const user = await getUser(user_identifier)
+    useEffect(() => {
+        if (user) return
+        toast.error(`Could not find user with id or name ${user_identifier}`)
+    })
+    if (!user) return <div></div>
 
-    if (!user) {
-        useEffect(() => {
-            toast.error(`Could not find user with id or name ${user_identifier}`)
-        })
-        return (
-           <div></div>
-        )
-    }
     return (
         <div>
-            <UserUI user={{...user, email: "", admin: user.admin}}></UserUI>
+            <UserUI user={{ ...user, email: "", admin: user.admin }}></UserUI>
         </div>
     )
 }

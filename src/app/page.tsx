@@ -13,7 +13,7 @@ export default async function Home() {
 			</h1>
 			<div className="flex-row flex mt-4 shrink-1">
 				<p className="max-w-150">
-					A geoguessr-like game powered by <Link className="text-green-600 underline" href="https://www.digitraffic.fi/tieliikenne/">Fintraffic's weather camera API. </Link> Play on your own, or with friends, or even without an account*.
+					A geoguessr-like game powered by <Link className="text-green-600 underline" href="https://www.digitraffic.fi/tieliikenne/">Fintraffic&apos;s weather camera API. </Link> Play on your own, or with friends, or even without an account*.
 					<br />
 					<small>*Practice only</small>
 				</p>

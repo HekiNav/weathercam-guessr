@@ -7,8 +7,8 @@ import { eq, lt, ne, SQL } from "drizzle-orm"
 import { DrizzleD1Database } from "drizzle-orm/d1"
 import { image, rect } from "@/db/schema"
 import { BlurRect, ImageDifficulty, ImageType, UnclassifiedEnum } from "../review/page"
-import z, { object } from "zod"
-let lastUpdateTime = Date.now()
+import z from "zod"
+//let lastUpdateTime = Date.now()
 
 export type ImageData = GeoJSON.FeatureCollection<GeoJSON.Point, ImageDataProperties>
 export interface ImageDataProperties {
@@ -23,10 +23,10 @@ export interface ImageDataProperties {
     }[]
 }
 
-async function fetchImages() {
+/* async function fetchImages() {
     lastUpdateTime = Date.now()
     return await (await fetch("https://tie.digitraffic.fi/api/weathercam/v1/stations")).json() as ImageData
-}
+} */
 async function getImages(condition: SQL, amount = 100, db: DrizzleD1Database<typeof schema>) {
     // TODO: migrate this to a Cron trigger
     /* if (Date.now() - lastUpdateTime > 3600_000)await parseImageData(await fetchImages(), db) // 1h "cache"  */
@@ -36,7 +36,7 @@ async function getImages(condition: SQL, amount = 100, db: DrizzleD1Database<typ
         limit: amount
     })
 }
-async function parseImageData(data: ImageData, db: DrizzleD1Database<typeof schema>) {
+/* async function parseImageData(data: ImageData, db: DrizzleD1Database<typeof schema>) {
     const items = data.features.flatMap(({ properties, geometry }) => properties.presets.map(preset => ({
         externalId: preset.id,
         available: `${preset.inCollection}`,
@@ -79,7 +79,7 @@ async function parseImageData(data: ImageData, db: DrizzleD1Database<typeof sche
 
 
 
-}
+} */
 export interface Image {
     id: string
     externalId: string

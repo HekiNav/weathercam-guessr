@@ -118,8 +118,8 @@ export default function ReviewPage() {
                             const el = (e.target as HTMLImageElement).classList.contains("image") ? (e.target as HTMLImageElement) : (e.target as HTMLImageElement).parentElement?.querySelector(".image")
                             const rect = el?.getBoundingClientRect()
                             if (!rect) return
-                            let x = e.clientX - rect.left
-                            let y = e.clientY - rect.top
+                            const x = e.clientX - rect.left
+                            const y = e.clientY - rect.top
                             if (y < rect.height * 0.5)
                                 setTempBlurRect({ x: 0, y: 0, width: Math.round(x / rect.width * 100), height: Math.round(y / rect.height * 100) })
                             else setTempBlurRect({ x: Math.round(x / rect.width * 100), y: Math.round(y / rect.height * 100), width: 100, height: 100 })

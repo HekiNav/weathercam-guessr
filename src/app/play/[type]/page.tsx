@@ -34,20 +34,18 @@ export default function GamePage({
 
   const gameMode = gameModes.find(m => m.id == type)
 
-  if (!gameMode) {
-    useEffect(() => {
+  useEffect(() => {
+    if (!gameMode) {
       toast.error(`Invalid game mode: ${type}`)
       redirect("/play")
-    })
-    return <div></div>
-  }
-  if (!gameMode.available) {
-    useEffect(() => {
+    }
+    if (!gameMode.available) {
       toast.error(`Not available yet: ${gameMode.name}`)
       redirect("/play")
-    })
-    return <div></div>
-  }
+    }
+  })
+  if (!gameMode || !gameMode.available) return <div></div>
+
 
   const practiceConfig: {
     imageTypes: ConfigSection<"road" | "road_surface" | "scenery", boolean>;
@@ -159,7 +157,7 @@ function CheckboxGroup({ description, keys }: { description: string, keys: { [ke
   return (<div className="mb-2">
     <span className="font-medium text-lg">{description}</span>
     <div className="flex flex-row flex-wrap gap-2">
-      {states.length > 1 && <Checkbox containerClass="font-medium" onChange={(e) => states.forEach(([value, setter]) => setter(((e.target as HTMLInputElement).checked)))} checked={all} setChecked={setAll}>All</Checkbox>}
+      {states.length > 1 && <Checkbox containerClass="font-medium" onChange={(e) => states.forEach(([_value, setter]) => setter(((e.target as HTMLInputElement).checked)))} checked={all} setChecked={setAll}>All</Checkbox>}
       {Object.values(keys).map(({ description, state }, i) => (
         <Checkbox key={i} checked={state[0]} setChecked={state[1]}>{description}</Checkbox>
       ))}
@@ -189,7 +187,8 @@ function MovableImage({ image }: MovableImageProps) {
     <div className="w-full h-full">
       <div hidden={resetButtonHidden} onClick={() => ref.current?.resetTransform(500)} className="cursor-pointer absolute z-1001 texl-lg bg-white p-2 border-2 border-green-600 border-r-0 top-10 rounded-tl-lg rounded-bl-lg right-0">Reset view</div>
       <TransformWrapper ref={ref} onTransformed={() => {
-        const {positionX, positionY, scale} = ref.current?.instance.transformState!
+        if (!ref.current) return
+        const { positionX, positionY, scale } = ref.current?.instance.transformState
         console.log(ref.current?.instance.transformState)
         setResetButtonHidden(positionX == 0 && positionY == 0 && scale == 1)
       }}>

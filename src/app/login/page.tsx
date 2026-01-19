@@ -25,17 +25,16 @@ export default function Login() {
 
   const router = useRouter()
 
-  if (user?.id && user.name) {
-    useEffect(() => {
+  useEffect(() => {
+    if (user?.id && user.name) {
       toast(() => (
         <>
           Aleady logged in. Do you want to <a className="ml-1 text-green-600 underline" href="/logout">log out</a>?
         </>
       ))
       redirect(successPath)
-    })
-  }
-  useEffect(() => {
+    }
+
     if (step == "success") {
       router.push(successPath)
     }

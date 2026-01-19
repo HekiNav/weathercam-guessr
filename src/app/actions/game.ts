@@ -2,7 +2,7 @@
 import { FormState } from "@/lib/definitions";
 import { Image } from "./image";
 import { createDB } from "@/lib/db";
-import z, { object, ZodBoolean } from "zod";
+import z, { ZodBoolean } from "zod";
 import { and, eq, or, sql, SQL } from "drizzle-orm";
 import { image } from "@/db/schema";
 
