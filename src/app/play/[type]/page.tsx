@@ -3,7 +3,7 @@ import game, { GameMode, GamePracticeBeginDataConfig } from "@/app/actions/game"
 import Card from "@/components/card"
 import Dropdown, { DropdownItem } from "@/components/dropdown"
 import { GameModeDef, gameModes } from "@/lib/definitions"
-import { Dispatch, SetStateAction, startTransition, use, useActionState, useEffect, useState } from "react"
+import { Dispatch, SetStateAction, startTransition, use, useActionState, useEffect, useRef, useState } from "react"
 import { redirect } from "next/navigation"
 import toast from "react-hot-toast"
 import Button from "@/components/button"
@@ -11,7 +11,7 @@ import Checkbox from "@/components/checkbox"
 import ImageWithBlur from "@/components/blurredimage"
 import { getImageUrl } from "@/app/review/page"
 import { Image } from "@/app/actions/image"
-import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch"
+import { TransformWrapper, TransformComponent, ReactZoomPanPinchRef } from "react-zoom-pan-pinch"
 
 type BooleanState<T> = [T, React.Dispatch<React.SetStateAction<T>>];
 
@@ -182,19 +182,28 @@ interface MovableImageProps {
 
 
 function MovableImage({ image }: MovableImageProps) {
-  return (
-    <TransformWrapper>
-      <TransformComponent>
-        <div className="w-full h-full">
-          <ImageWithBlur className="noselect" onTransitionEnd={() => {
-            document.body.style.overflow = "auto"
-          }} style={{
-            zIndex: -10,
-            transition: "0.5s ease-in-out",
-          }} alt="" blur={image.rect} src={getImageUrl(image?.externalId, image?.source)}></ImageWithBlur>
-        </div>
-      </TransformComponent>
-    </TransformWrapper>
+  const ref = useRef<ReactZoomPanPinchRef>(null)
+  const [resetButtonHidden, setResetButtonHidden] = useState(true)
 
+  return (
+    <div className="w-full h-full">
+      <div hidden={resetButtonHidden} onClick={() => ref.current?.resetTransform(500)} className="cursor-pointer absolute z-1001 texl-lg bg-white p-2 border-2 border-green-600 border-r-0 top-10 rounded-tl-lg rounded-bl-lg right-0">Reset view</div>
+      <TransformWrapper ref={ref} onTransformed={() => {
+        const {positionX, positionY, scale} = ref.current?.instance.transformState!
+        console.log(ref.current?.instance.transformState)
+        setResetButtonHidden(positionX == 0 && positionY == 0 && scale == 1)
+      }}>
+        <TransformComponent>
+          <div className="w-full h-full flex items-center justify-center">
+            <ImageWithBlur className="noselect" onTransitionEnd={() => {
+              document.body.style.overflow = "auto"
+            }} style={{
+              zIndex: -10,
+              transition: "0.5s ease-in-out",
+            }} alt="" blur={image.rect} src={getImageUrl(image?.externalId, image?.source)}></ImageWithBlur>
+          </div>
+        </TransformComponent>
+      </TransformWrapper>
+    </div>
   );
 }

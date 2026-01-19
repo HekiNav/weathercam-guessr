@@ -3,7 +3,7 @@ import { FormState } from "@/lib/definitions";
 import { Image } from "./image";
 import { createDB } from "@/lib/db";
 import z, { object, ZodBoolean } from "zod";
-import { and, eq, or, SQL } from "drizzle-orm";
+import { and, eq, or, sql, SQL } from "drizzle-orm";
 import { image } from "@/db/schema";
 
 export interface GameState extends FormState<["practiceConfig", "server"]> {
@@ -88,6 +88,7 @@ export default async function game(state: GameState, data: GameInitData | GamePr
                     eq(image.available, "true"),
                     eq(image.reviewState, "COMPLETE")
                 ),
+                orderBy: sql`RANDOM()`,
                 with: {rect: true}
                 })
             if (!newPracticeImage || !newPracticeImage.rect) return {
