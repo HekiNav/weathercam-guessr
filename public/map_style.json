@@ -1,6 +1,6 @@
 {
   "version": 8,
-  "name": "AmazonLocation-Standard_plus-Global-Light-Default",
+  "name": "Hekinav-Weathercam-guessr",
   "metadata": {
     "aws:virtual-variant": [
       {"key": "terrain", "variants": [{"id": "3d_terrain"}]}
@@ -9072,13 +9072,15 @@
         [
           "step",
           ["zoom"],
-          [">=", ["get", "population"], 1200000],
+          [">=", ["get", "population"], 120000],
           4,
-          [">=", ["get", "population"], 400000],
+          [">=", ["get", "population"], 40000],
           6,
-          [">=", ["get", "population"], 200000],
+          [">=", ["get", "population"], 20000],
           7,
-          [">=", ["get", "population"], 100000]
+          [">=", ["get", "population"], 10000],
+          7.5,
+          [">=", ["get", "population"], 100]
         ],
         ["==", ["geometry-type"], "Point"]
       ],
