@@ -75,8 +75,6 @@ export default function GamePage({
     }
   }
   let mapOpen: boolean = false
-  const [mapWidth, setMapWidth] = useState<number>(20)
-  const [mapHeight, setMapHeight] = useState<number>(30)
 
   const mapRef = useRef<MapRef>(null)
 
@@ -143,24 +141,20 @@ export default function GamePage({
             const rect = (e.target as HTMLDivElement).getBoundingClientRect()
             const mapState = rect.width / window.innerWidth < 0.4
             if (mapState != mapOpen) {
-
-              setMapWidth(mapState ? 20 : 60)
-              setMapHeight(mapState ? 30 : 80)
-              mapRef.current?.resize()
-
               mapOpen = mapState
               mapRef.current.zoomTo(mapRef.current.getZoom() + (1 * (mapState ? 1 : -1)))
             }
           }} className="overflow-hidden m-5 w-[20vw] h-[30vh] border-2 rounded-lg border-green-600 absolute bottom-0 right-0
-          hover:h-[80vh] hover:w-[60vw] transition-all ease-in-out duration-500 flex items-center justify-center">
-            <div style={{
-              width: `${mapWidth}vw`,
-              height: `${mapHeight}vh`,
-            }}>
-              <Map initialViewState={{ bounds: FINLAND_BOUNDS, fitBoundsOptions: { padding: 10 } }} ref={mapRef} mapStyle="/map_style.json">
+          hover:h-[80vh] hover:w-[60vw] transition-all ease-out duration-500 flex flex-col items-center justify-center">
+            <div style={{ width: "20vw", height: "30vh" }}>
+              <Map onLoad={() => {
+                const mapContainer = mapRef.current?.getContainer().parentElement!
+                mapContainer.style.width = "60vw"
+                mapContainer.style.height = "80vh"
+                mapRef.current?.resize()
+              }} initialViewState={{ bounds: FINLAND_BOUNDS, fitBoundsOptions: { padding: 10 } }} ref={mapRef} mapStyle="/map_style.json">
               </Map>
             </div>
-
           </div>
 
 
