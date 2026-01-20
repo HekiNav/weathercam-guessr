@@ -12,8 +12,9 @@ import ImageWithBlur from "@/components/blurredimage"
 import { getImageUrl } from "@/app/review/page"
 import { Image } from "@/app/actions/image"
 import { TransformWrapper, TransformComponent, ReactZoomPanPinchRef } from "react-zoom-pan-pinch"
-import { Map, MapRef } from "react-map-gl/maplibre"
+import { Layer, Map, MapRef, Source } from "react-map-gl/maplibre"
 import { map } from "zod"
+import { GeoJSONSource } from "maplibre-gl"
 
 type BooleanState<T> = [T, React.Dispatch<React.SetStateAction<T>>];
 
@@ -77,6 +78,23 @@ export default function GamePage({
   let mapOpen: boolean = false
 
   const mapRef = useRef<MapRef>(null)
+
+  const [selectedLocation, setSelectedLocation] = useState<GeoJSON.Point | null>(null)
+
+  useEffect(() => {
+    if (!mapRef.current) return
+    console.log(selectedLocation);
+    (mapRef.current.getSource("data") as GeoJSONSource).setData({
+      type: "FeatureCollection",
+      features: [
+        selectedLocation && {
+          type: "Feature" as "Feature",
+          geometry: selectedLocation,
+          properties: {type: "selected_location"}
+        }
+      ].filter(f => f != null)
+    })
+  })
 
   const [{ errors, image, points, step, title, maxRound, round }, action, pending] = useActionState(game, { step: "init", title: "Start game" })
 
@@ -148,16 +166,32 @@ export default function GamePage({
           hover:h-[80vh] hover:w-[60vw] transition-all ease-out duration-500 flex flex-col items-center justify-center">
             <div style={{ width: "20vw", height: "30vh" }}>
               <Map onLoad={() => {
+                if (!mapRef.current?.hasImage("red-pin")) {
+                  const image = document.createElement("img")
+                  image.src = "/pin.svg"
+                  image.addEventListener("load", () => {
+                    mapRef.current?.addImage("red-pin", image)
+                  })
+                }
                 const mapContainer = mapRef.current?.getContainer().parentElement!
                 mapContainer.style.width = "60vw"
                 mapContainer.style.height = "80vh"
                 mapRef.current?.resize()
+              }} onClick={(e) => {
+                setSelectedLocation({ type: "Point", coordinates: e.lngLat.toArray() })
               }} initialViewState={{ bounds: FINLAND_BOUNDS, fitBoundsOptions: { padding: 10 } }} ref={mapRef} mapStyle="/map_style.json">
+                <Source id="data" type="geojson" data={{
+                  type: "FeatureCollection",
+                  features: []
+                }}></Source>
+                <Layer id="map_pin" type="symbol" layout={{
+                  "icon-anchor": "bottom",
+                  "icon-size": 0.1,
+                  "icon-image": "red-pin"
+                }} source="data" filter={["==", ["get", "type"], "selected_location"]}></Layer>
               </Map>
             </div>
           </div>
-
-
         </div>
       )
       }
