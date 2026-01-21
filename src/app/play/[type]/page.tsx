@@ -14,7 +14,7 @@ import { Image } from "@/app/actions/image"
 import { TransformWrapper, TransformComponent, ReactZoomPanPinchRef } from "react-zoom-pan-pinch"
 import { Layer, Map, MapRef, Source } from "react-map-gl/maplibre"
 import { map } from "zod"
-import { GeoJSONSource } from "maplibre-gl"
+import maplibregl, { GeoJSONSource } from "maplibre-gl"
 
 type BooleanState<T> = [T, React.Dispatch<React.SetStateAction<T>>];
 
@@ -90,7 +90,7 @@ export default function GamePage({
         selectedLocation && {
           type: "Feature" as "Feature",
           geometry: selectedLocation,
-          properties: {type: "selected_location"}
+          properties: { type: "selected_location" }
         }
       ].filter(f => f != null)
     })
@@ -104,8 +104,8 @@ export default function GamePage({
 
   const [selectedGameMode, setSelectedGameMode] = useState<GameMode>(gameMode.id)
   return (
-    <div className="h-full w-full">
-      {step != "game" && (
+    <div className="h-full w-full relative">
+      {step != "game" && step != "results" && (
         <div className="h-full w-full flex justify-center items-center">
           <Card title={title} className="h-min w-max">
             {step == "init" && (
@@ -144,7 +144,7 @@ export default function GamePage({
           </Card>
         </div>
       )}
-      {step == "game" && image && (
+      {(step == "game" || step == "results") && image && (
         <div className="relative w-full h-full flex items-center justify-center overflow-hidden">
           <MovableImage
             image={image}
@@ -152,6 +152,9 @@ export default function GamePage({
           <div className="z-1000 absolute top-4 left-0 text-green-600 font-mono ">
             <div className="texl-lg bg-white p-2 border-2 border-green-600 border-l-0 rounded-tr-lg rounded-br-lg">Round {round || 0} {maxRound && ` / ${maxRound}`} - {gameMode.name}</div>
             <div className="text-sm mt-2 border-2 border-green-600 border-l-0 bg-white p-1 rounded-tr-md rounded-br-md w-fit">{points} points</div>
+          </div>
+          <div hidden={!selectedLocation} onClick={() => selectedLocation && startTransition(() => action({ type: "practice_submit", location: (selectedLocation?.coordinates as [number, number]) }))} className="absolute top-5 -right-1">
+            <Button className="pr-4 font-mono text-white text-xl">Submit</Button>
           </div>
           <div onTransitionStart={(e) => {
             if (!mapRef.current) return
@@ -195,6 +198,43 @@ export default function GamePage({
         </div>
       )
       }
+      {step == "results" && selectedLocation && image && (
+        <div className="h-full w-full flex justify-center items-center absolute top-0 z-1001">
+          <Card title={title} imageCard className="h-min w-150 opacity-100 bg-white z-1002">
+            <div className="flex flex-col w-full">
+              <div className="h-50 w-full">
+                <Map interactive={false} maplibreLogo={false} attributionControl={false} onLoad={() => {
+                  if (!mapRef.current?.hasImage("red-pin")) {
+                    const image = document.createElement("img")
+                    image.src = "/pin.svg"
+                    image.addEventListener("load", () => {
+                      mapRef.current?.addImage("red-pin", image)
+                    })
+                  }
+                  mapRef.current?.fitBounds(
+                    new maplibregl.LngLatBounds(
+                      selectedLocation.coordinates as [number, number], 
+                      selectedLocation.coordinates as [number, number]
+                    ).extend([image.lat, image.lon]))
+                }} initialViewState={{ latitude: selectedLocation?.coordinates[1], longitude: selectedLocation?.coordinates[0], zoom: 10 }} ref={mapRef} mapStyle="/map_style.json">
+                  <Source id="data" type="geojson" data={{
+                    type: "FeatureCollection",
+                    features: [
+                      {"type": "Feature", geometry: selectedLocation, properties: {type: "selected_location"}}
+                    ]
+                  }}></Source>
+                  <Layer id="map_pin" type="symbol" layout={{
+                    "icon-anchor": "bottom",
+                    "icon-size": 0.1,
+                    "icon-image": "red-pin"
+                  }} source="data" filter={["==", ["get", "type"], "selected_location"]}></Layer>
+                </Map>
+              </div>
+            </div>
+          </Card>
+          <div className="w-full h-full bg-white opacity-50 absolute"></div>
+        </div>
+      )}
 
     </div >
   )

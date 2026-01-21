@@ -60,3 +60,47 @@ export function rib(a: number, b: number) {
 }
 
 export const FINLAND_BOUNDS: [number, number, number, number] = [20.6455928891, 59.846373196, 31.5160921567, 70.1641930203]
+
+export function score(guess: LatLonLike, correct: LatLonLike) {
+  const [east, south, west, north] = FINLAND_BOUNDS
+  const size = distanceBetweenPoints([east,south],[west, north])
+  const distance = distanceBetweenPoints(guess, correct)
+  return Math.round(5000 * Math.pow(Math.E ,(-10 * distance / size)))
+}
+export interface LatLon {
+    lat: number
+    lon: number
+}
+export type LatLonArray = [number, number]
+export type LatLonLike = LatLon | LatLonArray
+export function distanceBetweenPoints(p1: LatLonLike, p2: LatLonLike) {
+    const lat1 = Array.isArray(p1) ? p1[0] : p1.lat
+    const lon1 = Array.isArray(p1) ? p1[1] : p1.lon
+    const lat2 = Array.isArray(p2) ? p2[0] : p2.lat
+    const lon2 = Array.isArray(p2) ? p2[1] : p2.lon
+
+    // earths radius (m)
+    const earthRadiusMeters = 6371000;
+
+    const lat1Rad = toRadians(lat1);
+    const lat2Rad = toRadians(lat2);
+    const deltaLatRad = toRadians(lat2 - lat1);
+    const deltaLngRad = toRadians(lon2 - lon1);
+
+    const a =
+        Math.sin(deltaLatRad / 2) ** 2 +
+        Math.cos(lat1Rad) *
+        Math.cos(lat2Rad) *
+        Math.sin(deltaLngRad / 2) ** 2;
+
+    const angularDistance =
+        2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+    return earthRadiusMeters * angularDistance;
+
+
+}
+function toRadians(deg: number) {
+    return deg * Math.PI / 180
+}
+export const atLeastOneTrue = (shape: Record<string, z.ZodBoolean>, error: string) => z.object(shape).refine((obj) => !Object.values(obj).every(v => v == false), { error: error });
