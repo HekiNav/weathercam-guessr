@@ -3,7 +3,7 @@ import game, { GameMode, GamePracticeBeginDataConfig } from "@/app/actions/game"
 import Card from "@/components/card"
 import Dropdown, { DropdownItem } from "@/components/dropdown"
 import { distanceBetweenPoints, FINLAND_BOUNDS, GameModeDef, gameModes, getImageUrl } from "@/lib/definitions"
-import { Dispatch, SetStateAction, startTransition, use, useActionState, useEffect, useRef, useState } from "react"
+import { Dispatch, SetStateAction, startTransition, use, useActionState, useContext, useEffect, useRef, useState } from "react"
 import { redirect } from "next/navigation"
 import toast from "react-hot-toast"
 import Button from "@/components/button"
@@ -15,6 +15,7 @@ import { Layer, Map, MapRef, Source } from "react-map-gl/maplibre"
 import maplibregl, { GeoJSONSource } from "maplibre-gl"
 import CountUp from "react-countup"
 import Link from "next/link"
+import { UserContext } from "@/app/user-provider"
 
 type BooleanState<T> = [T, React.Dispatch<React.SetStateAction<T>>];
 
@@ -35,6 +36,8 @@ export default function GamePage({
 }) {
   const { type } = use(params)
 
+  const user = useContext(UserContext)
+
   const gameMode = gameModes.find(m => m.id == type)
 
   useEffect(() => {
@@ -42,9 +45,13 @@ export default function GamePage({
       toast.error(`Invalid game mode: ${type}`)
       redirect("/play")
     }
-    if (!gameMode.available) {
+    else if (!gameMode.available) {
       toast.error(`Not available yet: ${gameMode.name}`)
       redirect("/play")
+    }
+    else if (gameMode.id != "practice" && !user) {
+      toast.error(`Log in to access ${gameMode.name} mode`)
+      redirect(`/login?to=/play/${gameMode.id}`)
     }
   })
   if (!gameMode || !gameMode.available) return <div></div>

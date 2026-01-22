@@ -106,7 +106,7 @@ export async function login(state: OTPFormState, { type, email, otp, username }:
         sameSite: "lax",
         path: "/",
       })
-    if (!user.name) return {
+    if (!userData.name) return {
       step: "username"
     }
     else return {
@@ -127,8 +127,25 @@ export async function login(state: OTPFormState, { type, email, otp, username }:
       },
       step: state.step
     }
-
-    await db.update(user).set({ name: data }).where(eq(user.email, email))
+    try {
+      await db.update(user).set({ name: data }).where(eq(user.email, email))
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      if (error.cause.toString().includes("UNIQUE constraint failed: User.name")) return {
+        errors: {
+          username: ["Username already in use"]
+        },
+        step: state.step
+      }
+      else {
+        return {
+          errors: {
+            username: ["Server error"]
+          },
+          step: state.step
+        }
+      }
+    }
 
     return {
       step: "success"

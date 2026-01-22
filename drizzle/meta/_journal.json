@@ -15,6 +15,13 @@
       "when": 1768392278420,
       "tag": "0001_robust_lady_bullseye",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1769075050769,
+      "tag": "0002_peaceful_arachne",
+      "breakpoints": true
     }
   ]
 }

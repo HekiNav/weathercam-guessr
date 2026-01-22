@@ -12,7 +12,7 @@ export const image = sqliteTable("Image", {
 	reviewState: text().default("INCOMPLETE").notNull(),
 	available: numeric().default("true").notNull(),
 	lat: real().notNull().default(0),
-	lon: real().notNull().default(0),
+	lon: real().notNull().default(0)
 },
 	(table) => [
 		uniqueIndex("Image_externalId_key").on(table.externalId),
@@ -34,7 +34,8 @@ export const user = sqliteTable("User", {
 	createdAt: integer().default(sql`(CURRENT_TIMESTAMP)`).notNull(),
 },
 	(table) => [
-		uniqueIndex("User_email_key").on(table.email),
+		uniqueIndex("User_email").on(table.email),
+		uniqueIndex("Username").on(table.name)
 	]);
 
 export const otpCode = sqliteTable("OtpCode", {

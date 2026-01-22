@@ -47,7 +47,7 @@ export const gameModes: GameModeDef[] = [{
   id: "daily",
   name: "Daily challenge",
   description: "Play a daily game of five images",
-  available: false
+  available: true
 }, {
   id: "practice",
   name: "Practice",

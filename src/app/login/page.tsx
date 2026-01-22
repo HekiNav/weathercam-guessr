@@ -27,20 +27,21 @@ export default function Login() {
   const router = useRouter()
 
   useEffect(() => {
-    if (params.get("to")) toast(`Log in to access ${params.get("to")}`)
+    if (params.get("to") && step == "email") toast(`Log in to access ${params.get("to")}`)
     if (user?.id && user.name) {
       toast(() => (
         <>
-          Aleady logged in. Do you want to <a className="ml-1 text-green-600 underline" href="/logout">log out</a>?
+          Already logged in. Do you want to <a className="ml-1 text-green-600 underline" href="/logout">log out</a>?
         </>
       ))
+      console.log("2")
       redirect(successPath)
     }
 
     if (step == "success") {
       router.push(successPath)
     }
-  }, [step, router, successPath, user?.id, user?.name])
+  }, [step, router, successPath, user?.id, user?.name, params])
 
   return (
     <div className="w-full h-full flex items-center grow justify-center">
@@ -51,6 +52,8 @@ export default function Login() {
             <h1 className="text-md max-w-60">Enter an email address for your account.</h1>
             <input
               placeholder="Email"
+              autoComplete="email"
+              type="email"
               value={email}
               disabled={pending}
               onChange={(e) => setEmail(e.target.value)}
@@ -97,6 +100,8 @@ export default function Login() {
           <>
             <h1 className="text-md max-w-60">Succesfully created account! Please enter a username to be shown instead of your user id <span className="text-green-600">{user?.id}</span></h1>
             <input
+              id="email"
+              name="email"
               placeholder="Username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
