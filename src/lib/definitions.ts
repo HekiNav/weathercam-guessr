@@ -104,3 +104,34 @@ function toRadians(deg: number) {
     return deg * Math.PI / 180
 }
 export const atLeastOneTrue = (shape: Record<string, z.ZodBoolean>, error: string) => z.object(shape).refine((obj) => !Object.values(obj).every(v => v == false), { error: error });
+
+export function getImageUrl(id: string, source: string) {
+    switch (source) {
+        case "DIGITRAFFIC":
+            return `https://weathercam.digitraffic.fi/${id}.jpg`
+        default:
+            return id
+    }
+}
+
+export enum UnclassifiedEnum {
+    UNCLASSIFIED = "UNCLASSIFIED",
+}
+
+export enum ImageType {
+    ROAD_SURFACE = "ROAD_SURFACE",
+    SCENERY = "SCENERY",
+    ROAD = "ROAD",
+}
+
+export enum ImageDifficulty {
+    EASY = "EASY",
+    MEDIUM = "MEDIUM",
+    HARD = "HARD",
+}
+export interface BlurRect {
+    x: number
+    y: number
+    width: number
+    height: number
+}

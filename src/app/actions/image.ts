@@ -6,7 +6,7 @@ import * as schema from "@/db/schema"
 import { eq, ne, SQL } from "drizzle-orm"
 import { DrizzleD1Database } from "drizzle-orm/d1"
 import { image, rect } from "@/db/schema"
-import { BlurRect, ImageDifficulty, ImageType, UnclassifiedEnum } from "../review/page"
+import { BlurRect, ImageDifficulty, ImageType, UnclassifiedEnum } from "@/lib/definitions"
 import z from "zod"
 //let lastUpdateTime = Date.now()
 

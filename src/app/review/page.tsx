@@ -8,41 +8,19 @@ import { redirect } from "next/navigation"
 import { toast } from "react-hot-toast"
 import Dropdown, { DropdownItem } from "@/components/dropdown"
 import ImageWithBlur from "@/components/blurredimage"
-
-export enum UnclassifiedEnum {
-    UNCLASSIFIED = "UNCLASSIFIED",
-}
-
-export enum ImageType {
-    ROAD_SURFACE = "ROAD_SURFACE",
-    SCENERY = "SCENERY",
-    ROAD = "ROAD",
-}
-
-export enum ImageDifficulty {
-    EASY = "EASY",
-    MEDIUM = "MEDIUM",
-    HARD = "HARD",
-}
-export interface BlurRect {
-    x: number
-    y: number
-    width: number
-    height: number
-}
+import { BlurRect, getImageUrl, ImageDifficulty, ImageType, UnclassifiedEnum } from "@/lib/definitions"
 
 export default function ReviewPage() {
     const user = useContext(UserContext)
 
-
-        useEffect(() => {
-            if (!user?.admin) return
-            toast.error("You aren't supposed to be there")
-            redirect("/")
-        })
-        if (!user?.admin) return <div></div>
+    useEffect(() => {
+        if (user?.admin) return
+        toast.error("You aren't supposed to be there")
+        redirect("/")
+    })
+    if (!user?.admin) return <div></div>
     else return ReviewPageContent()
-    
+
 }
 function ReviewPageContent() {
     const [{ step, errors, currentImage }, action, pending] = useActionState(reviewImages, { currentImage: null, step: "start" } as ImageReviewFormState)
@@ -141,12 +119,4 @@ function ReviewPageContent() {
             </Card>
         </div>
     )
-}
-export function getImageUrl(id: string, source: string) {
-    switch (source) {
-        case "DIGITRAFFIC":
-            return `https://weathercam.digitraffic.fi/${id}.jpg`
-        default:
-            return id
-    }
 }
