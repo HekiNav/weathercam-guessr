@@ -63,7 +63,7 @@ export default function GamePage({
 function GamePageContent(gameMode: GameModeDef) {
   const practiceConfig: {
     imageTypes: ConfigSection<"road" | "road_surface" | "scenery", boolean>;
-    difficulties: ConfigSection<"easy" | "medium" | "hard", boolean>;
+    difficulties: ConfigSection<"easy" | "medium" | "hard" | "broken", boolean>;
     other: ConfigSection<"blur", boolean>;
   } = {
     imageTypes: {
@@ -77,6 +77,7 @@ function GamePageContent(gameMode: GameModeDef) {
       easy: { description: "Easy", state: useState<boolean>(true) },
       medium: { description: "Medium", state: useState<boolean>(true) },
       hard: { description: "Hard", state: useState<boolean>(true) },
+      broken: { description: "Broken camera", state: useState<boolean>(false) },
     },
     other: {
       description: "Other options",

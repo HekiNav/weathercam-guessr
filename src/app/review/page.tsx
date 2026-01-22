@@ -61,6 +61,10 @@ function ReviewPageContent() {
         {
             id: ImageType.SCENERY,
             content: "Mostly scenery, not along road"
+        },
+        {
+            id: ImageType.BROKEN,
+            content: "Broken camera"
         }
     ]
     return (

@@ -114,7 +114,7 @@ export async function reviewImages(state: ImageReviewFormState, actionData: Imag
         case "submit":
             const schema = z.object({
                 imageDifficulty: z.enum(["MEDIUM", "HARD", "EASY"], { error: "Invalid image difficulty" }),
-                imageType: z.enum(["ROAD_SURFACE", "SCENERY", "ROAD"], { error: "Invalid image type" }),
+                imageType: z.enum(["ROAD_SURFACE", "SCENERY", "ROAD", "BROKEN"], { error: "Invalid image type" }),
                 blurRect: z.object({
                     x: z.int().min(0).max(100),
                     y: z.int().min(0).max(100),

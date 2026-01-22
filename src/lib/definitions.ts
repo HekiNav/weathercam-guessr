@@ -122,6 +122,7 @@ export enum ImageType {
     ROAD_SURFACE = "ROAD_SURFACE",
     SCENERY = "SCENERY",
     ROAD = "ROAD",
+    BROKEN = "BROKEN"
 }
 
 export enum ImageDifficulty {
