@@ -32,6 +32,7 @@ export interface GamePracticeBeginDataConfig {
         road: boolean,
         road_surface: boolean,
         scenery: boolean,
+        broken: boolean
     },
     difficulties: {
         easy: boolean,
@@ -64,6 +65,7 @@ export default async function game(state: GameState, data: GameInitData | GamePr
                     road: z.boolean(),
                     road_surface: z.boolean(),
                     scenery: z.boolean(),
+                    broken: z.boolean(),
                 }, "Please select at least one image type"),
                 difficulties: atLeastOneTrue({
                     easy: z.boolean(),
