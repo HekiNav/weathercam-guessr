@@ -15,6 +15,7 @@ export default function Login() {
 
   const successPath = params.get("to") || "/"
 
+
   const user = useContext(UserContext)
 
   const [email, setEmail] = useState(user?.email || "")
@@ -26,6 +27,7 @@ export default function Login() {
   const router = useRouter()
 
   useEffect(() => {
+    if (params.get("to")) toast(`Log in to access ${params.get("to")}`)
     if (user?.id && user.name) {
       toast(() => (
         <>
