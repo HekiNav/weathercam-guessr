@@ -2,7 +2,7 @@
 import game, { GameMode, GamePracticeBeginDataConfig } from "@/app/actions/game"
 import Card from "@/components/card"
 import Dropdown, { DropdownItem } from "@/components/dropdown"
-import { FINLAND_BOUNDS, GameModeDef, gameModes } from "@/lib/definitions"
+import { distanceBetweenPoints, FINLAND_BOUNDS, GameModeDef, gameModes } from "@/lib/definitions"
 import { Dispatch, SetStateAction, startTransition, use, useActionState, useEffect, useRef, useState } from "react"
 import { redirect } from "next/navigation"
 import toast from "react-hot-toast"
@@ -14,6 +14,8 @@ import { Image } from "@/app/actions/image"
 import { TransformWrapper, TransformComponent, ReactZoomPanPinchRef } from "react-zoom-pan-pinch"
 import { Layer, Map, MapRef, Source } from "react-map-gl/maplibre"
 import maplibregl, { GeoJSONSource } from "maplibre-gl"
+import CountUp from "react-countup"
+import Link from "next/link"
 
 type BooleanState<T> = [T, React.Dispatch<React.SetStateAction<T>>];
 
@@ -49,7 +51,7 @@ export default function GamePage({
   if (!gameMode || !gameMode.available) return <div></div>
 
   return GamePageContent(gameMode)
-  
+
 }
 
 function GamePageContent(gameMode: GameModeDef) {
@@ -86,7 +88,6 @@ function GamePageContent(gameMode: GameModeDef) {
 
   useEffect(() => {
     if (!mapRef.current) return
-    console.log(selectedLocation);
     (mapRef.current.getSource("data") as GeoJSONSource).setData({
       type: "FeatureCollection",
       features: [
@@ -97,9 +98,9 @@ function GamePageContent(gameMode: GameModeDef) {
         }
       ].filter(f => f != null)
     })
-  })
+  }, [selectedLocation])
 
-  const [{ errors, image, points, step, title, maxRound, round }, action, pending] = useActionState(game, { step: "init", title: "Start game" })
+  const [{ errors, image, points, step, title, maxRound, round, prevPoints }, action, pending] = useActionState(game, { step: "init", title: "Start game" })
 
   useEffect(() => {
     if (errors?.server) errors.server.forEach((err) => toast.error(err))
@@ -127,19 +128,7 @@ function GamePageContent(gameMode: GameModeDef) {
                 {Object.values(practiceConfig).map(({ description, ...keys }, i) => (<CheckboxGroup description={description} keys={keys} key={i}></CheckboxGroup>))}
                 <div className="text-red-600 text-wrap">{errors?.practiceConfig?.join(", ")}</div>
                 <Button className="mt-6 self-center" onPress={() => startTransition(() => action({
-                  type: "practice_begin", config: typedEntries<typeof practiceConfig>(practiceConfig).reduce(
-                    (prev, [key, value]) =>
-                    ({
-                      ...prev,
-                      [key]: typedEntries<typeof value>(value).reduce(
-                        (prev, [key, value]) => {
-                          return key == "description" || typeof value != "object" ?
-                            prev :
-                            { ...prev, [key]: (value as { state: [...never] }).state[0] }
-                        }
-                        , {})
-                    })
-                    , {}) as GamePracticeBeginDataConfig
+                  type: "practice_begin", config: getConfig(practiceConfig)
                 }))}
                   autoFocus disabled={pending}>Begin</Button>
               </div>
@@ -147,17 +136,17 @@ function GamePageContent(gameMode: GameModeDef) {
           </Card>
         </div>
       )}
-      {(step == "game" || step == "results") && image && (
+      {(step == "game") && image && (
         <div className="relative w-full h-full flex items-center justify-center overflow-hidden">
           <MovableImage
             image={image}
           />
           <div className="z-1000 absolute top-4 left-0 text-green-600 font-mono ">
             <div className="texl-lg bg-white p-2 border-2 border-green-600 border-l-0 rounded-tr-lg rounded-br-lg">Round {round || 0} {maxRound && ` / ${maxRound}`} - {gameMode.name}</div>
-            <div className="text-sm mt-2 border-2 border-green-600 border-l-0 bg-white p-1 rounded-tr-md rounded-br-md w-fit">{points} points</div>
+            <div className="text-sm mt-2 border-2 border-green-600 border-l-0 bg-white p-1 rounded-tr-md rounded-br-md w-fit">{points || 0} points</div>
           </div>
-          <div hidden={!selectedLocation} onClick={() => selectedLocation && startTransition(() => action({ type: "practice_submit", location: (selectedLocation?.coordinates as [number, number]) }))} className="absolute top-5 -right-1">
-            <Button className="pr-4 font-mono text-white text-xl">Submit</Button>
+          <div hidden={!selectedLocation} onClick={() => selectedLocation && startTransition(() => action({ type: "practice_submit", location: (selectedLocation?.coordinates as [number, number]) }))} className="flex flex-col items-center absolute w-full bottom-5">
+            <Button className="font-mono text-white text-xl text-center">Submit</Button>
           </div>
           <div onTransitionStart={(e) => {
             if (!mapRef.current) return
@@ -222,7 +211,6 @@ function GamePageContent(gameMode: GameModeDef) {
                       mapRef.current?.addImage("blue-pin", image)
                     })
                   }
-                  console.log(image)
                   setTimeout(() => {
                     mapRef.current?.fitBounds(
                       new maplibregl.LngLatBounds(
@@ -251,6 +239,33 @@ function GamePageContent(gameMode: GameModeDef) {
                   }} source="data" filter={["==", ["get", "type"], "correct_location"]}></Layer>
                 </Map>
               </div>
+              <div className="flex flex-row justify-around w-full mb-4">
+                <div className="flex flex-col items-center">
+                  <span className="text-lg text-green-600">Points</span>
+                  <CountUp className="text-2xl font-mono text-green-600" end={(points || 0) - (prevPoints || 0)}></CountUp>
+                </div>
+                <div className="flex flex-col items-center">
+                  <span className="text-lg text-green-600">Distance</span>{(() => {
+                    const distance = distanceBetweenPoints(selectedLocation.coordinates as [number, number], [image.lat, image.lon])
+                    return (
+                      <span className="text-2xl font-mono text-green-600">
+                        <CountUp end={distance > 1000 ? Math.round(distance / 1000) : Math.round(distance)} />
+                        {distance > 1000 ? "km" : "m"}
+                      </span>
+                    )
+                  })()}
+                </div>
+              </div>
+              <div className="z-1002 flex flex-row justify-around w-full">
+                {gameMode.id == "practice" && <>
+                  <Button onClick={() => {
+                    startTransition(() => action({ type: "practice_begin", config: getConfig(practiceConfig) }))
+                    setSelectedLocation(null)
+                  }}>Play another round</Button>
+                  <Button onClick={() => startTransition(() => action({ type: "init", gameMode: "practice" }))}>Change configuration</Button>
+                  <Link href="/play"><Button>Switch modes</Button></Link>
+                </>}
+              </div>
             </div>
           </Card>
           <div className="w-full h-full bg-white opacity-50 absolute"></div>
@@ -259,6 +274,21 @@ function GamePageContent(gameMode: GameModeDef) {
 
     </div >
   )
+}
+
+function getConfig(practiceConfig: { imageTypes: ConfigSection<"road" | "road_surface" | "scenery", boolean>; difficulties: ConfigSection<"easy" | "medium" | "hard", boolean>; other: ConfigSection<"blur", boolean> }): GamePracticeBeginDataConfig {
+  return typedEntries<typeof practiceConfig>(practiceConfig).reduce(
+    (prev, [key, value]) => ({
+      ...prev,
+      [key]: typedEntries<typeof value>(value).reduce(
+        (prev, [key, value]) => {
+          return key == "description" || typeof value != "object" ?
+            prev :
+            { ...prev, [key]: (value as { state: [...never] }).state[0] }
+        },
+        {})
+    }),
+    {}) as GamePracticeBeginDataConfig
 }
 
 function typedEntries<T extends object>(obj: T) {

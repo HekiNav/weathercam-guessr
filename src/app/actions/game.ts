@@ -77,7 +77,6 @@ export default async function game(state: GameState, data: GameInitData | GamePr
             const result = z.safeParse(practiceConfigSchema, data.config)
 
             if (!result.success) {
-                console.log()
                 return {
                     title: state.title,
                     step: state.step,
@@ -106,7 +105,7 @@ export default async function game(state: GameState, data: GameInitData | GamePr
                 step: "game",
                 title: "Practice",
                 image: { ...newPracticeImage, lat: 0, lon: 0, available: newPracticeImage.available == "true", rect: newPracticeImage.rect! },
-                points: state.points,
+                points: state.points || 0,
                 round: (state.round || 0) + 1 
             }
 
@@ -131,6 +130,7 @@ export default async function game(state: GameState, data: GameInitData | GamePr
             return {
                 step: "results",
                 title: "Practice mode results",
+                round: state.round,
                 points: (state.points || 0) + score(data.location, submittedImage),
                 prevPoints: state.points,
                 image: {...submittedImage, available: submittedImage.available == "true", rect: submittedImage.rect!}

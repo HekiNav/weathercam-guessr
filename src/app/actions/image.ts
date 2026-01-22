@@ -112,7 +112,6 @@ export async function reviewImages(state: ImageReviewFormState, actionData: Imag
     const { type } = actionData
     switch (type) {
         case "submit":
-            console.log(actionData, Object.keys(ImageDifficulty), typeof ImageDifficulty)
             const schema = z.object({
                 imageDifficulty: z.enum(["MEDIUM", "HARD", "EASY"], { error: "Invalid image difficulty" }),
                 imageType: z.enum(["ROAD_SURFACE", "SCENERY", "ROAD"], { error: "Invalid image type" }),
@@ -140,7 +139,6 @@ export async function reviewImages(state: ImageReviewFormState, actionData: Imag
         case "begin":
             const images = Array.from(await getImages(ne(image.reviewState, "COMPLETE"), 1, db))
 
-            console.log(images)
 
             if (images && images[0]) return {
                 step: "review",
