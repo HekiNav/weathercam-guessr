@@ -2,7 +2,7 @@
 import { atLeastOneTrue, FormState, LatLonLike, score } from "@/lib/definitions";
 import { Image } from "./image";
 import { createDB } from "@/lib/db";
-import z, { ZodBoolean } from "zod";
+import z from "zod";
 import { and, eq, or, sql, SQL } from "drizzle-orm";
 import { image } from "@/db/schema";
 

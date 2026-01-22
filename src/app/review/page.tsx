@@ -35,14 +35,16 @@ export default function ReviewPage() {
     const user = useContext(UserContext)
 
 
-    if (!user?.admin) {
         useEffect(() => {
+            if (!user?.admin) return
             toast.error("You aren't supposed to be there")
             redirect("/")
         })
-        return <div></div>
-
-    }
+        if (!user?.admin) return <div></div>
+    else return ReviewPageContent()
+    
+}
+function ReviewPageContent() {
     const [{ step, errors, currentImage }, action, pending] = useActionState(reviewImages, { currentImage: null, step: "start" } as ImageReviewFormState)
 
     const [difficulty, setDifficulty] = useState<ImageDifficulty | UnclassifiedEnum>((currentImage?.difficulty as ImageDifficulty) || UnclassifiedEnum.UNCLASSIFIED)

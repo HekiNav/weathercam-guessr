@@ -13,7 +13,6 @@ import { getImageUrl } from "@/app/review/page"
 import { Image } from "@/app/actions/image"
 import { TransformWrapper, TransformComponent, ReactZoomPanPinchRef } from "react-zoom-pan-pinch"
 import { Layer, Map, MapRef, Source } from "react-map-gl/maplibre"
-import { map } from "zod"
 import maplibregl, { GeoJSONSource } from "maplibre-gl"
 
 type BooleanState<T> = [T, React.Dispatch<React.SetStateAction<T>>];
@@ -49,7 +48,11 @@ export default function GamePage({
   })
   if (!gameMode || !gameMode.available) return <div></div>
 
+  return GamePageContent(gameMode)
+  
+}
 
+function GamePageContent(gameMode: GameModeDef) {
   const practiceConfig: {
     imageTypes: ConfigSection<"road" | "road_surface" | "scenery", boolean>;
     difficulties: ConfigSection<"easy" | "medium" | "hard", boolean>;
@@ -88,7 +91,7 @@ export default function GamePage({
       type: "FeatureCollection",
       features: [
         selectedLocation && {
-          type: "Feature" as "Feature",
+          type: "Feature" as const,
           geometry: selectedLocation,
           properties: { type: "selected_location" }
         }
@@ -132,7 +135,7 @@ export default function GamePage({
                         (prev, [key, value]) => {
                           return key == "description" || typeof value != "object" ?
                             prev :
-                            { ...prev, [key]: (value as { state: [...any] }).state[0] }
+                            { ...prev, [key]: (value as { state: [...never] }).state[0] }
                         }
                         , {})
                     })
@@ -176,7 +179,8 @@ export default function GamePage({
                     mapRef.current?.addImage("red-pin", image)
                   })
                 }
-                const mapContainer = mapRef.current?.getContainer().parentElement!
+                const mapContainer = mapRef.current?.getContainer().parentElement
+                if (!mapContainer) return
                 mapContainer.style.width = "60vw"
                 mapContainer.style.height = "80vh"
                 mapRef.current?.resize()
@@ -202,7 +206,7 @@ export default function GamePage({
         <div className="h-full w-full flex justify-center items-center absolute top-0 z-1001">
           <Card title={title} imageCard className="h-min w-150 opacity-100 bg-white z-1002">
             <div className="flex flex-col w-full">
-              <div className="h-50 w-full">
+              <div className="h-80 w-full">
                 <Map interactive={false} maplibreLogo={false} attributionControl={false} onLoad={() => {
                   if (!mapRef.current?.hasImage("red-pin")) {
                     const image = document.createElement("img")
@@ -211,16 +215,28 @@ export default function GamePage({
                       mapRef.current?.addImage("red-pin", image)
                     })
                   }
-                  mapRef.current?.fitBounds(
-                    new maplibregl.LngLatBounds(
-                      selectedLocation.coordinates as [number, number], 
-                      selectedLocation.coordinates as [number, number]
-                    ).extend([image.lat, image.lon]))
-                }} initialViewState={{ latitude: selectedLocation?.coordinates[1], longitude: selectedLocation?.coordinates[0], zoom: 10 }} ref={mapRef} mapStyle="/map_style.json">
+                  if (!mapRef.current?.hasImage("blue-pin")) {
+                    const image = document.createElement("img")
+                    image.src = "/pin_blue.svg"
+                    image.addEventListener("load", () => {
+                      mapRef.current?.addImage("blue-pin", image)
+                    })
+                  }
+                  console.log(image)
+                  setTimeout(() => {
+                    mapRef.current?.fitBounds(
+                      new maplibregl.LngLatBounds(
+                        selectedLocation.coordinates as [number, number],
+                        selectedLocation.coordinates as [number, number]
+                      ).extend([image.lat, image.lon]), { padding: 100 })
+                  }, 500)
+
+                }} initialViewState={{ latitude: selectedLocation?.coordinates[1], longitude: selectedLocation?.coordinates[0], zoom: 12 }} ref={mapRef} mapStyle="/map_style.json">
                   <Source id="data" type="geojson" data={{
                     type: "FeatureCollection",
                     features: [
-                      {"type": "Feature", geometry: selectedLocation, properties: {type: "selected_location"}}
+                      { "type": "Feature", geometry: selectedLocation, properties: { type: "selected_location" } },
+                      { "type": "Feature", geometry: { type: "Point", coordinates: [image.lat, image.lon] }, properties: { type: "correct_location" } }
                     ]
                   }}></Source>
                   <Layer id="map_pin" type="symbol" layout={{
@@ -228,6 +244,11 @@ export default function GamePage({
                     "icon-size": 0.1,
                     "icon-image": "red-pin"
                   }} source="data" filter={["==", ["get", "type"], "selected_location"]}></Layer>
+                  <Layer id="map_pin_2" type="symbol" layout={{
+                    "icon-anchor": "bottom",
+                    "icon-size": 0.1,
+                    "icon-image": "blue-pin"
+                  }} source="data" filter={["==", ["get", "type"], "correct_location"]}></Layer>
                 </Map>
               </div>
             </div>
@@ -253,7 +274,7 @@ function CheckboxGroup({ description, keys }: { description: string, keys: { [ke
   useEffect(() => {
     if (states.every(s => s[0] == all)) return
     setAll(states.every(s => s[0]))
-  }, [...states])
+  }, [all, states])
   return (<div className="mb-2">
     <span className="font-medium text-lg">{description}</span>
     <div className="flex flex-row flex-wrap gap-2">

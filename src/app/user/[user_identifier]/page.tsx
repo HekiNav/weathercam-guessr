@@ -1,9 +1,8 @@
 "use server"
 
+import Toast from "@/components/toast"
 import UserUI from "@/components/user"
 import { getUser } from "@/lib/public"
-import { useEffect } from "react"
-import toast from "react-hot-toast"
 
 export default async function UserPage({ params }: { params: Promise<{ user_identifier: string }> }) {
 
@@ -11,11 +10,8 @@ export default async function UserPage({ params }: { params: Promise<{ user_iden
 
 
     const user = await getUser(user_identifier)
-    useEffect(() => {
-        if (user) return
-        toast.error(`Could not find user with id or name ${user_identifier}`)
-    })
-    if (!user) return <div></div>
+    
+    if (!user) return <div><Toast type="error" message={`Could not find user with id or name ${user_identifier}`}></Toast></div>
 
     return (
         <div>

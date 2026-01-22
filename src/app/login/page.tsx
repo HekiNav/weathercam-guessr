@@ -38,7 +38,7 @@ export default function Login() {
     if (step == "success") {
       router.push(successPath)
     }
-  }, [step, router, successPath])
+  }, [step, router, successPath, user?.id, user?.name])
 
   return (
     <div className="w-full h-full flex items-center grow justify-center">
