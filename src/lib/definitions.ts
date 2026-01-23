@@ -125,6 +125,11 @@ export enum ImageType {
     BROKEN = "BROKEN"
 }
 
+export enum MapType {
+  USER_CREATED = "USER_CREATED",
+  DAILY_CHALLENGE = "DAILY_CHALLENGE"
+}
+
 export enum ImageDifficulty {
     EASY = "EASY",
     MEDIUM = "MEDIUM",

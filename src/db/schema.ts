@@ -1,4 +1,4 @@
-import { sqliteTable, integer, text, numeric, uniqueIndex, real } from "drizzle-orm/sqlite-core"
+import { sqliteTable, integer, text, numeric, uniqueIndex, real, primaryKey } from "drizzle-orm/sqlite-core"
 import { sql } from "drizzle-orm"
 import { relations } from "drizzle-orm/relations";
 
@@ -17,6 +17,26 @@ export const image = sqliteTable("Image", {
 	(table) => [
 		uniqueIndex("Image_externalId_key").on(table.externalId),
 	]);
+export const map = sqliteTable("Map", {
+	creationTime: integer().default(sql`(CURRENT_TIMESTAMP)`).notNull(),
+	updateTime: integer().default(sql`(CURRENT_TIMESTAMP)`).notNull(),
+	type: text().default("USER_CREATED").notNull(), // USER_CREATED | DAILY_CHALLENGE
+	id: text().primaryKey().notNull(),
+	createdBy: text().references(() => user.id, { onDelete: "cascade", onUpdate: "cascade" })
+})
+export const mapPlace = sqliteTable("MapPlaces", {
+	imageId: text().notNull().references(() => image.id, { onDelete: "cascade", onUpdate: "cascade" }),
+	mapId: text().notNull().references(() => map.id, { onDelete: "cascade", onUpdate: "cascade" }),
+}, (t) => ({
+	pk: primaryKey({columns: [t.mapId, t.imageId]})
+}))
+
+export const leaderboard = sqliteTable("Leaderboard", {
+	gameId: text().notNull().primaryKey().references(() => map.id, { onDelete: "cascade", onUpdate: "cascade" }),
+	userId: text().notNull().references(() => user.id, { onDelete: "cascade", onUpdate: "cascade" }),
+	score: integer().notNull(),
+	timestamp: integer().default(sql`(CURRENT_TIMESTAMP)`).notNull()
+})
 
 export const rect = sqliteTable("Rect", {
 	id: text().primaryKey().notNull().references(() => image.id, { onDelete: "restrict", onUpdate: "cascade" }),
@@ -65,6 +85,25 @@ export const imageRelations = relations(image, ({ one }) => ({
 	rect: one(rect),
 }));
 
+export const mapRelations = relations(map, ({ one, many }) => ({
+	places: many(mapPlace),
+	createdBy: one(user, {
+		fields: [map.createdBy],
+		references: [user.id]
+	})
+}));
+
+export const mapPlaceRelations = relations(mapPlace, ({ one }) => ({
+	image: one(image, {
+		fields: [mapPlace.imageId],
+		references: [image.id]
+	}),
+	map: one(map, {
+		fields: [mapPlace.mapId],
+		references: [map.id]
+	})
+}))
+
 export const sessionRelations = relations(session, ({ one }) => ({
 	user: one(user, {
 		fields: [session.userId],
@@ -74,4 +113,5 @@ export const sessionRelations = relations(session, ({ one }) => ({
 
 export const userRelations = relations(user, ({ many }) => ({
 	sessions: many(session),
+	maps: many(map)
 }));

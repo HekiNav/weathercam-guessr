@@ -90,7 +90,7 @@ export default async function game(state: GameState, data: GameInitData | GamePr
                 where: and(
                     or(...Object.entries(result.data.difficulties).reduce((prev, [key, value]) => value ? [...prev, eq(image.difficulty, key.toUpperCase())] : prev, new Array<SQL>())),
                     or(...Object.entries(result.data.imageTypes).reduce((prev, [key, value]) => value ? [...prev, eq(image.type, key.toUpperCase())] : prev, new Array<SQL>())),
-                    eq(image.available, "true"),
+                    eq(image.available, "TRUE"),
                     eq(image.reviewState, "COMPLETE")
                 ),
                 orderBy: sql`RANDOM()`,
