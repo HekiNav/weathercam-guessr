@@ -1,4 +1,5 @@
-import { default as handler } from "../.open-next/worker.js";
+// @ts-expect-error `.open-next/worker.ts` is generated at build time
+import { default as handler } from "./.open-next/worker.js";
 
 import { and, eq, notExists, or, sql } from "drizzle-orm";
 
@@ -57,4 +58,5 @@ export default {
 	},
 } satisfies ExportedHandler<CloudflareEnv>;
 
-export { DOQueueHandler, DOShardedTagCache } from "../.open-next/worker.js";
+// @ts-expect-error `.open-next/worker.ts` is generated at build time
+export { DOQueueHandler, DOShardedTagCache } from "./.open-next/worker.js";
