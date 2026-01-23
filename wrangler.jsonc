@@ -44,7 +44,7 @@
 		}
 	],
 	"triggers": {
-		"crons": ["* * * * *"]
+		"crons": ["36 * * * *"]
 	}
 	/**
 	 * Smart Placement

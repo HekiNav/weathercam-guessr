@@ -1,10 +1,14 @@
 // @ts-expect-error `.open-next/worker.ts` is generated at build time
-import { default as handler } from "./.open-next/worker.js";
+import { default as handler } from "../.open-next/worker.js";
 
 import { and, eq, notExists, or, sql } from "drizzle-orm";
 
-import { createDB } from "@/lib/db.js";
-import { image, map, mapPlace } from "@/db/schema.js";
+import * as schema from "@/db/schema.js";
+import { drizzle } from "drizzle-orm/d1";
+
+export interface Env {
+  weathercam_guessr_prod: D1Database;
+}
 
 export default {
 	fetch: handler.fetch,
@@ -17,40 +21,40 @@ export default {
 	 * - `curl "http://localhost:8787/__scheduled?cron=*+*+*+*+*"`
 	 * @param event
 	 */
-	async scheduled(event) {
+	async scheduled(event, env) {
 		console.log("Scheduled event", event);
-		const db = await createDB()
+		const db = drizzle((env as Env).weathercam_guessr_prod, { schema })
 		const dailyImage = await db.query.image.findFirst({
 			columns: {
 				id: true
 			},
 			where: and(
-				or(eq(image.type, "ROAD"), eq(image.type, "SCENERY")),
-				eq(image.available, "TRUE"),
-				eq(image.reviewState, "COMPLETE"),
+				or(eq(schema.image.type, "ROAD"), eq(schema.image.type, "SCENERY")),
+				eq(schema.image.available, "true"),
+				eq(schema.image.reviewState, "COMPLETE"),
 				notExists(
 					db
-						.select({ one: sql`1` })
-						.from(mapPlace)
-						.innerJoin(map, eq(map.id, mapPlace.mapId))
+						.select()
+						.from(schema.mapPlace)
+						.innerJoin(schema.map, eq(schema.map.id, schema.mapPlace.mapId))
 						.where(
 							and(
-								eq(mapPlace.imageId, image.id),
-								eq(map.type, "DAILY_CHALLENGE")
+								eq(schema.mapPlace.imageId, schema.image.id),
+								eq(schema.map.type, "DAILY_CHALLENGE")
 							)
 						)
 				)
 			),
 			orderBy: sql`RANDOM()`
 		})
-		if (!dailyImage?.id) return
+		if (!dailyImage?.id) throw new Error("No image found" + JSON.stringify(dailyImage || {}))
 		db.transaction(async (tx) => {
 			const mapId = crypto.randomUUID()
-			await tx.insert(map).values({
+			await tx.insert(schema.map).values({
 				type: "DAILY_CHALLENGE",
 				id: mapId,
 			})
-			await tx.insert(mapPlace).values({
+			await tx.insert(schema.mapPlace).values({
 				imageId: dailyImage?.id,
 				mapId: mapId
 			})
@@ -59,4 +63,4 @@ export default {
 } satisfies ExportedHandler<CloudflareEnv>;
 
 // @ts-expect-error `.open-next/worker.ts` is generated at build time
-export { DOQueueHandler, DOShardedTagCache } from "./.open-next/worker.js";
+export { DOQueueHandler, DOShardedTagCache } from "../.open-next/worker.js";
