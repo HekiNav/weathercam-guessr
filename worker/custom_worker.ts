@@ -22,7 +22,6 @@ export default {
 	 * @param event
 	 */
 	async scheduled(event, env) {
-		console.log("Scheduled event", event);
 		const db = drizzle((env as Env).weathercam_guessr_prod, { schema })
 		const dailyImage = await db.query.image.findFirst({
 			columns: {
@@ -48,7 +47,7 @@ export default {
 			orderBy: sql`RANDOM()`
 		})
 		if (!dailyImage?.id) throw new Error("No image found" + JSON.stringify(dailyImage || {}))
-		db.transaction(async (tx) => {
+		await db.transaction(async (tx) => {
 			const mapId = crypto.randomUUID()
 			await tx.insert(schema.map).values({
 				type: "DAILY_CHALLENGE",
