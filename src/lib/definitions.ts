@@ -79,7 +79,7 @@ export function score(guess: LatLonLike, correct: LatLonLike) {
   const [east, south, west, north] = FINLAND_BOUNDS
   const size = distanceBetweenPoints([east, south], [west, north])
   const distance = distanceBetweenPoints(guess, correct)
-  return Math.round(5000 * Math.pow(Math.E, (-10 * distance / size)))
+  return Math.round(5000 * Math.pow(Math.E, (-20 * distance / size)))
 }
 export interface LatLon {
   lat: number

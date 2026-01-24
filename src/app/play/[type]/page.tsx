@@ -109,7 +109,7 @@ function GamePageContent(gameMode: GameModeDef) {
 
   const [state, action, pending] = useActionState(game, { step: "init", title: "Start game" })
 
-  const {errors, step, title} = state
+  const { errors, step, title } = state
 
   useEffect(() => {
     if (errors?.server) errors.server.forEach((err) => toast.error(err))
@@ -120,7 +120,7 @@ function GamePageContent(gameMode: GameModeDef) {
     <div className="h-full w-full relative">
       {step != "game" && step != "results" && (
         <div className="h-full w-full flex justify-center items-center">
-          <Card title={title} className="h-min w-max transition-all ease-out duration-500">
+          <Card title={title} className="h-min w-max">
             {step == "init" && (
 
               <>
@@ -149,6 +149,7 @@ function GamePageContent(gameMode: GameModeDef) {
         <div className="relative w-full h-full flex items-center justify-center overflow-hidden">
           <MovableImage
             image={state.image}
+            blur={practiceConfig.other.blur.state[0]}
           />
           <div className="z-1000 absolute top-4 left-0 text-green-600 font-mono ">
             <div className="texl-lg bg-white p-2 border-2 border-green-600 border-l-0 rounded-tr-lg rounded-br-lg">Round {state.round || 0} {state.maxRound && ` / ${state.maxRound}`} - {gameMode.name}</div>
@@ -335,11 +336,12 @@ function GameModeItem(m: GameModeDef) {
 
 
 interface MovableImageProps {
-  image: Image
+  image: Image,
+  blur: boolean
 }
 
 
-function MovableImage({ image }: MovableImageProps) {
+function MovableImage({ image, blur }: MovableImageProps) {
   const ref = useRef<ReactZoomPanPinchRef>(null)
   const [resetButtonHidden, setResetButtonHidden] = useState(true)
 
@@ -358,7 +360,7 @@ function MovableImage({ image }: MovableImageProps) {
             }} style={{
               zIndex: -10,
               transition: "0.5s ease-in-out",
-            }} alt="" blur={image.rect} src={getImageUrl(image?.externalId, image?.source)}></ImageWithBlur>
+            }} alt="" blur={blur ? image.rect : { height: 0, width: 0, x: 0, y: 0 }} src={getImageUrl(image?.externalId, image?.source)}></ImageWithBlur>
           </div>
         </TransformComponent>
       </TransformWrapper>

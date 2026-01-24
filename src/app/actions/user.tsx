@@ -1,0 +1,97 @@
+import { user } from "@/db/schema";
+import { getCurrentUser } from "@/lib/auth";
+import { createDB } from "@/lib/db";
+import { EmailSchema, UsernameSchema } from "@/lib/definitions";
+import { eq } from "drizzle-orm";
+import { cookies } from "next/headers";
+import z from "zod";
+
+export async function deleteUser() {
+    const db = await createDB()
+
+    const currentUser = await getCurrentUser()
+
+    if (!currentUser) return {
+        success: false,
+        message: "Not logged in!"
+    }
+
+
+    await (await db).delete(user).where(eq(user.id, currentUser.id));
+    (await cookies()).delete("session");
+
+}
+
+export async function changeUsername(newUsername: string) {
+    const { success, error, data } = UsernameSchema.safeParse(newUsername)
+
+    const db = await createDB()
+
+    const currentUser = await getCurrentUser()
+
+    if (!currentUser) return {
+        success: false,
+        message: "Not logged in!"
+    }
+
+    if (!success) return {
+        success: false,
+        message: z.treeifyError(error).errors.join(", ")
+    }
+    try {
+        await db.update(user).set({ name: data }).where(eq(user.id, currentUser.id))
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+        if (error.cause.toString().includes("UNIQUE constraint failed: User.name")) return {
+            success: false,
+            message: "Username alrady in use"
+        }
+        else {
+            return {
+                success: false,
+                message: "Server error"
+            }
+        }
+    }
+
+    return {
+        step: "success"
+    }
+}
+export async function changeEmail(newEmail: string) {
+    const { success, error, data } = EmailSchema.safeParse(newEmail)
+
+    const db = await createDB()
+
+    const currentUser = await getCurrentUser()
+
+    if (!currentUser) return {
+        success: false,
+        message: "Not logged in!"
+    }
+
+    if (!success) return {
+        success: false,
+        message: z.treeifyError(error).errors.join(", ")
+    }
+    try {
+        await db.update(user).set({ name: data }).where(eq(user.id, currentUser.id))
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+        if (error.cause.toString().includes("UNIQUE constraint failed: User.email")) return {
+            success: false,
+            message: "Email alrady in use"
+        }
+        else {
+            return {
+                success: false,
+                message: "Server error"
+            }
+        }
+    }
+
+    return {
+        step: "success",
+        message: "Succesfully changed email!"
+    }
+}
