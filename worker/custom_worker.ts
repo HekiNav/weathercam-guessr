@@ -7,7 +7,7 @@ import * as schema from "@/db/schema.js";
 import { drizzle } from "drizzle-orm/d1";
 
 export interface Env {
-  weathercam_guessr_prod: D1Database;
+	weathercam_guessr_prod: D1Database;
 }
 
 export default {
@@ -47,16 +47,14 @@ export default {
 			orderBy: sql`RANDOM()`
 		})
 		if (!dailyImage?.id) throw new Error("No image found" + JSON.stringify(dailyImage || {}))
-		await db.transaction(async (tx) => {
-			const mapId = crypto.randomUUID()
-			await tx.insert(schema.map).values({
-				type: "DAILY_CHALLENGE",
-				id: mapId,
-			})
-			await tx.insert(schema.mapPlace).values({
-				imageId: dailyImage?.id,
-				mapId: mapId
-			})
+		const mapId = crypto.randomUUID()
+		await db.insert(schema.map).values({
+			type: "DAILY_CHALLENGE",
+			id: mapId,
+		})
+		await db.insert(schema.mapPlace).values({
+			imageId: dailyImage?.id,
+			mapId: mapId
 		})
 	},
 } satisfies ExportedHandler<CloudflareEnv>;
