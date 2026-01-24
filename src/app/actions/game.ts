@@ -1,5 +1,5 @@
 "use server"
-import { atLeastOneTrue, FormState, LatLonLike, score } from "@/lib/definitions";
+import { atLeastOneTrue, FormState, Game, LatLonLike, score } from "@/lib/definitions";
 import { Image } from "./image";
 import { createDB } from "@/lib/db";
 import z from "zod";
@@ -22,7 +22,7 @@ export interface GamePlayState extends GameState<"game" | "results"> {
     image: Image,
 }
 export interface GameDailyInfoState extends GameState<"daily_info"> {
-    history?: null
+    lastGame?: Game
 }
 export interface GameData<T extends string> {
     type: T
@@ -66,7 +66,7 @@ export default async function game(state: AnyGameState, data: GameInitData | Gam
                 case "daily":
                     return {
                         step: "daily_info",
-                        title: "WIP"
+                        title: "Play daily challenges"
                     }
             }
         case "practice_begin":

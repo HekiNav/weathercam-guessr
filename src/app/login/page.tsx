@@ -40,12 +40,13 @@ export default function Login() {
 
     if (step == "success") {
       router.push(successPath)
+      router.refresh()
     }
   }, [step, router, successPath, user?.id, user?.name, params])
 
   return (
     <div className="w-full h-full flex items-center grow justify-center">
-      <Card title="Login using OTP">
+      <Card title="Login using OTP" className="transition-all ease-out duration-500">
 
         {step === "email" && (
           <>

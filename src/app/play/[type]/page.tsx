@@ -120,7 +120,7 @@ function GamePageContent(gameMode: GameModeDef) {
     <div className="h-full w-full relative">
       {step != "game" && step != "results" && (
         <div className="h-full w-full flex justify-center items-center">
-          <Card title={title} className="h-min w-max">
+          <Card title={title} className="h-min w-max transition-all ease-out duration-500">
             {step == "init" && (
 
               <>

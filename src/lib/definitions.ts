@@ -29,6 +29,20 @@ export interface User {
   sessions?: Session[]
 }
 
+export interface Map {
+  creationTime: number,
+  updateTime: number,
+  type: MapType, // USER_CREATED | DAILY_CHALLENGE
+  id: string,
+  createdBy: string,
+  visibility: MapVisibility
+}
+export interface Game {
+  mapId: string,
+  userId: string,
+  score: number,
+  timestamp: number
+}
 
 export interface Session {
   id: string
@@ -63,66 +77,73 @@ export const FINLAND_BOUNDS: [number, number, number, number] = [20.6455928891, 
 
 export function score(guess: LatLonLike, correct: LatLonLike) {
   const [east, south, west, north] = FINLAND_BOUNDS
-  const size = distanceBetweenPoints([east,south],[west, north])
+  const size = distanceBetweenPoints([east, south], [west, north])
   const distance = distanceBetweenPoints(guess, correct)
-  return Math.round(5000 * Math.pow(Math.E ,(-10 * distance / size)))
+  return Math.round(5000 * Math.pow(Math.E, (-10 * distance / size)))
 }
 export interface LatLon {
-    lat: number
-    lon: number
+  lat: number
+  lon: number
 }
 export type LatLonArray = [number, number]
 export type LatLonLike = LatLon | LatLonArray
 export function distanceBetweenPoints(p1: LatLonLike, p2: LatLonLike) {
-    const lat1 = Array.isArray(p1) ? p1[0] : p1.lat
-    const lon1 = Array.isArray(p1) ? p1[1] : p1.lon
-    const lat2 = Array.isArray(p2) ? p2[0] : p2.lat
-    const lon2 = Array.isArray(p2) ? p2[1] : p2.lon
+  const lat1 = Array.isArray(p1) ? p1[0] : p1.lat
+  const lon1 = Array.isArray(p1) ? p1[1] : p1.lon
+  const lat2 = Array.isArray(p2) ? p2[0] : p2.lat
+  const lon2 = Array.isArray(p2) ? p2[1] : p2.lon
 
-    // earths radius (m)
-    const earthRadiusMeters = 6371000;
+  // earths radius (m)
+  const earthRadiusMeters = 6371000;
 
-    const lat1Rad = toRadians(lat1);
-    const lat2Rad = toRadians(lat2);
-    const deltaLatRad = toRadians(lat2 - lat1);
-    const deltaLngRad = toRadians(lon2 - lon1);
+  const lat1Rad = toRadians(lat1);
+  const lat2Rad = toRadians(lat2);
+  const deltaLatRad = toRadians(lat2 - lat1);
+  const deltaLngRad = toRadians(lon2 - lon1);
 
-    const a =
-        Math.sin(deltaLatRad / 2) ** 2 +
-        Math.cos(lat1Rad) *
-        Math.cos(lat2Rad) *
-        Math.sin(deltaLngRad / 2) ** 2;
+  const a =
+    Math.sin(deltaLatRad / 2) ** 2 +
+    Math.cos(lat1Rad) *
+    Math.cos(lat2Rad) *
+    Math.sin(deltaLngRad / 2) ** 2;
 
-    const angularDistance =
-        2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  const angularDistance =
+    2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
-    return earthRadiusMeters * angularDistance;
+  return earthRadiusMeters * angularDistance;
 
 
 }
 function toRadians(deg: number) {
-    return deg * Math.PI / 180
+  return deg * Math.PI / 180
 }
 export const atLeastOneTrue = (shape: Record<string, z.ZodBoolean>, error: string) => z.object(shape).refine((obj) => !Object.values(obj).every(v => v == false), { error: error });
 
 export function getImageUrl(id: string, source: string) {
-    switch (source) {
-        case "DIGITRAFFIC":
-            return `https://weathercam.digitraffic.fi/${id}.jpg`
-        default:
-            return id
-    }
+  switch (source) {
+    case "DIGITRAFFIC":
+      return `https://weathercam.digitraffic.fi/${id}.jpg`
+    default:
+      return id
+  }
+}
+
+export enum MapVisibility {
+  PUBLIC = "PUBLIC",
+  PRIVATE = "PRIVATE",
+  FRIENDS = "FRIENDS",
+  HIDDEN = "HIDDEN"
 }
 
 export enum UnclassifiedEnum {
-    UNCLASSIFIED = "UNCLASSIFIED",
+  UNCLASSIFIED = "UNCLASSIFIED",
 }
 
 export enum ImageType {
-    ROAD_SURFACE = "ROAD_SURFACE",
-    SCENERY = "SCENERY",
-    ROAD = "ROAD",
-    BROKEN = "BROKEN"
+  ROAD_SURFACE = "ROAD_SURFACE",
+  SCENERY = "SCENERY",
+  ROAD = "ROAD",
+  BROKEN = "BROKEN"
 }
 
 export enum MapType {
@@ -131,13 +152,13 @@ export enum MapType {
 }
 
 export enum ImageDifficulty {
-    EASY = "EASY",
-    MEDIUM = "MEDIUM",
-    HARD = "HARD",
+  EASY = "EASY",
+  MEDIUM = "MEDIUM",
+  HARD = "HARD",
 }
 export interface BlurRect {
-    x: number
-    y: number
-    width: number
-    height: number
+  x: number
+  y: number
+  width: number
+  height: number
 }

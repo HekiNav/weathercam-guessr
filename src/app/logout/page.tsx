@@ -25,6 +25,7 @@ export default function Logout() {
           <Button onClick={() => {
             logout()
             router.push("/")
+            router.refresh()
           }}>Confirm</Button>
         </div>
       </Card>

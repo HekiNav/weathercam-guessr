@@ -22,7 +22,8 @@ export const map = sqliteTable("Map", {
 	updateTime: integer().default(sql`(CURRENT_TIMESTAMP)`).notNull(),
 	type: text().default("USER_CREATED").notNull(), // USER_CREATED | DAILY_CHALLENGE
 	id: text().primaryKey().notNull(),
-	createdBy: text().references(() => user.id, { onDelete: "cascade", onUpdate: "cascade" })
+	createdBy: text().references(() => user.id, { onDelete: "cascade", onUpdate: "cascade" }),
+	visibility: text().notNull().default("PUBLIC")
 })
 export const mapPlace = sqliteTable("MapPlaces", {
 	imageId: text().notNull().references(() => image.id, { onDelete: "cascade", onUpdate: "cascade" }),
@@ -32,7 +33,7 @@ export const mapPlace = sqliteTable("MapPlaces", {
 }))
 
 export const leaderboard = sqliteTable("Leaderboard", {
-	gameId: text().notNull().primaryKey().references(() => map.id, { onDelete: "cascade", onUpdate: "cascade" }),
+	mapId: text().notNull().primaryKey().references(() => map.id, { onDelete: "cascade", onUpdate: "cascade" }),
 	userId: text().notNull().references(() => user.id, { onDelete: "cascade", onUpdate: "cascade" }),
 	score: integer().notNull(),
 	timestamp: integer().default(sql`(CURRENT_TIMESTAMP)`).notNull()
