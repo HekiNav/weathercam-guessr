@@ -6,13 +6,23 @@ import z from "zod";
 import { and, eq, or, sql, SQL } from "drizzle-orm";
 import { image } from "@/db/schema";
 
-export interface GameState extends FormState<["practiceConfig", "server", "image"]> {
-    image?: Image,
-    points?: number,
-    prevPoints?: number,
+export interface GameState<T extends string> extends FormState<["practiceConfig", "server", "image"]> {
+    step: T,
     title: string,
-    round?: number,
-    maxRound?: number
+
+}
+export type BasicGameState = GameState<"config_practice" | "init">
+export type AnyGameState = GamePlayState | GameDailyInfoState | BasicGameState
+
+export interface GamePlayState extends GameState<"game" | "results"> {
+    round: number,
+    maxRound?: number,
+    points: number,
+    prevPoints?: number,
+    image: Image,
+}
+export interface GameDailyInfoState extends GameState<"daily_info"> {
+    history?: null
 }
 export interface GameData<T extends string> {
     type: T
@@ -43,7 +53,7 @@ export interface GamePracticeBeginDataConfig {
         blur: boolean
     }
 }
-export default async function game(state: GameState, data: GameInitData | GamePracticeBeginData | GamePracticeSubmitData): Promise<GameState> {
+export default async function game(state: AnyGameState, data: GameInitData | GamePracticeBeginData | GamePracticeSubmitData): Promise<AnyGameState> {
     const db = await createDB()
     switch (data.type) {
         case "init":
@@ -55,7 +65,7 @@ export default async function game(state: GameState, data: GameInitData | GamePr
                     }
                 case "daily":
                     return {
-                        step: "wip",
+                        step: "daily_info",
                         title: "WIP"
                     }
             }
@@ -83,7 +93,7 @@ export default async function game(state: GameState, data: GameInitData | GamePr
                     title: state.title,
                     step: state.step,
                     errors: { practiceConfig: result.error.issues.map(i => i.message) }
-                }
+                } as BasicGameState
             }
 
             const newPracticeImage = await db.query.image.findFirst({
@@ -102,40 +112,40 @@ export default async function game(state: GameState, data: GameInitData | GamePr
                 errors: {
                     server: ["Failed to find image matching selected options. Please broaden selection and try again."]
                 }
-            }
+            } as BasicGameState
             return {
                 step: "game",
                 title: "Practice",
                 image: { ...newPracticeImage, lat: 0, lon: 0, available: newPracticeImage.available == "true", rect: newPracticeImage.rect! },
-                points: state.points || 0,
-                round: (state.round || 0) + 1 
+                points: (state as GamePlayState).points || 0,
+                round: ((state as GamePlayState).round || 0) + 1
             }
 
         case "practice_submit":
-            if (!state.image?.id) return {
+            if (!(state as GamePlayState).image?.id) return {
                 step: state.step,
                 title: state.title,
                 errors: {
                     image: ["Invalid image data"]
                 },
-                image: state.image
-            }
-            const submittedImage = await db.query.image.findFirst({where: eq(image.id,state.image?.id || ""), with: { rect: true }})
+                image: (state as GamePlayState).image
+            } as GamePlayState
+            const submittedImage = await db.query.image.findFirst({ where: eq(image.id, (state as GamePlayState).image?.id || ""), with: { rect: true } })
             if (!submittedImage) return {
                 step: state.step,
                 title: state.title,
                 errors: {
                     image: ["Invalid image data"]
                 },
-                image: state.image
-            }
+                image: (state as GamePlayState).image
+            } as GamePlayState
             return {
                 step: "results",
                 title: "Practice mode results",
-                round: state.round,
-                points: (state.points || 0) + score(data.location, submittedImage),
-                prevPoints: state.points,
-                image: {...submittedImage, available: submittedImage.available == "true", rect: submittedImage.rect!}
+                round: (state as GamePlayState).round,
+                points: ((state as GamePlayState).points || 0) + score(data.location, submittedImage),
+                prevPoints: (state as GamePlayState).points,
+                image: { ...submittedImage, available: submittedImage.available == "true", rect: submittedImage.rect! }
             }
     }
 }

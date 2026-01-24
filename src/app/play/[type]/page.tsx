@@ -107,7 +107,9 @@ function GamePageContent(gameMode: GameModeDef) {
     })
   }, [selectedLocation])
 
-  const [{ errors, image, points, step, title, maxRound, round, prevPoints }, action, pending] = useActionState(game, { step: "init", title: "Start game" })
+  const [state, action, pending] = useActionState(game, { step: "init", title: "Start game" })
+
+  const {errors, step, title} = state
 
   useEffect(() => {
     if (errors?.server) errors.server.forEach((err) => toast.error(err))
@@ -143,14 +145,14 @@ function GamePageContent(gameMode: GameModeDef) {
           </Card>
         </div>
       )}
-      {(step == "game") && image && (
+      {step == "game" && (
         <div className="relative w-full h-full flex items-center justify-center overflow-hidden">
           <MovableImage
-            image={image}
+            image={state.image}
           />
           <div className="z-1000 absolute top-4 left-0 text-green-600 font-mono ">
-            <div className="texl-lg bg-white p-2 border-2 border-green-600 border-l-0 rounded-tr-lg rounded-br-lg">Round {round || 0} {maxRound && ` / ${maxRound}`} - {gameMode.name}</div>
-            <div className="text-sm mt-2 border-2 border-green-600 border-l-0 bg-white p-1 rounded-tr-md rounded-br-md w-fit">{points || 0} points</div>
+            <div className="texl-lg bg-white p-2 border-2 border-green-600 border-l-0 rounded-tr-lg rounded-br-lg">Round {state.round || 0} {state.maxRound && ` / ${state.maxRound}`} - {gameMode.name}</div>
+            <div className="text-sm mt-2 border-2 border-green-600 border-l-0 bg-white p-1 rounded-tr-md rounded-br-md w-fit">{state.points || 0} points</div>
           </div>
           <div hidden={!selectedLocation} onClick={() => selectedLocation && startTransition(() => action({ type: "practice_submit", location: (selectedLocation?.coordinates as [number, number]) }))} className="flex flex-col items-center absolute w-full bottom-5">
             <Button className="font-mono text-white text-xl text-center">Submit</Button>
@@ -198,7 +200,7 @@ function GamePageContent(gameMode: GameModeDef) {
         </div>
       )
       }
-      {step == "results" && selectedLocation && image && (
+      {step == "results" && selectedLocation && (
         <div className="h-full w-full flex justify-center items-center absolute top-0 z-1001">
           <Card title={title} imageCard className="h-min w-150 opacity-100 bg-white z-1002">
             <div className="flex flex-col w-full">
@@ -223,7 +225,7 @@ function GamePageContent(gameMode: GameModeDef) {
                       new maplibregl.LngLatBounds(
                         selectedLocation.coordinates as [number, number],
                         selectedLocation.coordinates as [number, number]
-                      ).extend([image.lat, image.lon]), { padding: 100 })
+                      ).extend([state.image.lat, state.image.lon]), { padding: 100 })
                   }, 500)
 
                 }} initialViewState={{ latitude: selectedLocation?.coordinates[1], longitude: selectedLocation?.coordinates[0], zoom: 12 }} ref={mapRef} mapStyle="/map_style.json">
@@ -231,7 +233,7 @@ function GamePageContent(gameMode: GameModeDef) {
                     type: "FeatureCollection",
                     features: [
                       { "type": "Feature", geometry: selectedLocation, properties: { type: "selected_location" } },
-                      { "type": "Feature", geometry: { type: "Point", coordinates: [image.lat, image.lon] }, properties: { type: "correct_location" } }
+                      { "type": "Feature", geometry: { type: "Point", coordinates: [state.image.lat, state.image.lon] }, properties: { type: "correct_location" } }
                     ]
                   }}></Source>
                   <Layer id="map_pin" type="symbol" layout={{
@@ -249,11 +251,11 @@ function GamePageContent(gameMode: GameModeDef) {
               <div className="flex flex-row justify-around w-full mb-4">
                 <div className="flex flex-col items-center">
                   <span className="text-lg text-green-600">Points</span>
-                  <CountUp className="text-2xl font-mono text-green-600" end={(points || 0) - (prevPoints || 0)}></CountUp>
+                  <CountUp className="text-2xl font-mono text-green-600" end={(state.points || 0) - (state.prevPoints || 0)}></CountUp>
                 </div>
                 <div className="flex flex-col items-center">
                   <span className="text-lg text-green-600">Distance</span>{(() => {
-                    const distance = distanceBetweenPoints(selectedLocation.coordinates as [number, number], [image.lat, image.lon])
+                    const distance = distanceBetweenPoints(selectedLocation.coordinates as [number, number], [state.image.lat, state.image.lon])
                     return (
                       <span className="text-2xl font-mono text-green-600">
                         <CountUp end={distance > 1000 ? Math.round(distance / 1000) : Math.round(distance)} />
