@@ -1,3 +1,4 @@
+"use server"
 import { user } from "@/db/schema";
 import { getCurrentUser } from "@/lib/auth";
 import { createDB } from "@/lib/db";
@@ -19,6 +20,11 @@ export async function deleteUser() {
 
     await (await db).delete(user).where(eq(user.id, currentUser.id));
     (await cookies()).delete("session");
+
+    return {
+        success: true,
+        message: "Deleted user"
+    }
 
 }
 
@@ -55,7 +61,8 @@ export async function changeUsername(newUsername: string) {
     }
 
     return {
-        step: "success"
+        success: true,
+        message: "Changed username"
     }
 }
 export async function changeEmail(newEmail: string) {
@@ -75,7 +82,7 @@ export async function changeEmail(newEmail: string) {
         message: z.treeifyError(error).errors.join(", ")
     }
     try {
-        await db.update(user).set({ name: data }).where(eq(user.id, currentUser.id))
+        await db.update(user).set({ email: data }).where(eq(user.id, currentUser.id))
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
         if (error.cause.toString().includes("UNIQUE constraint failed: User.email")) return {
@@ -91,7 +98,7 @@ export async function changeEmail(newEmail: string) {
     }
 
     return {
-        step: "success",
+        success: true,
         message: "Succesfully changed email!"
     }
 }
