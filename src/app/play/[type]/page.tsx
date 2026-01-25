@@ -1,8 +1,8 @@
 "use client"
-import game, { GameMode, GamePracticeBeginDataConfig } from "@/app/actions/game"
+import game, { AnyGameData, GameMode, GamePracticeBeginDataConfig } from "@/app/actions/game"
 import Card from "@/components/card"
 import Dropdown, { DropdownItem } from "@/components/dropdown"
-import { distanceBetweenPoints, FINLAND_BOUNDS, GameModeDef, gameModes, getImageUrl } from "@/lib/definitions"
+import { distanceBetweenPoints, FINLAND_BOUNDS, FIRST_DAILY_GAME, Game, GameModeDef, gameModes, getImageUrl } from "@/lib/definitions"
 import { Dispatch, SetStateAction, startTransition, use, useActionState, useContext, useEffect, useRef, useState } from "react"
 import { redirect } from "next/navigation"
 import toast from "react-hot-toast"
@@ -130,6 +130,11 @@ function GamePageContent(gameMode: GameModeDef) {
                 </span>
                 <Button className="mt-6" onPress={() => startTransition(() => action({ type: "init", gameMode: selectedGameMode }))}
                   autoFocus disabled={pending}>Begin</Button>
+              </>
+            )}
+            {step == "daily_info" && (
+              <>
+                <DailyInfo action={action} pending={pending} lastGame={state.lastGame}></DailyInfo>
               </>
             )}
             {step == "config_practice" && (
@@ -284,6 +289,39 @@ function GamePageContent(gameMode: GameModeDef) {
 
     </div >
   )
+}
+
+function DailyInfo({ lastGame, action, pending }: { lastGame?: Game, action: (payload: AnyGameData) => void, pending: boolean }) {
+  const today = Math.floor(Date.now() / 1000 / 3600 / 24) - FIRST_DAILY_GAME
+  const lastGameDay = Math.round(new Date(lastGame?.map?.creationTime || Date.now()).getTime() / 1000 / 3600 / 24) - FIRST_DAILY_GAME
+  // not played today
+  if (!lastGame || !lastGame.map) return <div></div>
+  if (today < lastGameDay) return <>
+    <h1 className="font-medium text-green-600 mx-4 mb-4 text-lg">You haven&apos;t played today</h1>
+    <p className="mx-2 max-w-80 text-wrap">
+      Why not give it a shot?
+    </p>
+    <div className="flex flex-row justify-around mx-4 mt-4">
+      <Button disabled={pending} onClick={() => startTransition(() => action({type: "daily_begin", game: lastGame}))}>Play</Button>
+    </div>
+  </>
+  // Already played today
+  return <>
+    <h1 className="font-medium text-green-600 mx-4 mb-4 text-lg">You have already played today</h1>
+    <p className="mx-2 max-w-80 text-wrap">You got <span className="text-green-600">{lastGame.score} </span>points.
+      {lastGame.score <= 100 && " Did you even try?"}
+      {lastGame.score > 100 && lastGame.score <= 1000 && " Better luck next time!"}
+      {lastGame.score > 1000 && lastGame.score <= 2000 && " Not the best."}
+      {lastGame.score > 2000 && lastGame.score <= 3000 && " Getting there."}
+      {lastGame.score > 3000 && lastGame.score <= 4000 && " You are getting really good!"}
+      {lastGame.score > 4000 && lastGame.score <= 4950 && " Awesome!"}
+      {lastGame.score > 4950 && " Truly Rainbolt!"}
+      {String(lastGame.score).includes("67") && " 67!!!"}
+    </p>
+    <div className="flex flex-row justify-around mx-4 mt-4">
+      <Button>View leaderboard</Button>
+    </div>
+  </>
 }
 
 function getConfig(practiceConfig: { imageTypes: ConfigSection<"road" | "road_surface" | "scenery", boolean>; difficulties: ConfigSection<"easy" | "medium" | "hard", boolean>; other: ConfigSection<"blur", boolean> }): GamePracticeBeginDataConfig {

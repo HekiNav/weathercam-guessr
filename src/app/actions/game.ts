@@ -1,17 +1,18 @@
 "use server"
-import { atLeastOneTrue, FormState, Game, LatLonLike, score } from "@/lib/definitions";
+import { atLeastOneTrue, FormState, Game, LatLonLike, MapType, MapVisibility, score } from "@/lib/definitions";
 import { Image } from "./image";
 import { createDB } from "@/lib/db";
 import z from "zod";
 import { and, eq, or, sql, SQL } from "drizzle-orm";
-import { image } from "@/db/schema";
+import { image, leaderboard, map } from "@/db/schema";
+import { getCurrentUser } from "@/lib/auth";
 
 export interface GameState<T extends string> extends FormState<["practiceConfig", "server", "image"]> {
     step: T,
     title: string,
 
 }
-export type BasicGameState = GameState<"config_practice" | "init">
+export type BasicGameState = GameState<"config_practice" | "init" | "login">
 export type AnyGameState = GamePlayState | GameDailyInfoState | BasicGameState
 
 export interface GamePlayState extends GameState<"game" | "results"> {
@@ -34,6 +35,9 @@ export interface GameInitData extends GameData<"init"> {
 export interface GamePracticeBeginData extends GameData<"practice_begin"> {
     config: GamePracticeBeginDataConfig
 }
+export interface GameDailyBeginData extends GameData<"daily_begin"> {
+    game: Game
+}
 export interface GamePracticeSubmitData extends GameData<"practice_submit"> {
     location: LatLonLike
 }
@@ -53,8 +57,10 @@ export interface GamePracticeBeginDataConfig {
         blur: boolean
     }
 }
-export default async function game(state: AnyGameState, data: GameInitData | GamePracticeBeginData | GamePracticeSubmitData): Promise<AnyGameState> {
+export type AnyGameData = GameInitData | GamePracticeBeginData | GamePracticeSubmitData | GameDailyBeginData
+export default async function game(state: AnyGameState, data: AnyGameData): Promise<AnyGameState> {
     const db = await createDB()
+    const currentUser = await getCurrentUser()
     switch (data.type) {
         case "init":
             switch (data.gameMode) {
@@ -64,10 +70,29 @@ export default async function game(state: AnyGameState, data: GameInitData | Gam
                         title: "Configure Practice Mode",
                     }
                 case "daily":
+                    if (!currentUser) return {
+                        step: "login",
+                        title: "Log in"
+                    }
+                    const lastGames = await db.select().from(leaderboard)
+                        .innerJoin(map, eq(leaderboard.mapId, map.id))
+                        .where(and(
+                            eq(leaderboard.userId, currentUser.id),
+                            eq(map.type, MapType.DAILY_CHALLENGE)
+                        )).limit(1)
+                    
+                    const lastGame = lastGames[0] && {...lastGames[0].Leaderboard, map: lastGames[0].Map}
                     return {
                         step: "daily_info",
-                        title: "Play daily challenges"
+                        title: "Play today's challenge",
+                        lastGame: {...lastGame, map: {...lastGame.map, type: lastGame.map.type as MapType, visibility: lastGame.map.type as MapVisibility}}
                     }
+            }
+        case "daily_begin":
+            //temp
+            return {
+                step: "init",
+                title: ""
             }
         case "practice_begin":
             const practiceConfigSchema = z.object({

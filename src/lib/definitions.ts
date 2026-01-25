@@ -34,14 +34,15 @@ export interface Map {
   updateTime: number,
   type: MapType, // USER_CREATED | DAILY_CHALLENGE
   id: string,
-  createdBy: string,
+  createdBy: string | null,
   visibility: MapVisibility
 }
 export interface Game {
   mapId: string,
   userId: string,
   score: number,
-  timestamp: number
+  timestamp: number,
+  map?: Map
 }
 
 export interface Session {
@@ -72,6 +73,8 @@ export const gameModes: GameModeDef[] = [{
 export function rib(a: number, b: number) {
   return Math.floor(Math.random() * (b - a) + a)
 }
+
+export const FIRST_DAILY_GAME = 20477
 
 export const FINLAND_BOUNDS: [number, number, number, number] = [20.6455928891, 59.846373196, 31.5160921567, 70.1641930203]
 
