@@ -96,7 +96,7 @@ export async function changeEmail(newEmail: string) {
             }
         }
     }
-
+    (await cookies()).delete("session");
     return {
         success: true,
         message: "Succesfully changed email!"
