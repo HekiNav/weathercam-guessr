@@ -33,10 +33,11 @@ export const mapPlace = sqliteTable("MapPlaces", {
 }))
 
 export const leaderboard = sqliteTable("Leaderboard", {
-	mapId: text().notNull().primaryKey().references(() => map.id, { onDelete: "cascade", onUpdate: "cascade" }),
+	mapId: text().notNull().references(() => map.id, { onDelete: "cascade", onUpdate: "cascade" }),
 	userId: text().notNull().references(() => user.id, { onDelete: "cascade", onUpdate: "cascade" }),
 	score: integer().notNull(),
-	timestamp: integer().default(sql`(CURRENT_TIMESTAMP)`).notNull()
+	timestamp: integer().default(sql`(CURRENT_TIMESTAMP)`).notNull(),
+	id: text().primaryKey().notNull()
 })
 
 export const rect = sqliteTable("Rect", {

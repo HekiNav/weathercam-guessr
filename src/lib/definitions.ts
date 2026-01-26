@@ -1,4 +1,5 @@
 import { GameMode } from '@/app/actions/game';
+import { Image } from '@/app/actions/image';
 import { ReactNode } from 'react';
 import * as z from 'zod'
 
@@ -35,7 +36,14 @@ export interface Map {
   type: MapType, // USER_CREATED | DAILY_CHALLENGE
   id: string,
   createdBy: string | null,
-  visibility: MapVisibility
+  visibility: MapVisibility,
+  places?: MapPlace[]
+}
+export interface MapPlace {
+  image?: Image,
+  imageId: string,
+  mapId: string,
+  map?: Map
 }
 export interface Game {
   mapId: string,
@@ -61,7 +69,7 @@ export interface GameModeDef {
 export const gameModes: GameModeDef[] = [{
   id: "daily",
   name: "Daily challenge",
-  description: "Play a daily game of five images",
+  description: "Play a daily challenge map and compete with others!",
   available: true
 }, {
   id: "practice",

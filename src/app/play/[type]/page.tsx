@@ -1,5 +1,5 @@
 "use client"
-import game, { AnyGameData, GameMode, GamePracticeBeginDataConfig } from "@/app/actions/game"
+import game, { AnyGameData, GameMode, GamePlayState, GamePracticeBeginDataConfig } from "@/app/actions/game"
 import Card from "@/components/card"
 import Dropdown, { DropdownItem } from "@/components/dropdown"
 import { distanceBetweenPoints, FINLAND_BOUNDS, FIRST_DAILY_GAME, Game, GameModeDef, gameModes, getImageUrl } from "@/lib/definitions"
@@ -160,7 +160,11 @@ function GamePageContent(gameMode: GameModeDef) {
             <div className="texl-lg bg-white p-2 border-2 border-green-600 border-l-0 rounded-tr-lg rounded-br-lg">Round {state.round || 0} {state.maxRound && ` / ${state.maxRound}`} - {gameMode.name}</div>
             <div className="text-sm mt-2 border-2 border-green-600 border-l-0 bg-white p-1 rounded-tr-md rounded-br-md w-fit">{state.points || 0} points</div>
           </div>
-          <div hidden={!selectedLocation} onClick={() => selectedLocation && startTransition(() => action({ type: "practice_submit", location: (selectedLocation?.coordinates as [number, number]) }))} className="flex flex-col items-center absolute w-full bottom-5">
+          <div hidden={!selectedLocation} onClick={() => {
+            if (!selectedLocation) return toast("You haven't selected anything")
+            if (gameMode.id == "practice") return startTransition(() => action({ type: "practice_submit", location: (selectedLocation?.coordinates as [number, number]) }))
+            return startTransition(() => action({ type: "submit", location: (selectedLocation?.coordinates as [number, number]), mapId: (state as GamePlayState).map.id }))
+          }} className="flex flex-col items-center absolute w-full bottom-5">
             <Button className="font-mono text-white text-xl text-center">Submit</Button>
           </div>
           <div onTransitionStart={(e) => {
@@ -295,14 +299,14 @@ function DailyInfo({ lastGame, action, pending }: { lastGame?: Game, action: (pa
   const today = Math.floor(Date.now() / 1000 / 3600 / 24) - FIRST_DAILY_GAME
   const lastGameDay = Math.round(new Date(lastGame?.map?.creationTime || Date.now()).getTime() / 1000 / 3600 / 24) - FIRST_DAILY_GAME
   // not played today
-  if (!lastGame || !lastGame.map) return <div></div>
-  if (today < lastGameDay) return <>
+  console.log(today, lastGameDay)
+  if (today < lastGameDay || !lastGame || !lastGame.map) return <>
     <h1 className="font-medium text-green-600 mx-4 mb-4 text-lg">You haven&apos;t played today</h1>
     <p className="mx-2 max-w-80 text-wrap">
       Why not give it a shot?
     </p>
     <div className="flex flex-row justify-around mx-4 mt-4">
-      <Button disabled={pending} onClick={() => startTransition(() => action({type: "daily_begin", game: lastGame}))}>Play</Button>
+      <Button disabled={pending} onClick={() => startTransition(() => action({type: "daily_begin"}))}>Play</Button>
     </div>
   </>
   // Already played today
