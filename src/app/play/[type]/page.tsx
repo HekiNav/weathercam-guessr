@@ -60,7 +60,7 @@ export default function GamePage({
 
 }
 
-function GamePageContent(gameMode: GameModeDef, user: User) {
+function GamePageContent(gameMode: GameModeDef, user: User | null) {
   const practiceConfig: {
     imageTypes: ConfigSection<"road" | "road_surface" | "scenery" | "broken", boolean>;
     difficulties: ConfigSection<"easy" | "medium" | "hard", boolean>;
@@ -129,7 +129,7 @@ function GamePageContent(gameMode: GameModeDef, user: User) {
                     {...state.items.map((e, i) => (
                       <tr key={i} className="rounded shadow-lg/20">
                         <td className="p-2 w-1 font-medium text-green-600 text-start">{e.position}</td>
-                        <td className={`p-2 text-start ${e.user?.id == user.id && "font-bold"}`}>{e.user?.name}</td>
+                        <td className={`p-2 text-start ${e.user?.id == user?.id && "font-bold"}`}>{e.user?.name}</td>
                         <td className="p-2 text-end text-green-600">{e.score}</td>
                       </tr>
                     ))}
