@@ -45,7 +45,9 @@ export interface MapPlace {
   mapId: string,
   map?: Map
 }
-export interface Game {
+export interface LeaderboardItem {
+  position?: number,
+  user?: User,
   mapId: string,
   userId: string,
   score: number,

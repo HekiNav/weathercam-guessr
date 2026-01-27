@@ -82,6 +82,12 @@ export const rectRelations = relations(rect, ({ one }) => ({
 		references: [image.id]
 	}),
 }));
+export const leaderboardRelations = relations(leaderboard, ({ one }) => ({
+	user: one(user, {
+		fields: [leaderboard.userId],
+		references: [user.id]
+	}),
+}));
 
 export const imageRelations = relations(image, ({ one }) => ({
 	rect: one(rect),

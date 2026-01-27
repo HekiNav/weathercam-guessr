@@ -2,7 +2,7 @@
 import game, { AnyGameData, GameMode, GamePlayState, GamePracticeBeginDataConfig } from "@/app/actions/game"
 import Card from "@/components/card"
 import Dropdown, { DropdownItem } from "@/components/dropdown"
-import { distanceBetweenPoints, FINLAND_BOUNDS, FIRST_DAILY_GAME, Game, GameModeDef, gameModes, getImageUrl } from "@/lib/definitions"
+import { distanceBetweenPoints, FINLAND_BOUNDS, FIRST_DAILY_GAME, LeaderboardItem, GameModeDef, gameModes, getImageUrl, User } from "@/lib/definitions"
 import { Dispatch, SetStateAction, startTransition, use, useActionState, useContext, useEffect, useRef, useState } from "react"
 import { redirect } from "next/navigation"
 import toast from "react-hot-toast"
@@ -56,11 +56,11 @@ export default function GamePage({
   })
   if (!gameMode || !gameMode.available) return <div></div>
 
-  return GamePageContent(gameMode)
+  return GamePageContent(gameMode, user)
 
 }
 
-function GamePageContent(gameMode: GameModeDef) {
+function GamePageContent(gameMode: GameModeDef, user: User) {
   const practiceConfig: {
     imageTypes: ConfigSection<"road" | "road_surface" | "scenery" | "broken", boolean>;
     difficulties: ConfigSection<"easy" | "medium" | "hard", boolean>;
@@ -121,6 +121,26 @@ function GamePageContent(gameMode: GameModeDef) {
       {step != "game" && step != "results" && (
         <div className="h-full w-full flex justify-center items-center">
           <Card title={title} className="h-min w-max">
+            {step == "leaderboard" && (
+              <>
+                <h1 className="text-green-600 text-xl font-mono">Leaderboard</h1>
+                <table className="w-100 m-6">
+                  <tbody>
+                    {...state.items.map((e, i) => (
+                      <tr key={i} className="rounded shadow-lg/20">
+                        <td className="p-2 w-1 font-medium text-green-600 text-start">{e.position}</td>
+                        <td className={`p-2 text-start ${e.user?.id == user.id && "font-bold"}`}>{e.user?.name}</td>
+                        <td className="p-2 text-end text-green-600">{e.score}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+
+                </table>
+                <div className="flex flex-row justify-around mx-4 mt-4">
+                  <Link href="/play"><Button>Play another game</Button></Link>
+                </div>
+              </>
+            )}
             {step == "init" && (
 
               <>
@@ -284,6 +304,12 @@ function GamePageContent(gameMode: GameModeDef) {
                   <Button onClick={() => startTransition(() => action({ type: "init", gameMode: "practice" }))}>Change configuration</Button>
                   <Link href="/play"><Button>Switch modes</Button></Link>
                 </>}
+                {(state as GamePlayState).map && <>
+                  <div className="flex flex-row justify-around mx-4 mt-4">
+                    <Button onClick={() => startTransition(() => action({ type: "leaderboard", mapId: (state as GamePlayState).map.id }))} disabled={pending}>View leaderboard</Button>
+                    <Link href="/play"><Button>Play another mode</Button></Link>
+                  </div>
+                </>}
               </div>
             </div>
           </Card>
@@ -295,18 +321,19 @@ function GamePageContent(gameMode: GameModeDef) {
   )
 }
 
-function DailyInfo({ lastGame, action, pending }: { lastGame?: Game, action: (payload: AnyGameData) => void, pending: boolean }) {
+
+function DailyInfo({ lastGame, action, pending }: { lastGame?: LeaderboardItem, action: (payload: AnyGameData) => void, pending: boolean }) {
   const today = Math.floor(Date.now() / 1000 / 3600 / 24) - FIRST_DAILY_GAME
   const lastGameDay = Math.round(new Date(lastGame?.map?.creationTime || Date.now()).getTime() / 1000 / 3600 / 24) - FIRST_DAILY_GAME
   // not played today
   console.log(today, lastGameDay)
-  if (today < lastGameDay || !lastGame || !lastGame.map) return <>
+  if (today > lastGameDay || !lastGame || !lastGame.map) return <>
     <h1 className="font-medium text-green-600 mx-4 mb-4 text-lg">You haven&apos;t played today</h1>
     <p className="mx-2 max-w-80 text-wrap">
       Why not give it a shot?
     </p>
     <div className="flex flex-row justify-around mx-4 mt-4">
-      <Button disabled={pending} onClick={() => startTransition(() => action({type: "daily_begin"}))}>Play</Button>
+      <Button disabled={pending} onClick={() => startTransition(() => action({ type: "daily_begin" }))}>Play</Button>
     </div>
   </>
   // Already played today
@@ -323,7 +350,7 @@ function DailyInfo({ lastGame, action, pending }: { lastGame?: Game, action: (pa
       {String(lastGame.score).includes("67") && " 67!!!"}
     </p>
     <div className="flex flex-row justify-around mx-4 mt-4">
-      <Button>View leaderboard</Button>
+      <Button onClick={() => startTransition(() => action({ type: "leaderboard", mapId: lastGame.mapId }))} disabled={pending}>View leaderboard</Button>
     </div>
   </>
 }

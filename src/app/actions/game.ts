@@ -1,5 +1,5 @@
 "use server"
-import { atLeastOneTrue, FormState, Game, LatLonLike, Map, MapType, MapVisibility, score } from "@/lib/definitions";
+import { atLeastOneTrue, FormState, LeaderboardItem, LatLonLike, Map, MapType, MapVisibility, score } from "@/lib/definitions";
 import { Image } from "./image";
 import { createDB } from "@/lib/db";
 import z from "zod";
@@ -13,7 +13,11 @@ export interface GameState<T extends string> extends FormState<["practiceConfig"
 
 }
 export type BasicGameState = GameState<"config_practice" | "init" | "login">
-export type AnyGameState = GamePlayState | GameDailyInfoState | BasicGameState | GamePracticePlayState
+export type AnyGameState = GamePlayState | GameDailyInfoState | BasicGameState | GamePracticePlayState | GameLeaderboardState
+
+export interface GameLeaderboardState extends GameState<"leaderboard"> {
+    items: LeaderboardItem[]
+}
 
 export interface GamePracticePlayState extends GameState<"game" | "results"> {
     round: number,
@@ -27,7 +31,7 @@ export interface GamePlayState extends GamePracticePlayState {
 }
 
 export interface GameDailyInfoState extends GameState<"daily_info"> {
-    lastGame?: Game
+    lastGame?: LeaderboardItem
 }
 export interface GameData<T extends string> {
     type: T
@@ -48,6 +52,9 @@ export interface GameSubmitData extends GameData<"submit"> {
     location: LatLonLike,
     mapId: string
 }
+export interface GameLeaderboardData extends GameData<"leaderboard"> {
+    mapId: string
+}
 export interface GamePracticeBeginDataConfig {
     imageTypes: {
         road: boolean,
@@ -64,7 +71,7 @@ export interface GamePracticeBeginDataConfig {
         blur: boolean
     }
 }
-export type AnyGameData = GameInitData | GamePracticeBeginData | GamePracticeSubmitData | GameDailyBeginData | GameSubmitData
+export type AnyGameData = GameInitData | GamePracticeBeginData | GamePracticeSubmitData | GameDailyBeginData | GameSubmitData | GameLeaderboardData
 export default async function game(state: AnyGameState, data: AnyGameData): Promise<AnyGameState> {
     const db = await createDB()
     const currentUser = await getCurrentUser()
@@ -92,14 +99,14 @@ export default async function game(state: AnyGameState, data: AnyGameData): Prom
                     return {
                         step: "daily_info",
                         title: "Play today's challenge",
-                        lastGame: lastGame ? { ...lastGame, map: { ...lastGame.map, type: lastGame.map.type as MapType, visibility: lastGame.map.type as MapVisibility }} : undefined
+                        lastGame: lastGame ? { ...lastGame, map: { ...lastGame.map, type: lastGame.map.type as MapType, visibility: lastGame.map.type as MapVisibility } } : undefined
                     }
             }
         case "daily_begin":
             const dailyMap = await db.query.map.findFirst({
                 where: eq(map.type, MapType.DAILY_CHALLENGE),
                 with: { createdBy: true, places: { with: { image: { with: { rect: true } } } } },
-                orderBy: (map, {desc}) => [desc(map.creationTime)]
+                orderBy: (map, { desc }) => [desc(map.creationTime)]
             })
             if (!dailyMap || !dailyMap.places[0].image) return {
                 step: "daily_info",
@@ -237,5 +244,51 @@ export default async function game(state: AnyGameState, data: AnyGameData): Prom
                 prevPoints: (state as GamePlayState).points,
                 image: { ...submittedImage, available: submittedImage.available == "true", rect: submittedImage.rect! }
             }
+        case "leaderboard":
+            const top10 = await db.query.leaderboard.findMany({
+                limit: 10,
+                extras: {
+                    position: sql<number>`ROW_NUMBER() OVER (ORDER BY ${leaderboard.score} DESC)`.as("position")
+                },
+                with: {
+                    user: true
+                },
+                where: and(
+                    eq(leaderboard.mapId, data.mapId),
+                ),
+                orderBy: (leaderboard, { desc, asc }) => [desc(leaderboard.score), asc(leaderboard.timestamp)]
+            })
+            if (top10.some(e => e.userId == currentUser?.id)) return {
+                step: "leaderboard",
+                title: "Leaderboard",
+                items: top10.map(e => ({...e, user: {...e.user, email: "", admin: e.user.admin == "true"}}))
+            }
+            if (!currentUser) return {
+                step: state.step,
+                title: state.title,
+                errors: {
+                    server: ["Not logged in"]
+                }
+            } as BasicGameState
+            const userScore = await db.query.leaderboard.findMany({
+                extras: {
+                    position: sql<number>`ROW_NUMBER() OVER (ORDER BY ${leaderboard.score} DESC)`.as("position")
+                },
+                with: {
+                    user: true
+                },
+                where: and(
+                    eq(leaderboard.mapId, data.mapId),
+                    eq(leaderboard.userId, currentUser.id)
+                ),
+                orderBy: (leaderboard, { desc }) => [desc(leaderboard.score)],
+                limit: 1
+            })
+            return {
+                step: "leaderboard",
+                title: "Leaderboard",
+                items: [...top10, ...userScore].sort((a,b) => b.score - a.score).map(e => ({...e, user: {...e.user, email: "", admin: e.user.admin == "true"}}))
+            }
+
     }
 }
