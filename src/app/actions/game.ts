@@ -239,6 +239,7 @@ export default async function game(state: AnyGameState, data: AnyGameData): Prom
             return {
                 step: "results",
                 title: "Results",
+                map: (state as GamePlayState).map,
                 round: (state as GamePlayState).round,
                 points: ((state as GamePlayState).points || 0) + gameScore,
                 prevPoints: (state as GamePlayState).points,
