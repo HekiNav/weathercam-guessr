@@ -35,7 +35,7 @@ export default function MyUserPage() {
     }
     return (
         <div>
-            <UserUI user={user}></UserUI>
+            <UserUI user={user} isCurrentUser></UserUI>
             <div className="p-4">
                 <h1 className="text-lg text-green-600 font-medium mb-4">Edit details</h1>
                 <label htmlFor="email">Update email</label><br />

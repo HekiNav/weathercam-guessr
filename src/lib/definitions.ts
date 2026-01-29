@@ -22,6 +22,8 @@ export type FormState<E extends readonly string[]> =
 export type OTPFormState = FormState<["email", "otp", "username"]>
 
 export interface User {
+  lastSeen?: number
+  maps?: Map[]
   id: string
   name: string | null
   admin: boolean

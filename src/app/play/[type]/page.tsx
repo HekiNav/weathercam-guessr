@@ -129,7 +129,7 @@ function GamePageContent(gameMode: GameModeDef, user: User | null) {
                     {...state.items.map((e, i) => (
                       <tr key={i} className="rounded shadow-lg/20">
                         <td className="p-2 w-1 font-medium text-green-600 text-start">{e.position}</td>
-                        <td className={`p-2 text-start ${e.user?.id == user?.id && "font-bold"}`}>{e.user?.name}</td>
+                        <td className={`p-2 text-start ${e.user?.id == user?.id && "font-bold"}`}><Link href={`/user/${e.userId}`}>{e.user?.name}</Link></td>
                         <td className="p-2 text-end text-green-600">{e.score}</td>
                       </tr>
                     ))}
@@ -305,7 +305,7 @@ function GamePageContent(gameMode: GameModeDef, user: User | null) {
                   <Link href="/play"><Button>Switch modes</Button></Link>
                 </>}
                 {(state as GamePlayState).map && <>
-                  <div className="flex flex-row justify-around mx-4 mt-4">
+                  <div className="flex flex-row justify-around mx-4 mt-4 gap-4">
                     <Button onClick={() => startTransition(() => action({ type: "leaderboard", mapId: (state as GamePlayState).map.id }))} disabled={pending}>View leaderboard</Button>
                     <Link href="/play"><Button>Play another mode</Button></Link>
                   </div>

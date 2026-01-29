@@ -2,11 +2,14 @@
 
 import Toast from "@/components/toast"
 import UserUI from "@/components/user"
+import { getCurrentUser } from "@/lib/auth"
+import { Map } from "@/lib/definitions"
 import { getUser } from "@/lib/public"
 
 export default async function UserPage({ params }: { params: Promise<{ user_identifier: string }> }) {
 
     const { user_identifier } = await params
+    const currentUser = await getCurrentUser()
 
 
     const user = await getUser(user_identifier)
@@ -15,7 +18,7 @@ export default async function UserPage({ params }: { params: Promise<{ user_iden
 
     return (
         <div>
-            <UserUI user={{ ...user, email: "", admin: user.admin }}></UserUI>
+            <UserUI user={{ ...user, email: "", admin: user.admin, maps: user.maps as Map[] | undefined, sessions: [] }} isCurrentUser={currentUser?.id == user.id}></UserUI>
         </div>
     )
 }
