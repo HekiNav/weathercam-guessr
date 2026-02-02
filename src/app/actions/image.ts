@@ -8,78 +8,17 @@ import { DrizzleD1Database } from "drizzle-orm/d1"
 import { image, rect } from "@/db/schema"
 import { BlurRect, ImageDifficulty, ImageType, UnclassifiedEnum } from "@/lib/definitions"
 import z from "zod"
-//let lastUpdateTime = Date.now()
 
-export type ImageData = GeoJSON.FeatureCollection<GeoJSON.Point, ImageDataProperties>
-export interface ImageDataProperties {
-    id: string,
-    name: string,
-    collectionStatus: string,
-    state: string | null,
-    dataUpdatedTime: string,
-    presets: {
-        id: string,
-        inCollection: boolean
-    }[]
-}
 
-/* async function fetchImages() {
-    lastUpdateTime = Date.now()
-    return await (await fetch("https://tie.digitraffic.fi/api/weathercam/v1/stations")).json() as ImageData
-} */
 async function getImages(condition: SQL, amount = 100, db: DrizzleD1Database<typeof schema>) {
-    // TODO: migrate this to a Cron trigger
-    /* if (Date.now() - lastUpdateTime > 3600_000)await parseImageData(await fetchImages(), db) // 1h "cache"  */
+    // TODO: migrate this to a Cron trigger (done)
     return await db.query.image.findMany({
         with: { rect: true },
         where: condition,
         limit: amount
     })
 }
-/* async function parseImageData(data: ImageData, db: DrizzleD1Database<typeof schema>) {
-    const items = data.features.flatMap(({ properties, geometry }) => properties.presets.map(preset => ({
-        externalId: preset.id,
-        available: `${preset.inCollection}`,
-        lat: geometry.coordinates[0],
-        lon: geometry.coordinates[1]
-    })))
-    const now = Date.now()
 
-    await Promise.all(
-        items.map(async item =>
-            await db
-                .insert(image)
-                .values({
-                    externalId: item.externalId,
-                    id: crypto.randomUUID(),
-                    available: item.available,
-                    updateTime: now,
-                    lat: item.lat,
-                    lon: item.lon
-                })
-                .onConflictDoUpdate({
-                    target: image.externalId,
-                    set: {
-                        available: item.available,
-                        updateTime: now,
-                        lat: item.lat,
-                        lon: item.lon
-                    },
-                })
-        )
-    );
-
-    // Mark items missing from external source as unavailable
-    await db
-        .update(image)
-        .set({
-            available: "false",
-        })
-        .where(lt(image.updateTime, now));
-
-
-
-} */
 export interface Image {
     id: string
     externalId: string
