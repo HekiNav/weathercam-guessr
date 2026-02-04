@@ -6,9 +6,11 @@ import { and, eq, lt, notExists, or, sql } from "drizzle-orm";
 import * as schema from "@/db/schema.js";
 import { drizzle } from "drizzle-orm/d1";
 import { image } from "@/db/schema.js";
+import { generateGeoJson } from "./generate_geojson.js";
 
 export interface Env {
-	weathercam_guessr_prod: D1Database;
+	weathercam_guessr_prod: D1Database,
+	foobucket: R2Bucket
 }
 
 export default {
@@ -61,7 +63,7 @@ export default {
 					mapId: mapId
 				})
 				break;
-			case "55 * * * *": // 0 2 * * 1
+			case "0 10 * * 1":
 
 				console.log("a")
 
@@ -112,6 +114,7 @@ export default {
 
 
 				console.log("e")
+				await generateGeoJson(env as Env)
 				break
 		}
 	},

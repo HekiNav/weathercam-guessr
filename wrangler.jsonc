@@ -43,8 +43,18 @@
 			"database_id": "d86a089a-732a-4241-a6c1-d51854714665"
 		}
 	],
+	"r2_buckets": [
+		{
+			"binding": "foobucket", // <~ valid JavaScript variable name
+			"bucket_name": "foobucket",
+			"remote": true
+		}
+	],
 	"triggers": {
-		"crons": ["0 0 * * *", "55 * * * *"] // 0 2 * * 1
+		"crons": [
+			"0 0 * * *",
+			"0 10 * * 1"
+		]
 	}
 	/**
 	 * Smart Placement
