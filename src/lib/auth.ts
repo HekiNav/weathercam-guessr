@@ -2,8 +2,9 @@ import { cookies } from "next/headers";
 import { createDB } from "./db";
 import { session } from "@/db/schema";
 import { and, eq, gt } from "drizzle-orm";
+import { Map, User } from "./definitions";
 
-export async function getCurrentUser() {
+export async function getCurrentUser(): Promise<User | null> {
   const db = createDB()
 
   const sessionId = (await cookies()).get("session")?.value
@@ -13,5 +14,5 @@ export async function getCurrentUser() {
      where: and(eq(session.id, sessionId), gt(session.expiresAt, Date.now())), with: { user: {with: {maps: true}} } 
     })
 
-  return sessionData?.user ? { ...sessionData?.user, admin: sessionData?.user.admin == "true", lastSeen: sessionData.expiresAt } : null
+  return sessionData?.user ? { ...sessionData?.user, admin: sessionData?.user.admin == "true", lastSeen: sessionData.expiresAt, maps: sessionData.user.maps as Map[] } : null
 }

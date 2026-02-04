@@ -61,9 +61,12 @@ export default {
 					mapId: mapId
 				})
 				break;
-			case "22 * * * *":
+			case "55 * * * *": // 0 2 * * 1
+
+				console.log("a")
 
 				const data = await fetchImages()
+				console.log("b")
 
 				const items = data.features.flatMap(({ properties, geometry }) => properties.presets.map(preset => ({
 					externalId: preset.id,
@@ -72,6 +75,7 @@ export default {
 					lon: geometry.coordinates[1]
 				})))
 				const now = Date.now()
+				console.log("c")
 
 				await Promise.all(
 					items.map(async item =>
@@ -96,6 +100,7 @@ export default {
 							})
 					)
 				);
+				console.log("d")
 
 				// Mark items missing from external source as unavailable
 				await db
@@ -106,7 +111,7 @@ export default {
 					.where(lt(image.updateTime, now));
 
 
-
+				console.log("e")
 				break
 		}
 	},
@@ -125,7 +130,7 @@ export interface ImageDataProperties {
 }
 
 async function fetchImages() {
-	return await (await fetch("https://tie.digitraffic.fi/api/weathercam/v1/stations")).json() as ImageData
+	return await (await fetch("https://tie.digitraffic.fi/api/weathercam/v1/stations", {headers: {"Accept-Encoding": "gzip"}})).json() as ImageData
 }
 // @ts-expect-error `.open-next/worker.ts` is generated at build time
 export { DOQueueHandler, DOShardedTagCache } from "../.open-next/worker.js";
