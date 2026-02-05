@@ -63,7 +63,7 @@ export default {
 					mapId: mapId
 				})
 				break;
-			case "0 10 * * 1":
+			case "0 9 * * 4":
 
 				console.log("a")
 
