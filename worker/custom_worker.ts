@@ -78,10 +78,10 @@ export default {
 				})))
 				const now = Date.now()
 				console.log("c")
-
-				await Promise.all(
-					items.map(async item =>
-						await db
+				if (items.length == 0) throw new Error("Empty items")
+				await db.batch(
+					items.map(item =>
+						db
 							.insert(image)
 							.values({
 								externalId: item.externalId,
@@ -96,11 +96,12 @@ export default {
 								set: {
 									available: item.available,
 									updateTime: now,
-									lat: item.lat,
-									lon: item.lon
+									lat: item.lon,
+									lon: item.lat
 								},
 							})
-					)
+					// eslint-disable-next-line @typescript-eslint/no-explicit-any
+					) as any
 				);
 				console.log("d")
 
@@ -133,7 +134,7 @@ export interface ImageDataProperties {
 }
 
 async function fetchImages() {
-	return await (await fetch("https://tie.digitraffic.fi/api/weathercam/v1/stations", {headers: {"Accept-Encoding": "gzip"}})).json() as ImageData
+	return await (await fetch("https://tie.digitraffic.fi/api/weathercam/v1/stations", { headers: { "Accept-Encoding": "gzip" } })).json() as ImageData
 }
 // @ts-expect-error `.open-next/worker.ts` is generated at build time
 export { DOQueueHandler, DOShardedTagCache } from "../.open-next/worker.js";

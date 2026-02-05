@@ -1,14 +1,17 @@
 import { drizzle } from "drizzle-orm/d1";
 import { Env } from "./custom_worker";
 import * as schema from "@/db/schema"
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { FeatureCollection } from "geojson";
 
 export async function generateGeoJson(env: Env) {
     const db = drizzle((env as Env).weathercam_guessr_prod, { schema })
     const bucket = env.foobucket
     const images = await db.query.image.findMany({
-        where: eq(schema.image.available, "true"),
+        where: and(
+            eq(schema.image.available, "true"),
+            eq(schema.image.reviewState, "COMPLETE")
+        ),
         with: {
             rect: true
         }
@@ -27,5 +30,5 @@ export async function generateGeoJson(env: Env) {
             }
         })
     }
-    bucket.put("weathercam-guessr-images", JSON.stringify(geojson))
+    bucket.put("weathercam-guessr-images.geojson", JSON.stringify(geojson))
 }

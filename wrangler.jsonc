@@ -45,7 +45,7 @@
 	],
 	"r2_buckets": [
 		{
-			"binding": "foobucket", // <~ valid JavaScript variable name
+			"binding": "foobucket",
 			"bucket_name": "foobucket",
 			"remote": true
 		}
