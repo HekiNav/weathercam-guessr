@@ -23,7 +23,7 @@ export default function ReviewPage() {
 
 }
 function ReviewPageContent() {
-    const [{ step, errors, currentImage }, action, pending] = useActionState(reviewImages, { currentImage: null, step: "start" } as ImageReviewFormState)
+    const [{ step, errors, currentImage, count }, action, pending] = useActionState(reviewImages, { currentImage: null, step: "start" } as ImageReviewFormState)
 
     const [difficulty, setDifficulty] = useState<ImageDifficulty | UnclassifiedEnum>((currentImage?.difficulty as ImageDifficulty) || UnclassifiedEnum.UNCLASSIFIED)
     const [type, setType] = useState<ImageType | UnclassifiedEnum>((currentImage?.type as ImageType) || UnclassifiedEnum.UNCLASSIFIED)
@@ -79,36 +79,39 @@ function ReviewPageContent() {
                     </div>
                 )}
                 {(step == "review" && currentImage) && (
-                    <div className="w-full flex flex-row divide-x-2 divide-green-600 p-4">
-                        {/* Sidebar */}
-                        <div className="flex flex-col w-full pb-2 shrink w-min pr-2 text-nowrap">
-                            <span>Reason for review:</span>
-                            <span className={`capitalize shadow-lg/20 p-1 rounded ${currentImage.reviewState == "REPORTED" ? "bg-red-600" : "bg-yellow-600"}`}>{currentImage.reviewState}</span>
-                            <span className="mt-2">Difficulty</span>
-                            <Dropdown onSet={(item) => item.id && setDifficulty(item.id)} items={difficultyItems} initial={difficultyItems.find(i => i.id == difficulty)?.content || "Unclassified"}></Dropdown>
-                            <div className="text-red-600">{errors?.imageDifficulty?.join(", ")}</div>
-                            <span className="mt-2">Type</span>
-                            <Dropdown onSet={(item) => item.id && setType(item.id)} items={typeItems} initial={typeItems.find(i => i.id == type)?.content || "Unclassified"}></Dropdown>
-                            <div className="text-red-600">{errors?.imageType?.join(", ")}</div>
-                            <span className="mt-2">Blur rect</span>
-                            <div className="p-1 rounded border-2 border-green-600 shadow-lg/20">
-                                {(blurRect) ? (<>Left: {blurRect.x}<br /> Top: {blurRect.y}<br /> Right: {blurRect.width}<br /> Bottom: {blurRect.height}</>) : (<>Unset</>)}
+                    <>
+                        <h1 className="text-lg text-green-600 self-start ml-4">{count.reviewed} / {count.total} reviewed ({Math.round(count.reviewed / count.total * 10000) / 100}%)</h1>
+                        <div className="w-full flex flex-row divide-x-2 divide-green-600 p-4">
+                            {/* Sidebar */}
+                            <div className="flex flex-col w-full pb-2 shrink w-min pr-2 text-nowrap">
+                                <span>Reason for review:</span>
+                                <span className={`capitalize shadow-lg/20 p-1 rounded ${currentImage.reviewState == "REPORTED" ? "bg-red-600" : "bg-yellow-600"}`}>{currentImage.reviewState}</span>
+                                <span className="mt-2">Difficulty</span>
+                                <Dropdown onSet={(item) => item.id && setDifficulty(item.id)} items={difficultyItems} initial={difficultyItems.find(i => i.id == difficulty)?.content || "Unclassified"}></Dropdown>
+                                <div className="text-red-600">{errors?.imageDifficulty?.join(", ")}</div>
+                                <span className="mt-2">Type</span>
+                                <Dropdown onSet={(item) => item.id && setType(item.id)} items={typeItems} initial={typeItems.find(i => i.id == type)?.content || "Unclassified"}></Dropdown>
+                                <div className="text-red-600">{errors?.imageType?.join(", ")}</div>
+                                <span className="mt-2">Blur rect</span>
+                                <div className="p-1 rounded border-2 border-green-600 shadow-lg/20">
+                                    {(blurRect) ? (<>Left: {blurRect.x}<br /> Top: {blurRect.y}<br /> Right: {blurRect.width}<br /> Bottom: {blurRect.height}</>) : (<>Unset</>)}
+                                </div>
+                                <div className="text-red-600">{errors?.blurRect?.join(", ")}</div>
+                                <Button disabled={pending} className="mt-2" onClick={() => { startTransition(() => action({ type: "submit", imageDifficulty: difficulty, imageType: type, blurRect: blurRect })) }}>Submit</Button>
                             </div>
-                            <div className="text-red-600">{errors?.blurRect?.join(", ")}</div>
-                            <Button disabled={pending} className="mt-2" onClick={() => { startTransition(() => action({ type: "submit", imageDifficulty: difficulty, imageType: type, blurRect: blurRect })) }}>Submit</Button>
-                        </div>
 
-                        <ImageWithBlur src={getImageUrl(currentImage?.externalId, currentImage?.source)} className="w-full h-full grow ml-2" alt="image" blur={tempBlurRect} onMouseMove={(e) => {
-                            const el = (e.target as HTMLImageElement).classList.contains("image") ? (e.target as HTMLImageElement) : (e.target as HTMLImageElement).parentElement?.querySelector(".image")
-                            const rect = el?.getBoundingClientRect()
-                            if (!rect) return
-                            const x = e.clientX - rect.left
-                            const y = e.clientY - rect.top
-                            if (y < rect.height * 0.5)
-                                setTempBlurRect({ x: 0, y: 0, width: Math.round(x / rect.width * 100), height: Math.round(y / rect.height * 100) })
-                            else setTempBlurRect({ x: Math.round(x / rect.width * 100), y: Math.round(y / rect.height * 100), width: 100, height: 100 })
-                        }} onClick={() => setBlurRect(tempBlurRect)} onMouseOut={() => blurRect && setTempBlurRect(blurRect)} />
-                    </div>
+                            <ImageWithBlur src={getImageUrl(currentImage?.externalId, currentImage?.source)} className="w-full h-full grow ml-2" alt="image" blur={tempBlurRect} onMouseMove={(e) => {
+                                const el = (e.target as HTMLImageElement).classList.contains("image") ? (e.target as HTMLImageElement) : (e.target as HTMLImageElement).parentElement?.querySelector(".image")
+                                const rect = el?.getBoundingClientRect()
+                                if (!rect) return
+                                const x = e.clientX - rect.left
+                                const y = e.clientY - rect.top
+                                if (y < rect.height * 0.5)
+                                    setTempBlurRect({ x: 0, y: 0, width: Math.round(x / rect.width * 100), height: Math.round(y / rect.height * 100) })
+                                else setTempBlurRect({ x: Math.round(x / rect.width * 100), y: Math.round(y / rect.height * 100), width: 100, height: 100 })
+                            }} onClick={() => setBlurRect(tempBlurRect)} onMouseOut={() => blurRect && setTempBlurRect(blurRect)} />
+                        </div>
+                    </>
                 )}
                 {step == "complete" && (
                     <>

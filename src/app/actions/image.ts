@@ -32,7 +32,11 @@ export interface Image {
     lon: number
 }
 export interface ImageReviewFormState extends FormState<["difficulty", "blurRect", "type"]> {
-    currentImage: Image | null
+    currentImage: Image | null,
+    count: {
+        total: number,
+        reviewed: number
+    }
     errors?: {
         imageDifficulty?: string[]
         imageType?: string[]
@@ -64,6 +68,7 @@ export async function reviewImages(state: ImageReviewFormState, actionData: Imag
             if (!success || error) {
                 return {
                     currentImage: state.currentImage,
+                    count: state.count,
                     errors: Object.entries(z.treeifyError(error).properties || {}).reduce((p, [k, v]) => ({ ...p, [k]: v.errors }), {} as typeof state.errors),
                     step: state.step
                 }
@@ -81,15 +86,20 @@ export async function reviewImages(state: ImageReviewFormState, actionData: Imag
                 db.select({ count: count() }).from(image),
                 db.select({ count: count() }).from(image).where(eq(image.reviewState, ImageReviewState.COMPLETE))
             ])
-            console.log(counts)
+            const countData = {
+                total: counts[0][0].count || 0,
+                reviewed: counts[1][0].count || 0
+            }
 
             if (images && images[0]) return {
                 step: "review",
-                currentImage: { ...images[0], available: images[0].available == "true" } as Image
+                currentImage: { ...images[0], available: images[0].available == "true" } as Image,
+                count: countData
             }
             else return {
                 step: "complete",
                 currentImage: null,
+                count: countData
             }
     }
 
