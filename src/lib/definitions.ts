@@ -171,6 +171,11 @@ export enum ImageDifficulty {
   MEDIUM = "MEDIUM",
   HARD = "HARD",
 }
+export enum ImageReviewState {
+  REPORTED = "REPORTED",
+  COMPLETE = "COMPLETE",
+  INCOMPLETE = "INCOMPLETE",
+}
 export interface BlurRect {
   x: number
   y: number

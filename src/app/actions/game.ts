@@ -68,7 +68,8 @@ export interface GamePracticeBeginDataConfig {
         hard: boolean,
     },
     other: {
-        blur: boolean
+        blur: boolean,
+        geojson: boolean
     }
 }
 export type AnyGameData = GameInitData | GamePracticeBeginData | GamePracticeSubmitData | GameDailyBeginData | GameSubmitData | GameLeaderboardData

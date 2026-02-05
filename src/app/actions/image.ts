@@ -1,9 +1,8 @@
 "use server"
-import { FormState } from "@/lib/definitions"
+import { FormState, ImageReviewState } from "@/lib/definitions"
 import { createDB } from "@/lib/db"
-import * as GeoJSON from "geojson"
 import * as schema from "@/db/schema"
-import { eq, ne, SQL } from "drizzle-orm"
+import { count, eq, ne, SQL } from "drizzle-orm"
 import { DrizzleD1Database } from "drizzle-orm/d1"
 import { image, rect } from "@/db/schema"
 import { BlurRect, ImageDifficulty, ImageType, UnclassifiedEnum } from "@/lib/definitions"
@@ -78,6 +77,11 @@ export async function reviewImages(state: ImageReviewFormState, actionData: Imag
         case "begin":
             const images = Array.from(await getImages(ne(image.reviewState, "COMPLETE"), 1, db))
 
+            const counts = await db.batch([
+                db.select({ count: count() }).from(image),
+                db.select({ count: count() }).from(image).where(eq(image.reviewState, ImageReviewState.COMPLETE))
+            ])
+            console.log(counts)
 
             if (images && images[0]) return {
                 step: "review",
@@ -85,7 +89,7 @@ export async function reviewImages(state: ImageReviewFormState, actionData: Imag
             }
             else return {
                 step: "complete",
-                currentImage: null
+                currentImage: null,
             }
     }
 

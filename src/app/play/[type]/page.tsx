@@ -64,7 +64,7 @@ function GamePageContent(gameMode: GameModeDef, user: User | null) {
   const practiceConfig: {
     imageTypes: ConfigSection<"road" | "road_surface" | "scenery" | "broken", boolean>;
     difficulties: ConfigSection<"easy" | "medium" | "hard", boolean>;
-    other: ConfigSection<"blur", boolean>;
+    other: ConfigSection<"blur" | "geojson", boolean>;
   } = {
     imageTypes: {
       description: "Image types",
@@ -84,7 +84,11 @@ function GamePageContent(gameMode: GameModeDef, user: User | null) {
       blur: {
         description: "Blur Camera Location Watermarks",
         state: useState<boolean>(true)
-      }
+      },
+      geojson: {
+        description: "Show available cameras on the map when guessing",
+        state: useState<boolean>(false)
+      },
     }
   }
   let mapOpen: boolean = false
