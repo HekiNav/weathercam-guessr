@@ -92,7 +92,7 @@ export default {
 								lon: item.lon
 							})
 							.onConflictDoUpdate({
-								target: image.externalId,
+								target: schema.image.externalId,
 								set: {
 									available: item.available,
 									updateTime: now,
