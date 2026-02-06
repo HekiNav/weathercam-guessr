@@ -186,8 +186,8 @@ function GamePageContent(gameMode: GameModeDef, user: User | null) {
           </div>
           <div hidden={!selectedLocation} onClick={() => {
             if (!selectedLocation) return toast("You haven't selected anything")
-            if (gameMode.id == "practice") return startTransition(() => action({ type: "practice_submit", location: (selectedLocation?.coordinates as [number, number]) }))
-            return startTransition(() => action({ type: "submit", location: (selectedLocation?.coordinates as [number, number]), mapId: (state as GamePlayState).map.id }))
+            if (gameMode.id == "practice") return startTransition(() => action({ type: "practice_submit", location: (selectedLocation?.coordinates.reverse() as [number, number]) }))
+            return startTransition(() => action({ type: "submit", location: (selectedLocation?.coordinates.reverse() as [number, number]), mapId: (state as GamePlayState).map.id }))
           }} className="flex flex-col items-center absolute w-full bottom-5">
             <Button className="font-mono text-white text-xl text-center">Submit</Button>
           </div>
@@ -253,7 +253,7 @@ function GamePageContent(gameMode: GameModeDef, user: User | null) {
           <Card title={title} imageCard className="h-min w-150 opacity-100 bg-white z-1002">
             <div className="flex flex-col w-full">
               <div className="h-80 w-full">
-                <Map interactive={false} maplibreLogo={false} attributionControl={false} onLoad={() => {
+                <Map maplibreLogo={false} attributionControl={false} onLoad={() => {
                   if (!mapRef.current?.hasImage("red-pin")) {
                     const image = document.createElement("img")
                     image.src = "/pin.svg"
@@ -271,17 +271,17 @@ function GamePageContent(gameMode: GameModeDef, user: User | null) {
                   setTimeout(() => {
                     mapRef.current?.fitBounds(
                       new maplibregl.LngLatBounds(
-                        selectedLocation.coordinates as [number, number],
-                        selectedLocation.coordinates as [number, number]
-                      ).extend([state.image.lat, state.image.lon]), { padding: 100 })
+                        [selectedLocation.coordinates[1], selectedLocation.coordinates[0]],
+                        [selectedLocation.coordinates[1], selectedLocation.coordinates[0]]
+                      ).extend([state.image.lon, state.image.lat]), { padding: 100 })
                   }, 500)
 
-                }} initialViewState={{ latitude: selectedLocation?.coordinates[1], longitude: selectedLocation?.coordinates[0], zoom: 12 }} ref={mapRef} mapStyle="/map_style.json">
+                }} initialViewState={{ latitude: selectedLocation?.coordinates[0], longitude: selectedLocation?.coordinates[1], zoom: 12 }} ref={mapRef} mapStyle="/map_style.json">
                   <Source id="data" type="geojson" data={{
                     type: "FeatureCollection",
                     features: [
-                      { "type": "Feature", geometry: selectedLocation, properties: { type: "selected_location" } },
-                      { "type": "Feature", geometry: { type: "Point", coordinates: [state.image.lat, state.image.lon] }, properties: { type: "correct_location" } }
+                      { "type": "Feature", geometry: { type: "Point", coordinates: [selectedLocation.coordinates[1], selectedLocation.coordinates[0]] }, properties: { type: "selected_location" } },
+                      { "type": "Feature", geometry: { type: "Point", coordinates: [state.image.lon, state.image.lat] }, properties: { type: "correct_location" } }
                     ]
                   }}></Source>
                   <Layer id="map_pin" type="symbol" layout={{
