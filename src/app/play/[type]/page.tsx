@@ -178,7 +178,7 @@ function GamePageContent(gameMode: GameModeDef, user: User | null) {
         <div className="relative w-full h-full flex items-center justify-center overflow-hidden">
           <MovableImage
             image={state.image}
-            blur={practiceConfig.other.blur.state[0]}
+            blur={state.config.blur}
           />
           <div className="z-1000 absolute top-4 left-0 text-green-600 font-mono ">
             <div className="texl-lg bg-white p-2 border-2 border-green-600 border-l-0 rounded-tr-lg rounded-br-lg">Round {state.round || 0} {state.maxRound && ` / ${state.maxRound}`} - {gameMode.name}</div>
@@ -211,6 +211,7 @@ function GamePageContent(gameMode: GameModeDef, user: User | null) {
                     mapRef.current?.addImage("red-pin", image)
                   })
                 }
+                console.log(String(state.config.geojson))
                 const mapContainer = mapRef.current?.getContainer().parentElement
                 if (!mapContainer) return
                 mapContainer.style.width = "60vw"
@@ -223,11 +224,24 @@ function GamePageContent(gameMode: GameModeDef, user: User | null) {
                   type: "FeatureCollection",
                   features: []
                 }}></Source>
+                <Source id="images" type="geojson" data="/api/map/images.geojson"></Source>
                 <Layer id="map_pin" type="symbol" layout={{
                   "icon-anchor": "bottom",
                   "icon-size": 0.1,
                   "icon-image": "red-pin"
                 }} source="data" filter={["==", ["get", "type"], "selected_location"]}></Layer>
+                <Layer id="image_outer" type="circle" layout={{
+                  visibility: state.config.geojson ? "visible" : "none"
+                }} paint={{
+                  "circle-radius": 10,
+                  "circle-color": "#166534"
+                }} source="images"></Layer>
+                <Layer id="image_inner" type="circle" layout={{
+                  visibility: state.config.geojson ? "visible" : "none"
+                }} paint={{
+                  "circle-radius": 7,
+                  "circle-color": "#16a34a"
+                }} source="images"></Layer>
               </Map>
             </div>
           </div>

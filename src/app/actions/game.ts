@@ -25,6 +25,10 @@ export interface GamePracticePlayState extends GameState<"game" | "results"> {
     points: number,
     prevPoints?: number,
     image: Image,
+    config: {
+        blur: boolean,
+        geojson: boolean
+    }
 }
 export interface GamePlayState extends GamePracticePlayState {
     map: Map
@@ -123,6 +127,10 @@ export default async function game(state: AnyGameState, data: AnyGameData): Prom
                 title: "",
                 round: 1,
                 points: 0,
+                config: {
+                    blur: true,
+                    geojson: false
+                },
                 map: { ...dailyMap, places: [], type: dailyMap.type as MapType, visibility: dailyMap.visibility as MapVisibility },
                 image: { ...newImage, lat: 0, lon: 0, available: newImage.available == "true", rect: newImage.rect! }
             }
@@ -173,6 +181,7 @@ export default async function game(state: AnyGameState, data: AnyGameData): Prom
             return {
                 step: "game",
                 title: "Practice",
+                config: data.config.other,
                 image: { ...newPracticeImage, lat: 0, lon: 0, available: newPracticeImage.available == "true", rect: newPracticeImage.rect! },
                 points: (state as GamePracticePlayState).points || 0,
                 round: ((state as GamePracticePlayState).round || 0) + 1
@@ -200,6 +209,7 @@ export default async function game(state: AnyGameState, data: AnyGameData): Prom
                 step: "results",
                 title: `Practice mode results`,
                 round: (state as GamePracticePlayState).round,
+                config: (state as GamePracticePlayState).config,
                 points: ((state as GamePracticePlayState).points || 0) + score(data.location, submittedPracticeImage),
                 prevPoints: (state as GamePracticePlayState).points,
                 image: { ...submittedPracticeImage, available: submittedPracticeImage.available == "true", rect: submittedPracticeImage.rect! }
@@ -241,6 +251,7 @@ export default async function game(state: AnyGameState, data: AnyGameData): Prom
                 step: "results",
                 title: "Results",
                 map: (state as GamePlayState).map,
+                config: (state as GamePlayState).config,
                 round: (state as GamePlayState).round,
                 points: ((state as GamePlayState).points || 0) + gameScore,
                 prevPoints: (state as GamePlayState).points,
