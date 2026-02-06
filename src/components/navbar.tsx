@@ -2,7 +2,7 @@
 import { ReactNode, useContext } from "react"
 import { UserContext } from "../app/user-provider"
 import IconItem from "./iconitem"
-import { faUser } from "@fortawesome/free-solid-svg-icons"
+import { faInbox, faUser } from "@fortawesome/free-solid-svg-icons"
 import Link from "next/link"
 import Button from "./button"
 
@@ -33,7 +33,10 @@ export default function NavBar() {
                         <Link href="/user/me" className="h-full flex flex-col content-center">
                             <IconItem icon={{ icon: faUser, title: user.admin ? "Admin user" : "Normal user", className: `${user.admin ? "text-red-600" : "text-green-600"}` }}>{user.name || user.id}</IconItem>
                         </Link>
-                        <Link href="/logout" className="text-nowrap">
+                        <Link href="/inbox" className="h-full flex flex-col content-center">
+                            <IconItem icon={{ icon: faInbox}}>Inbox</IconItem>
+                        </Link>
+                        <Link href="/logout" className="text-nowrap ml-4">
                             <Button className="px-2 py-1 font-medium">Log out</Button>
                         </Link>
                     </div> :

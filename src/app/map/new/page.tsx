@@ -16,6 +16,6 @@ export default function MapCreationUi() {
     if (!user) return (<div></div>)
 
     return <>
-
+        
     </>
 }
