@@ -119,23 +119,6 @@ function GamePageContent(gameMode: GameModeDef, user: User | null) {
     if (errors?.server) errors.server.forEach((err) => toast.error(err))
   }, [errors?.server])
 
-  let [countdown, setCountDown] = useState<number>(-1)
-
-  if (step == "init" && countdown == -1) {
-    setCountDown(5)
-    countdown = 5
-    const timeout = setInterval(() => {
-      countdown--
-      setCountDown(countdown)
-      if (countdown <= 0) {
-        console.log(countdown)
-        clearInterval(timeout)
-        if (countdown == 0) startTransition(() => action({ type: "init", gameMode: selectedGameMode }))
-      }
-    }, 1000)
-  }
-
-
   const [selectedGameMode, setSelectedGameMode] = useState<GameMode>(gameMode.id)
   return (
     <div className="h-full w-full relative">
@@ -171,7 +154,6 @@ function GamePageContent(gameMode: GameModeDef, user: User | null) {
                 </span>
                 <Button className="mt-6" onPress={() => startTransition(() => action({ type: "init", gameMode: selectedGameMode }))}
                   autoFocus disabled={pending}>Begin</Button>
-                <div className="text-md text-green-600" hidden={countdown <= 0 }>Beginning automatically in {countdown}</div>
               </>
             )}
             {step == "daily_info" && (
