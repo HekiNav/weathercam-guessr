@@ -16,6 +16,7 @@ import maplibregl, { GeoJSONSource } from "maplibre-gl"
 import CountUp from "react-countup"
 import Link from "next/link"
 import { UserContext } from "@/app/user-provider"
+import { FeatureCollection, Point } from "geojson"
 
 type BooleanState<T> = [T, React.Dispatch<React.SetStateAction<T>>];
 
@@ -211,25 +212,32 @@ function GamePageContent(gameMode: GameModeDef, user: User | null) {
                     mapRef.current?.addImage("red-pin", image)
                   })
                 }
-                console.log(String(state.config.geojson))
                 const mapContainer = mapRef.current?.getContainer().parentElement
                 if (!mapContainer) return
                 mapContainer.style.width = "60vw"
                 mapContainer.style.height = "80vh"
                 mapRef.current?.resize()
               }} onClick={(e) => {
-                setSelectedLocation({ type: "Point", coordinates: e.lngLat.toArray() })
+                const distance = e.target.getZoom() < 9 ? 10000 : 1000;
+                (e.target.getSource("images") as GeoJSONSource).getData().then((geojson) => {
+                  const selectedFeature = (geojson as FeatureCollection).features.sort((a, b) =>
+                    distanceBetweenPoints({ lat: e.lngLat.lng, lon: e.lngLat.lat }, (a.geometry as Point).coordinates as [number, number]) -
+                    distanceBetweenPoints({ lat: e.lngLat.lng, lon: e.lngLat.lat }, (b.geometry as Point).coordinates as [number, number])
+                  )[0]
+                  console.log(selectedFeature)
+                  if (state.config.geojson && selectedFeature?.geometry && distanceBetweenPoints({ lat: e.lngLat.lng, lon: e.lngLat.lat }, (selectedFeature.geometry as Point).coordinates as [number, number]) < distance) {
+                    console.log(selectedFeature)
+                    setSelectedLocation(selectedFeature?.geometry as never)
+                  }
+                  else setSelectedLocation({ type: "Point", coordinates: e.lngLat.toArray() })
+                })
               }} initialViewState={{ bounds: FINLAND_BOUNDS, fitBoundsOptions: { padding: 10 } }} ref={mapRef} mapStyle="/map_style.json">
                 <Source id="data" type="geojson" data={{
                   type: "FeatureCollection",
                   features: []
                 }}></Source>
                 <Source id="images" type="geojson" data="/api/map/images.geojson"></Source>
-                <Layer id="map_pin" type="symbol" layout={{
-                  "icon-anchor": "bottom",
-                  "icon-size": 0.1,
-                  "icon-image": "red-pin"
-                }} source="data" filter={["==", ["get", "type"], "selected_location"]}></Layer>
+
                 <Layer id="image_outer" type="circle" layout={{
                   visibility: state.config.geojson ? "visible" : "none"
                 }} paint={{
@@ -242,6 +250,11 @@ function GamePageContent(gameMode: GameModeDef, user: User | null) {
                   "circle-radius": 7,
                   "circle-color": "#16a34a"
                 }} source="images"></Layer>
+                <Layer id="map_pin" type="symbol" layout={{
+                  "icon-anchor": "bottom",
+                  "icon-size": 0.1,
+                  "icon-image": "red-pin"
+                }} source="data" filter={["==", ["get", "type"], "selected_location"]}></Layer>
               </Map>
             </div>
           </div>
