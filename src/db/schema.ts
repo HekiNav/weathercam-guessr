@@ -31,9 +31,10 @@ export const map = sqliteTable("Map", {
 export const mapPlace = sqliteTable("MapPlaces", {
 	imageId: text().notNull().references(() => image.id, { onDelete: "cascade", onUpdate: "cascade" }),
 	mapId: text().notNull().references(() => map.id, { onDelete: "cascade", onUpdate: "cascade" }),
-}, (t) => ({
-	pk: primaryKey({columns: [t.mapId, t.imageId]})
-}))
+	index: integer().notNull().default(0)
+}, (t) => ([
+	primaryKey({columns: [t.mapId, t.imageId]})
+]))
 
 export const leaderboard = sqliteTable("Leaderboard", {
 	mapId: text().notNull().references(() => map.id, { onDelete: "cascade", onUpdate: "cascade" }),
@@ -50,6 +51,23 @@ export const rect = sqliteTable("Rect", {
 	width: real().notNull(),
 	height: real().notNull(),
 });
+
+export const friend = sqliteTable("Friend", {
+	creationTime: integer().default(sql`(CURRENT_TIMESTAMP)`).notNull(),
+	user1id: text().notNull(),
+	user2id: text().notNull(),
+	state: text().notNull().default("PENDING")
+}, (table) => [
+	uniqueIndex("users").on(table.user1id, table.user2id)
+])
+
+export const notification = sqliteTable("Notification", {
+	creationTime: integer().default(sql`(CURRENT_TIMESTAMP)`).notNull(),
+	id: text().notNull().primaryKey(),
+	recipient: text().notNull(),
+	type: text().notNull(),
+	friendId: text() 
+})
 
 export const user = sqliteTable("User", {
 	id: text().primaryKey().notNull(),
@@ -78,6 +96,22 @@ export const session = sqliteTable("Session", {
 	expiresAt: integer().notNull(),
 });
 
+export const notificationRelations = relations(notification, ({ one }) => ({
+	friend: one(user, {
+		fields: [notification.friendId],
+		references: [user.id]
+	}),
+}));
+export const friendRelations = relations(friend, ({ one }) => ({
+	user1: one(user, {
+		fields: [friend.user1id],
+		references: [user.id]
+	}),
+	user2: one(user, {
+		fields: [friend.user2id],
+		references: [user.id]
+	}),
+}));
 
 export const rectRelations = relations(rect, ({ one }) => ({
 	image: one(image, {
@@ -124,5 +158,6 @@ export const sessionRelations = relations(session, ({ one }) => ({
 
 export const userRelations = relations(user, ({ many }) => ({
 	sessions: many(session),
-	maps: many(map)
+	maps: many(map),
+	friends: many(friend)
 }));

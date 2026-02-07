@@ -29,7 +29,17 @@ export interface User {
   admin: boolean
   email: string
   createdAt: number
-  sessions?: Session[]
+  sessions?: Session[],
+  friends: Friend[]
+}
+
+export interface Friend {
+  user1id: string,
+  user2id: string,
+  creationTime: number,
+  user1?: User,
+  user2?: User,
+  state?: FriendState
 }
 
 export interface Map {
@@ -160,6 +170,22 @@ export enum ImageType {
   SCENERY = "SCENERY",
   ROAD = "ROAD",
   BROKEN = "BROKEN"
+}
+
+export enum FriendState {
+  PENDING = "PENDING",
+  REJECTED = "REJECTED",
+  ACCEPTED = "ACCEPTED"
+}
+
+export enum ImageOrder {
+  RANDOM = "RANDOM",
+  ORDERED = "ORDERED"
+}
+
+export enum NotificationType {
+  TEXT = "TEXT",
+  FRIEND_REQUEST = "FRIEND_REQUEST"
 }
 
 export enum MapType {
