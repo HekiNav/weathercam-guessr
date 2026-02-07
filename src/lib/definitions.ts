@@ -147,7 +147,8 @@ export enum MapVisibility {
   PUBLIC = "PUBLIC",
   PRIVATE = "PRIVATE",
   FRIENDS = "FRIENDS",
-  HIDDEN = "HIDDEN"
+  HIDDEN = "HIDDEN",
+  DRAFT = "DRAFT"
 }
 
 export enum UnclassifiedEnum {
