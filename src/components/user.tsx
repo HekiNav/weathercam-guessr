@@ -2,10 +2,11 @@ import { User } from "@/lib/definitions";
 import CopyItem from "./copy";
 import moment from "moment"
 import Button from "./button";
+import Link from "next/link";
 
 export default function UserUI({ user, isCurrentUser = false }: { user: User, isCurrentUser?: boolean }) {
     return (
-        <div className="flex flex-col p-4 font-sans">
+        <div className="flex flex-col p-4 pb-0 font-sans">
             <div className="flex flex-row bg-green-600 rounded-xl p-4 text-2xl font-mono text-white items-center">
                 {user?.name} {isCurrentUser && "(you)"}  <CopyItem prefix="ID:" content={user.id}></CopyItem>
                 <span hidden={!user.admin} className="text-xs text-red-600 bg-white rounded px-1 h-min ml-1">admin</span>
@@ -19,9 +20,10 @@ export default function UserUI({ user, isCurrentUser = false }: { user: User, is
                 <div></div>
             ) : (
                 <>{isCurrentUser ? "You have" : "This user has"} no maps
-                    {isCurrentUser && <Button className="w-fit">Create one</Button>}
+                    {isCurrentUser && <Link href="/map/new/"><Button className="w-fit">Create one</Button></Link>}
                 </>
             )}
+            <h1 className="font-medium text-lg text-green-600 mt-2">Friends</h1>
             {user.friends?.length ? (
                 <div></div>
             ) : (

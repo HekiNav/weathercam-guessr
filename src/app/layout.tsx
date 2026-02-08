@@ -38,8 +38,8 @@ export default async function RootLayout({
 				<Toaster position="top-right"></Toaster>
 
 				<UserProvider user={user}>
-					<div className="flex flex-col min-h-screen h-screen">
-						<div className="min-h-screen shadow-lg/20 flex flex-col h-fit">
+					<div className="flex flex-col min-h-screen h-screen overflow-scroll">
+						<div className="min-h-screen shadow-lg/20 flex flex-col shrink-0">
 							<NavBar></NavBar>
 							{children}
 						</div>

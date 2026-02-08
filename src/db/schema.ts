@@ -104,10 +104,12 @@ export const notificationRelations = relations(notification, ({ one }) => ({
 }));
 export const friendRelations = relations(friend, ({ one }) => ({
 	user1: one(user, {
+		relationName: "user1",
 		fields: [friend.user1id],
 		references: [user.id]
 	}),
 	user2: one(user, {
+		relationName: "user2",
 		fields: [friend.user2id],
 		references: [user.id]
 	}),
@@ -159,5 +161,6 @@ export const sessionRelations = relations(session, ({ one }) => ({
 export const userRelations = relations(user, ({ many }) => ({
 	sessions: many(session),
 	maps: many(map),
-	friends: many(friend)
+	friends1: many(friend,{relationName: "user1"}),
+	friends2: many(friend,{relationName: "user2"})
 }));

@@ -8,6 +8,11 @@ import Button from "@/components/button";
 import Modal from "@/components/modal";
 import { changeEmail, changeUsername, deleteUser } from "@/app/actions/user";
 import { useRouter } from "next/navigation";
+import { User } from "@/lib/definitions";
+import { searchUser } from "@/lib/public";
+import Icon from "@/components/icon";
+import { faPlus } from "@fortawesome/free-solid-svg-icons";
+import Link from "next/link";
 
 export default function MyUserPage() {
     const user = useContext(UserContext)
@@ -28,6 +33,17 @@ export default function MyUserPage() {
     const [username, setUsername] = useState(user?.name || "")
     const [confirmation, setConfirmation] = useState(user?.name || "")
 
+    const [friendQuery, setFriendQuery] = useState("")
+    const [friendResults, setFriendResults] = useState<User[]>([])
+
+    useEffect(() => {
+        if (friendQuery) {
+            searchUser(friendQuery).then(setFriendResults)
+        } else {
+            setFriendResults([])
+        }
+    }, [friendQuery])
+
     const router = useRouter()
 
     if (!user) {
@@ -36,8 +52,28 @@ export default function MyUserPage() {
     return (
         <div>
             <UserUI user={user} isCurrentUser></UserUI>
-            <div className="p-4">
-                <h1 className="text-lg text-green-600 font-medium mb-4">Add friends</h1>
+            <div className="p-4 pt-1">
+                <h1 className="text-md text-green-600 font-medium mb-4">Add friends</h1>
+                <div className="my-1 border-black border-3 rounded-tl rounded-tr border-b-0 p-1 text-green-600 w-min relative">
+                    <input
+                        placeholder="Search for a user"
+                        autoComplete="username"
+                        type="username"
+                        id="search_friend"
+                        name="search_friend"
+                        value={friendQuery}
+                        onChange={(e) => setFriendQuery(e.target.value)}
+                        className="outline-0"
+                        onKeyDown={(e) => e.key == "Enter"}
+                    />
+                    <output className="absolute top-8 px-1 border-3 border-black border-t-0 left-[-3px] bg-white right-[-3px] rounded-br rounded-bl">
+                        {...friendResults.map((f,i) => (
+                            <div key={i} className="flex flex-row justify-between text-black w-full">
+                                <Link href={`/user/${f.id}`} className="font-medium">{f.name}</Link> <Button className="w-5 h-5 p-0! flex items-center align-center justify-center"><Icon icon={faPlus}></Icon></Button>
+                            </div>
+                        ))}
+                    </output>
+                </div>
             </div>
             <div className="p-4">
                 <h1 className="text-lg text-green-600 font-medium mb-4">Edit details</h1>
@@ -100,7 +136,7 @@ export default function MyUserPage() {
                             }).then(() => {
                                 setModalState(null)
                                 router.refresh()
-                            }).catch(() =>{
+                            }).catch(() => {
                                 setModalState(null)
                             })
                             break;
@@ -113,7 +149,7 @@ export default function MyUserPage() {
                             }).then(() => {
                                 setModalState(null)
                                 router.refresh()
-                            }).catch(() =>{
+                            }).catch(() => {
                                 setModalState(null)
                             })
                         case "delete":
@@ -124,7 +160,7 @@ export default function MyUserPage() {
                             }).then(() => {
                                 setModalState(null)
                                 router.refresh()
-                            }).catch(() =>{
+                            }).catch(() => {
                                 setModalState(null)
                             })
                             break;
