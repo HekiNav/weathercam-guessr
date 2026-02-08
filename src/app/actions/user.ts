@@ -1,8 +1,9 @@
 "use server"
-import { user } from "@/db/schema";
+import { friend, user } from "@/db/schema";
 import { getCurrentUser } from "@/lib/auth";
 import { createDB } from "@/lib/db";
 import { EmailSchema, UsernameSchema } from "@/lib/definitions";
+import { getUser } from "@/lib/public";
 import { eq } from "drizzle-orm";
 import { cookies } from "next/headers";
 import z from "zod";
@@ -97,6 +98,36 @@ export async function changeEmail(newEmail: string) {
         }
     }
     (await cookies()).delete("session");
+    return {
+        success: true,
+        message: "Succesfully changed email!"
+    }
+}
+export async function sendFriendRequest(recipient: string) {
+    const db = await createDB()
+
+    if (!db.query.user.findFirst({ where: eq(user.id, recipient) })) return {
+        success: false,
+        message: "Invalid user id"
+    }
+
+    const currentUser = await getUser((await getCurrentUser())?.id || "")
+
+    if (!currentUser) return {
+        success: false,
+        message: "Not logged in!"
+    }
+
+    if (currentUser.friends.find(f => f.user1id == recipient || f.user2id == recipient)) return {
+        success: false,
+        message: "Request already sent!"
+    }
+
+    await db.insert(friend).values({
+        user1id: currentUser.id,
+        user2id: recipient
+    })
+
     return {
         success: true,
         message: "Succesfully changed email!"

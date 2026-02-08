@@ -6,7 +6,7 @@ import { useContext, useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import Button from "@/components/button";
 import Modal from "@/components/modal";
-import { changeEmail, changeUsername, deleteUser } from "@/app/actions/user";
+import { changeEmail, changeUsername, deleteUser, sendFriendRequest } from "@/app/actions/user";
 import { useRouter } from "next/navigation";
 import { User } from "@/lib/definitions";
 import { searchUser } from "@/lib/public";
@@ -67,9 +67,15 @@ export default function MyUserPage() {
                         onKeyDown={(e) => e.key == "Enter"}
                     />
                     <output className="absolute top-8 px-1 border-3 border-black border-t-0 left-[-3px] bg-white right-[-3px] rounded-br rounded-bl">
-                        {...friendResults.map((f,i) => (
+                        {...friendResults.map((f, i) => (
                             <div key={i} className="flex flex-row justify-between text-black w-full">
-                                <Link href={`/user/${f.id}`} className="font-medium">{f.name}</Link> <Button className="w-5 h-5 p-0! flex items-center align-center justify-center"><Icon icon={faPlus}></Icon></Button>
+                                <Link href={`/user/${f.id}`} className="font-medium">{f.name}</Link> <Button onClick={() => {
+                                    toast.promise(doServer(sendFriendRequest(f.id)), {
+                                        loading: "Sending request",
+                                        success: "Sent request!",
+                                        error: (err) => err.message
+                                    })
+                                }} className="w-5 h-5 p-0! flex items-center align-center justify-center"><Icon icon={faPlus}></Icon></Button>
                             </div>
                         ))}
                     </output>

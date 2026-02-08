@@ -30,7 +30,7 @@ export interface User {
   email: string
   createdAt: number
   sessions?: Session[],
-  friends: Friend[]
+  friends?: Friend[]
 }
 
 export interface Friend {
