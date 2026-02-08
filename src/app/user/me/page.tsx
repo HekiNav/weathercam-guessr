@@ -178,7 +178,6 @@ export default function MyUserPage() {
         </div>
     )
 }
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function doServer(func: Promise<{ success: boolean, message: string } | undefined>) {
     return new Promise((res, rej) => {
         func.then((data) => {

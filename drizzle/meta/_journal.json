@@ -57,6 +57,13 @@
       "when": 1770486191282,
       "tag": "0007_powerful_vargas",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1770565805382,
+      "tag": "0008_flat_white_queen",
+      "breakpoints": true
     }
   ]
 }

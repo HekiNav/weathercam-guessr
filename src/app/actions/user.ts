@@ -2,7 +2,8 @@
 import { friend, user } from "@/db/schema";
 import { getCurrentUser } from "@/lib/auth";
 import { createDB } from "@/lib/db";
-import { EmailSchema, UsernameSchema } from "@/lib/definitions";
+import { EmailSchema, NotificationType, UsernameSchema } from "@/lib/definitions";
+import sendNotification from "@/lib/notification";
 import { getUser } from "@/lib/public";
 import { eq } from "drizzle-orm";
 import { cookies } from "next/headers";
@@ -103,10 +104,12 @@ export async function changeEmail(newEmail: string) {
         message: "Succesfully changed email!"
     }
 }
-export async function sendFriendRequest(recipient: string) {
+export async function sendFriendRequest(recipientId: string) {
     const db = await createDB()
 
-    if (!db.query.user.findFirst({ where: eq(user.id, recipient) })) return {
+    const recipient = await db.query.user.findFirst({ where: eq(user.id, recipientId) })
+
+    if (!recipient) return {
         success: false,
         message: "Invalid user id"
     }
@@ -118,18 +121,35 @@ export async function sendFriendRequest(recipient: string) {
         message: "Not logged in!"
     }
 
-    if (currentUser.friends.find(f => f.user1id == recipient || f.user2id == recipient)) return {
+    if (currentUser.friends.find(f => f.user1id == recipientId || f.user2id == recipientId)) return {
         success: false,
         message: "Request already sent!"
     }
 
     await db.insert(friend).values({
         user1id: currentUser.id,
-        user2id: recipient
+        user2id: recipientId
+    })
+
+    await sendNotification({
+        message: `
+        <h1>${currentUser.name} has sent you a friend request</h1>
+        `,
+        type: NotificationType.FRIEND_REQUEST,
+        recipient: recipientId,
+        email: `
+        <h1>${currentUser.name} has sent you a friend request</h1>
+        <p>Accept or reject in</p>
+        <h2><a href="https://guessr.hekinav.dev/user/me" style="color:#16a34a; margin-bottom: 100px;">Weathercam-guessr</a></h2>
+        <small>This is an automated message from Weathercam-guessr. If you wish to not receive email from friend request, please delete your account</small>
+        `,
+        emailSubject: `${currentUser.name} has sent you a friend request in Weathercam-guessr`,
+        recipientEmail: recipient.email,
+        sender: currentUser.id
     })
 
     return {
         success: true,
-        message: "Succesfully changed email!"
+        message: "Succesfully sent request!"
     }
 }

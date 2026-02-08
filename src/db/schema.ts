@@ -64,9 +64,10 @@ export const friend = sqliteTable("Friend", {
 export const notification = sqliteTable("Notification", {
 	creationTime: integer().default(sql`(CURRENT_TIMESTAMP)`).notNull(),
 	id: text().notNull().primaryKey(),
-	recipient: text().notNull(),
+	recipientId: text().notNull(),
 	type: text().notNull(),
-	friendId: text() 
+	message: text().notNull(),
+	senderId: text() 
 })
 
 export const user = sqliteTable("User", {
@@ -97,8 +98,12 @@ export const session = sqliteTable("Session", {
 });
 
 export const notificationRelations = relations(notification, ({ one }) => ({
-	friend: one(user, {
-		fields: [notification.friendId],
+	sender: one(user, {
+		fields: [notification.senderId],
+		references: [user.id]
+	}),
+	recipient: one(user, {
+		fields: [notification.recipientId],
 		references: [user.id]
 	}),
 }));
