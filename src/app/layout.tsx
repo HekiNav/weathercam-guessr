@@ -36,12 +36,12 @@ export default async function RootLayout({
 			<head>
 				<link rel="icon" href="/favicon.svg" type="image/svg+xml"></link>
 			</head>
-			<body className={`${karla.variable} ${shareTechMono.variable} antialiased bg-white h-full`}>
+			<body className={`${karla.variable} ${shareTechMono.variable} antialiased bg-white h-full flex flex-col`}>
 				<Toaster position="top-right" containerClassName="mt-10"></Toaster>
 
 				<UserProvider user={user} notifs={notifications? notifications.map(n => ({...n, read: n.read == "true"})) : null}>
-					<div className="flex flex-col min-h-screen overflow-scroll">
-						<div className="min-h-screen shadow-lg/20 flex flex-col grow shrink-0">
+					<div className="flex flex-col h-full min-h-screen overflow-scroll relative grow relative">
+						<div className="h-full shadow-lg/20 flex min-h-max flex-col grow shrink-0">
 							<NavBar></NavBar>
 							{children}
 						</div>

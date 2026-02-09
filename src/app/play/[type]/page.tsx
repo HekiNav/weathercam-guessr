@@ -122,7 +122,7 @@ function GamePageContent(gameMode: GameModeDef, user: User | null) {
 
   const [selectedGameMode, setSelectedGameMode] = useState<GameMode>(gameMode.id)
   return (
-    <div className="h-full w-full relative">
+    <div className="h-full w-full relative grow">
       {step != "game" && step != "results" && (
         <div className="h-full w-full flex justify-center items-center">
           <Card title={title} className="h-min w-max">
