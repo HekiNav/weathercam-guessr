@@ -114,7 +114,7 @@ export async function sendFriendRequest(recipientId: string) {
         message: "Invalid user id"
     }
 
-    const currentUser = await getUser((await getCurrentUser())?.id || "")
+    const currentUser = await getCurrentUser(true)
 
     if (recipient.id == currentUser?.id) return {
         success: false,
@@ -126,7 +126,7 @@ export async function sendFriendRequest(recipientId: string) {
         message: "Not logged in!"
     }
 
-    if (currentUser.friends.find(f => f.user1id == recipientId || f.user2id == recipientId)) return {
+    if (!currentUser.friends || currentUser.friends.find(f => f.user1id == recipientId || f.user2id == recipientId)) return {
         success: false,
         message: "Request already sent!"
     }
@@ -161,7 +161,7 @@ export async function sendFriendRequest(recipientId: string) {
 export async function respondToFriendRequest(friendId: string, state: FriendState) {
     const db = await createDB()
 
-    const currentUser = await getUser((await getCurrentUser())?.id || "")
+    const currentUser = await getCurrentUser(true)
 
     if (friendId == currentUser?.id) return {
         success: false,
@@ -173,7 +173,7 @@ export async function respondToFriendRequest(friendId: string, state: FriendStat
         message: "Not logged in!"
     }
 
-    if (!currentUser.friends.find(f => f.user1id == friendId || f.user2id == friendId)) return {
+    if (!currentUser.friends || !currentUser.friends.find(f => f.user1id == friendId || f.user2id == friendId)) return {
         success: false,
         message: "No request sent to user, or user does not exist"
     }

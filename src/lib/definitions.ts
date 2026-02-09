@@ -1,5 +1,6 @@
 import { GameMode } from '@/app/actions/game';
 import { Image } from '@/app/actions/image';
+import moment from 'moment';
 import { ReactNode } from 'react';
 import * as z from 'zod'
 
@@ -227,4 +228,7 @@ export function doServer(func: Promise<{ success: boolean; message: string; } | 
             else rej(data);
         });
     });
+}
+export function momentToTZ(x:string|number|Date) {
+  return moment(new Date(0).setUTCMilliseconds(new Date(x).getTime() - (new Date().getTimezoneOffset() * 60_000)))
 }

@@ -3,7 +3,7 @@
 import Card from "@/components/card"
 import { useContext, useState } from "react"
 import { NotificationContext } from "../user-provider"
-import { doServer, FriendState, Notification, NotificationType } from "@/lib/definitions"
+import { doServer, FriendState, momentToTZ, Notification, NotificationType } from "@/lib/definitions"
 import Modal from "@/components/modal"
 import Icon from "@/components/icon"
 import { faEnvelope, faEnvelopeOpen } from "@fortawesome/free-solid-svg-icons"
@@ -29,7 +29,7 @@ export default function InboxPage() {
                                 if (reloadNotifs) reloadNotifs()
                             })
                         }} className={`${!n.read && "font-bold "}text-lg`}>
-                            <span className="px-1">{moment(new Date(0).setUTCMilliseconds(new Date(n.creationTime).getTime() - (new Date().getTimezoneOffset() * 60_000))).fromNow()}</span>
+                            <span className="px-1">{momentToTZ(n.creationTime).fromNow()}</span>
                             <span className="px-1 text-green-600">{n.title}</span>
                         </div>
                         <Icon icon={n.read ? faEnvelopeOpen : faEnvelope}></Icon>

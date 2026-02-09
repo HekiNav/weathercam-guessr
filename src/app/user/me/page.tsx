@@ -52,8 +52,9 @@ export default function MyUserPage() {
     return (
         <div>
             <UserUI user={user} isCurrentUser></UserUI>
+            <h1 className="ml-4 mt-8 text-2xl font-medium">Settings</h1>
             <div className="p-4 pt-1">
-                <h1 className="text-md text-green-600 font-medium mb-4">Add friends</h1>
+                <h1 className="text-lg text-green-600 font-medium mb-1">Add friends</h1>
                 <div className="my-1 border-black border-3 rounded-tl rounded-tr border-b-0 p-1 text-green-600 w-min relative">
                     <input
                         placeholder="Search for a user"

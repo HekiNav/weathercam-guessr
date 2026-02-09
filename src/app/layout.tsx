@@ -29,7 +29,7 @@ export default async function RootLayout({
 }: Readonly<{
 	children: React.ReactNode;
 }>) {
-	const user = await getCurrentUser()
+	const user = await getCurrentUser(true)
 	const notifications = user && await getNotifications({user: user.id})
 	return (
 		<html lang="en" style={{height: "100%"}}>
