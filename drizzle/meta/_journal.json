@@ -71,6 +71,20 @@
       "when": 1770567177228,
       "tag": "0009_dazzling_morlun",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "6",
+      "when": 1770628063961,
+      "tag": "0010_high_gunslinger",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "6",
+      "when": 1770628123358,
+      "tag": "0011_strange_magma",
+      "breakpoints": true
     }
   ]
 }

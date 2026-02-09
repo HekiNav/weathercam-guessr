@@ -69,6 +69,7 @@ export const notification = sqliteTable("Notification", {
 	message: text().notNull(),
 	senderId: text(),
 	read: numeric().notNull().default("false"),
+	title: text().notNull(),
 })
 
 export const user = sqliteTable("User", {

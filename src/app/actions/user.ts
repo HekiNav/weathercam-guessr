@@ -20,7 +20,7 @@ export async function deleteUser() {
     }
 
 
-    await (await db).delete(user).where(eq(user.id, currentUser.id));
+    await db.delete(user).where(eq(user.id, currentUser.id));
     (await cookies()).delete("session");
 
     return {
@@ -116,6 +116,11 @@ export async function sendFriendRequest(recipientId: string) {
 
     const currentUser = await getUser((await getCurrentUser())?.id || "")
 
+    if (recipient.id == currentUser?.id) return {
+        success: false,
+        message: "Cannot send request to yourself"
+    }
+
     if (!currentUser) return {
         success: false,
         message: "Not logged in!"
@@ -143,7 +148,7 @@ export async function sendFriendRequest(recipientId: string) {
         <h2><a href="https://guessr.hekinav.dev/user/me" style="color:#16a34a; margin-bottom: 100px;">Weathercam-guessr</a></h2>
         <small>This is an automated message from Weathercam-guessr. If you wish to not receive emails from friend request, please delete your account</small>
         `,
-        emailSubject: `${currentUser.name} has sent you a friend request in Weathercam-guessr`,
+        title: `${currentUser.name} has sent you a friend request in Weathercam-guessr`,
         recipientEmail: recipient.email,
         sender: currentUser.id
     })

@@ -36,3 +36,9 @@ body {
    -ms-user-select: none;
    user-select: none;
 }
+
+.notification {
+	h1 {
+		font-size: 1.5em;
+	}
+}

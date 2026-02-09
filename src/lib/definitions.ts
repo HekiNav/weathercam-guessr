@@ -209,3 +209,13 @@ export interface BlurRect {
   width: number
   height: number
 }
+export interface Notification {
+  creationTime: number,
+  id: string
+  recipientId: string,
+  type: string,
+  message: string,
+  senderId: string | null,
+  read: boolean,
+  title: string
+}

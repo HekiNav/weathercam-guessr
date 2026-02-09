@@ -12,7 +12,7 @@ export interface NotificationParams {
     type: NotificationType,
     email?: string,
     recipientEmail?: string,
-    emailSubject?: string
+    title: string
 }
 export async function getNotifications({ user }: { user: string }) {
     const db = await createDB()
@@ -20,21 +20,22 @@ export async function getNotifications({ user }: { user: string }) {
         where: eq(notification.recipientId, user)
     })
 }
-export async function sendNotification({ message, recipient, type, recipientEmail, email, emailSubject, sender }: NotificationParams) {
+export async function sendNotification({ message, recipient, type, recipientEmail, email, title, sender }: NotificationParams) {
     const db = await createDB()
     await db.insert(notification).values({
         id: crypto.randomUUID(),
         recipientId: recipient,
         type: type,
         senderId: sender,
-        message: message
+        message: message,
+        title: title
     })
     if (!email || !recipientEmail) return
     const resend = new Resend(process.env.RESEND_API_KEY)
     await resend.emails.send({
         from: process.env.FROM_EMAIL!,
         to: recipientEmail,
-        subject: emailSubject || "<no subject>",
+        subject: title || "<no subject>",
         html: email,
     })
 }
