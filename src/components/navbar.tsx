@@ -8,7 +8,7 @@ import Button from "./button"
 
 export default function NavBar() {
     const user = useContext(UserContext)
-    const notifications = useContext(NotificationContext)
+    const [notifications] = useContext(NotificationContext)
 
     const items: {url: string, item: ReactNode}[] = [
         { url: "/play", item: "Play" },
@@ -35,7 +35,7 @@ export default function NavBar() {
                             <IconItem icon={{ icon: faUser, title: user.admin ? "Admin user" : "Normal user", className: `${user.admin ? "text-red-600" : "text-green-600"}` }}>{user.name || user.id}</IconItem>
                         </Link>
                         <Link href="/inbox" className="h-full flex flex-col content-center">
-                            <IconItem icon={{ icon: faInbox, className: notifications?.length ? `after:absolute after:bg-red-600 after:rounded-full after:p-1 after:-top-0.5 after:-left-0.5 relative` : ""}}>Inbox</IconItem>
+                            <IconItem icon={{ icon: faInbox, className: notifications?.some(n => !n.read) ? `after:absolute after:bg-red-600 after:rounded-full after:p-1 after:-top-0.5 after:-left-0.5 relative` : ""}}>Inbox</IconItem>
                         </Link>
                         <Link href="/logout" className="text-nowrap ml-4">
                             <Button className="px-2 py-1 font-medium">Log out</Button>

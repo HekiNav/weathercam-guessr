@@ -65,10 +65,8 @@ export default {
 				break;
 			case "0 11 * * 5":
 
-				console.log("a")
 
 				const data = await fetchImages()
-				console.log("b")
 
 				const items = data.features.flatMap(({ properties, geometry }) => properties.presets.map(preset => ({
 					externalId: preset.id,
@@ -77,7 +75,6 @@ export default {
 					lon: geometry.coordinates[1]
 				})))
 				const now = Date.now()
-				console.log("c")
 				if (items.length == 0) throw new Error("Empty items")
 				await db.batch(
 					items.map(item =>
@@ -103,7 +100,6 @@ export default {
 					// eslint-disable-next-line @typescript-eslint/no-explicit-any
 					) as any
 				);
-				console.log("d")
 
 				// Mark items missing from external source as unavailable
 				await db
@@ -114,7 +110,6 @@ export default {
 					.where(lt(image.updateTime, now));
 
 
-				console.log("e")
 				await generateGeoJson(env as Env)
 				break
 		}

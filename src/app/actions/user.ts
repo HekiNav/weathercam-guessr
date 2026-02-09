@@ -2,10 +2,10 @@
 import { friend, user } from "@/db/schema";
 import { getCurrentUser } from "@/lib/auth";
 import { createDB } from "@/lib/db";
-import { EmailSchema, NotificationType, UsernameSchema } from "@/lib/definitions";
+import { EmailSchema, FriendState, NotificationType, UsernameSchema } from "@/lib/definitions";
 import { sendNotification } from "@/lib/notification";
 import { getUser } from "@/lib/public";
-import { eq } from "drizzle-orm";
+import { and, eq, or } from "drizzle-orm";
 import { cookies } from "next/headers";
 import z from "zod";
 
@@ -150,6 +150,46 @@ export async function sendFriendRequest(recipientId: string) {
         `,
         title: `${currentUser.name} has sent you a friend request in Weathercam-guessr`,
         recipientEmail: recipient.email,
+        sender: currentUser.id
+    })
+
+    return {
+        success: true,
+        message: "Succesfully sent request!"
+    }
+}
+export async function respondToFriendRequest(friendId: string, state: FriendState) {
+    const db = await createDB()
+
+    const currentUser = await getUser((await getCurrentUser())?.id || "")
+
+    if (friendId == currentUser?.id) return {
+        success: false,
+        message: "Cannot accept request from yourself"
+    }
+
+    if (!currentUser) return {
+        success: false,
+        message: "Not logged in!"
+    }
+
+    if (!currentUser.friends.find(f => f.user1id == friendId || f.user2id == friendId)) return {
+        success: false,
+        message: "No request sent to user, or user does not exist"
+    }
+
+    await db.update(friend).set({state}).where(or(
+        and(eq(friend.user1id, currentUser.id),eq(friend.user2id, friendId)),
+        and(eq(friend.user2id, currentUser.id),eq(friend.user1id, friendId))
+    ))
+
+    if (state != FriendState.PENDING) await sendNotification({
+        message: `
+        <p>${currentUser.name} has ${state == FriendState.ACCEPTED ? "accepted" : "rejected"} your friend request</p>
+        `,
+        type: NotificationType.TEXT,
+        recipient: friendId,
+        title: `${currentUser.name} has ${state == FriendState.ACCEPTED ? "accepted" : "rejected"} your friend request`,
         sender: currentUser.id
     })
 

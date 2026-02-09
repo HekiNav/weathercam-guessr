@@ -28,7 +28,6 @@ export async function searchUser(query: string): Promise<User[]> {
         users = (await db.query.user.findMany({with: {friends1: true, friends2: true}})).map(f => ({...f, admin: f.admin == "true", email: "N/A", friends: [...f.friends1, ...f.friends2] as Friend[]}))
         await minisearch.addAllAsync(users)
     }
-    console.log(users)
     return minisearch.search(query, {
         fuzzy: 0.6,
     }) as never

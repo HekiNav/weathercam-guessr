@@ -34,7 +34,6 @@ export default function Login() {
           Already logged in. Do you want to <a className="ml-1 text-green-600 underline" href="/logout">log out</a>?
         </>
       ))
-      console.log("2")
       redirect(successPath)
     }
 

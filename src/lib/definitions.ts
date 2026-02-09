@@ -219,3 +219,12 @@ export interface Notification {
   read: boolean,
   title: string
 }
+export function doServer(func: Promise<{ success: boolean; message: string; } | undefined>) {
+    return new Promise((res, rej) => {
+        func.then((data) => {
+            if (!data) return rej(data);
+            if (data.success) res(data);
+            else rej(data);
+        });
+    });
+}

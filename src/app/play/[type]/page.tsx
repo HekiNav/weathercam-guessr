@@ -224,9 +224,7 @@ function GamePageContent(gameMode: GameModeDef, user: User | null) {
                     distanceBetweenPoints({ lat: e.lngLat.lng, lon: e.lngLat.lat }, (a.geometry as Point).coordinates as [number, number]) -
                     distanceBetweenPoints({ lat: e.lngLat.lng, lon: e.lngLat.lat }, (b.geometry as Point).coordinates as [number, number])
                   )[0]
-                  console.log(selectedFeature)
                   if (state.config.geojson && selectedFeature?.geometry && distanceBetweenPoints({ lat: e.lngLat.lng, lon: e.lngLat.lat }, (selectedFeature.geometry as Point).coordinates as [number, number]) < distance) {
-                    console.log(selectedFeature)
                     setSelectedLocation(selectedFeature?.geometry as never)
                   }
                   else setSelectedLocation({ type: "Point", coordinates: e.lngLat.toArray() })
@@ -357,7 +355,6 @@ function DailyInfo({ lastGame, action, pending }: { lastGame?: LeaderboardItem, 
   const today = Math.floor(Date.now() / 1000 / 3600 / 24) - FIRST_DAILY_GAME
   const lastGameDay = Math.round(new Date(lastGame?.map?.creationTime || Date.now()).getTime() / 1000 / 3600 / 24) - FIRST_DAILY_GAME
   // not played today
-  console.log(today, lastGameDay)
   if (today > lastGameDay || !lastGame || !lastGame.map) return <>
     <h1 className="font-medium text-green-600 mx-4 mb-4 text-lg">You haven&apos;t played today</h1>
     <p className="mx-2 max-w-80 text-wrap">

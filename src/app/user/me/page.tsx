@@ -8,7 +8,7 @@ import Button from "@/components/button";
 import Modal from "@/components/modal";
 import { changeEmail, changeUsername, deleteUser, sendFriendRequest } from "@/app/actions/user";
 import { useRouter } from "next/navigation";
-import { User } from "@/lib/definitions";
+import { doServer, User } from "@/lib/definitions";
 import { searchUser } from "@/lib/public";
 import Icon from "@/components/icon";
 import { faPlus } from "@fortawesome/free-solid-svg-icons";
@@ -154,7 +154,7 @@ export default function MyUserPage() {
 
                             }).then(() => {
                                 setModalState(null)
-                                router.refresh()
+                                router.replace("/user/me")
                             }).catch(() => {
                                 setModalState(null)
                             })
@@ -165,7 +165,7 @@ export default function MyUserPage() {
                                 error: (err) => err.message
                             }).then(() => {
                                 setModalState(null)
-                                router.refresh()
+                                router.replace("/user/me")
                             }).catch(() => {
                                 setModalState(null)
                             })
@@ -177,13 +177,4 @@ export default function MyUserPage() {
             </Modal>
         </div>
     )
-}
-function doServer(func: Promise<{ success: boolean, message: string } | undefined>) {
-    return new Promise((res, rej) => {
-        func.then((data) => {
-            if (!data) return rej(data)
-            if (data.success) res(data)
-            else rej(data)
-        })
-    })
 }
