@@ -8,7 +8,6 @@ import Modal from "@/components/modal"
 import Icon from "@/components/icon"
 import { faEnvelope, faEnvelopeOpen } from "@fortawesome/free-solid-svg-icons"
 import { markAsRead } from "../actions/inbox"
-import moment from "moment"
 import Button from "@/components/button"
 import toast from "react-hot-toast"
 import { respondToFriendRequest } from "../actions/user"
@@ -21,7 +20,7 @@ export default function InboxPage() {
     return <div className="flex w-full h-full flex-col items-center py-10 px-10">
         <Card title="inbox" className="lg:w-6/10! w-full!">
             <span className=" divide-y-2 w-full px-3">
-                {...(notifs || [])?.map((n, i) => (
+                {...(notifs || [])?.sort((a,b) =>  new Date(b.creationTime).getTime() - new Date(a.creationTime).getTime()).map((n, i) => (
                     <div key={i} className="px-1 py-2 w-full cursor-pointer flex flex-row justify-between items-center" >
                         <div onClick={() => {
                             setModalState(n)

@@ -5,7 +5,7 @@ import { login } from "@/app/actions/login";
 import Card from "../../components/card";
 import { OTPFormState } from "@/lib/definitions";
 import { redirect, useRouter, useSearchParams } from "next/navigation";
-import { UserContext } from "../user-provider";
+import { NotificationContext, UserContext } from "../user-provider";
 import Button from "../../components/button";
 import toast from "react-hot-toast";
 
@@ -17,6 +17,7 @@ export default function Login() {
 
 
   const user = useContext(UserContext)
+  const [notifications, reloadNotifs] = useContext(NotificationContext)
 
   const [email, setEmail] = useState(user?.email || "")
   const [otp, setOtp] = useState("")
@@ -34,6 +35,7 @@ export default function Login() {
           Already logged in. Do you want to <a className="ml-1 text-green-600 underline" href="/logout">log out</a>?
         </>
       ))
+      if (reloadNotifs) reloadNotifs()
       redirect(successPath)
     }
 
