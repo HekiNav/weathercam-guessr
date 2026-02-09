@@ -3,7 +3,7 @@ import { friend, user } from "@/db/schema";
 import { getCurrentUser } from "@/lib/auth";
 import { createDB } from "@/lib/db";
 import { EmailSchema, NotificationType, UsernameSchema } from "@/lib/definitions";
-import sendNotification from "@/lib/notification";
+import { sendNotification } from "@/lib/notification";
 import { getUser } from "@/lib/public";
 import { eq } from "drizzle-orm";
 import { cookies } from "next/headers";
@@ -133,15 +133,15 @@ export async function sendFriendRequest(recipientId: string) {
 
     await sendNotification({
         message: `
-        <h1>${currentUser.name} has sent you a friend request</h1>
+        <h1>User ${currentUser.name} has sent you a friend request</h1>
         `,
         type: NotificationType.FRIEND_REQUEST,
         recipient: recipientId,
         email: `
-        <h1>${currentUser.name} has sent you a friend request</h1>
-        <p>Accept or reject in</p>
+        <h1>User ${currentUser.name} has sent you a friend request</h1>
+        <p>Accept or reject it in</p>
         <h2><a href="https://guessr.hekinav.dev/user/me" style="color:#16a34a; margin-bottom: 100px;">Weathercam-guessr</a></h2>
-        <small>This is an automated message from Weathercam-guessr. If you wish to not receive email from friend request, please delete your account</small>
+        <small>This is an automated message from Weathercam-guessr. If you wish to not receive emails from friend request, please delete your account</small>
         `,
         emailSubject: `${currentUser.name} has sent you a friend request in Weathercam-guessr`,
         recipientEmail: recipient.email,

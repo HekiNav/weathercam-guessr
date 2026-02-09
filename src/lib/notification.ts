@@ -1,7 +1,9 @@
+"use server"
 import { notification } from "@/db/schema";
 import { createDB } from "./db";
 import { NotificationType } from "./definitions";
 import { Resend } from "resend";
+import { eq } from "drizzle-orm";
 
 export interface NotificationParams {
     message: string,
@@ -11,8 +13,14 @@ export interface NotificationParams {
     email?: string,
     recipientEmail?: string,
     emailSubject?: string
-} 
-export default async function sendNotification ({message, recipient, type, recipientEmail, email, emailSubject, sender}: NotificationParams) {
+}
+export async function getNotifications({ user }: { user: string }) {
+    const db = await createDB()
+    return await db.query.notification.findMany({
+        where: eq(notification.recipientId, user)
+    })
+}
+export async function sendNotification({ message, recipient, type, recipientEmail, email, emailSubject, sender }: NotificationParams) {
     const db = await createDB()
     await db.insert(notification).values({
         id: crypto.randomUUID(),
@@ -24,9 +32,9 @@ export default async function sendNotification ({message, recipient, type, recip
     if (!email || !recipientEmail) return
     const resend = new Resend(process.env.RESEND_API_KEY)
     await resend.emails.send({
-      from: process.env.FROM_EMAIL!,
-      to: recipientEmail,
-      subject: emailSubject || "<no subject>",
-      html: email,
+        from: process.env.FROM_EMAIL!,
+        to: recipientEmail,
+        subject: emailSubject || "<no subject>",
+        html: email,
     })
 }

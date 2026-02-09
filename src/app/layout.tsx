@@ -5,6 +5,7 @@ import "./globals.css";
 import NavBar from "@/components/navbar";
 import { getCurrentUser } from "@/lib/auth";
 import UserProvider from "./user-provider";
+import { getNotifications } from "@/lib/notification";
 
 const karla = Karla({
 	variable: "--font-karla",
@@ -29,6 +30,7 @@ export default async function RootLayout({
 	children: React.ReactNode;
 }>) {
 	const user = await getCurrentUser()
+	const notifications = user && await getNotifications({user: user.id})
 	return (
 		<html lang="en" style={{height: "100%"}}>
 			<head>
@@ -37,9 +39,9 @@ export default async function RootLayout({
 			<body className={`${karla.variable} ${shareTechMono.variable} antialiased bg-white h-full`}>
 				<Toaster position="top-right"></Toaster>
 
-				<UserProvider user={user}>
-					<div className="flex flex-col min-h-screen h-screen overflow-scroll">
-						<div className="min-h-screen shadow-lg/20 flex flex-col shrink-0">
+				<UserProvider user={user} notifs={notifications}>
+					<div className="flex flex-col min-h-screen overflow-scroll">
+						<div className="min-h-screen shadow-lg/20 flex flex-col grow shrink-0">
 							<NavBar></NavBar>
 							{children}
 						</div>

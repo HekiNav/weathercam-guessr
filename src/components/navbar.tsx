@@ -34,7 +34,7 @@ export default function NavBar() {
                             <IconItem icon={{ icon: faUser, title: user.admin ? "Admin user" : "Normal user", className: `${user.admin ? "text-red-600" : "text-green-600"}` }}>{user.name || user.id}</IconItem>
                         </Link>
                         <Link href="/inbox" className="h-full flex flex-col content-center">
-                            <IconItem icon={{ icon: faInbox}}>Inbox</IconItem>
+                            <IconItem icon={{ icon: faInbox, className: "after:absolute after:bg-red-600 after:rounded-full after:p-1 after:-top-0.5 after:-left-0.5 relative"}}>Inbox</IconItem>
                         </Link>
                         <Link href="/logout" className="text-nowrap ml-4">
                             <Button className="px-2 py-1 font-medium">Log out</Button>
