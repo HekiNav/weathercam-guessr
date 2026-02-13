@@ -30,5 +30,5 @@ export async function generateGeoJson(env: Env) {
             }
         })
     }
-    bucket.put("weathercam-guessr-images.geojson", JSON.stringify(geojson))
+    await bucket.put("weathercam-guessr-images.geojson", JSON.stringify(geojson))
 }
