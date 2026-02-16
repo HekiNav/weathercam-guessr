@@ -54,14 +54,14 @@ export default function MapCreationUi() {
             </div>
             <Button className="justify-self-end">Create</Button>
         </div>
-        <div className="main flex flex-col h-full relative">
+        <div className="main flex flex-col h-full w-full">
             <div className="browser-mode px-4 my-4 flex flex-row items-center">
                 <span className="font-bold mr-2">Browser mode:</span>
                 Map
                 <Toggle noColors state={browserState} setState={setBrowserState}></Toggle>
                 List
             </div>
-            <div className="browser h-5/10 border-b-3 border-green-600">
+            <div className="browser h-5/10 border-b-3 border-green-600 w-full">
                 <div hidden={!browserState} className="list">list</div>
                 <div hidden={browserState} className="map h-10/10 relative">
                     <div hidden={!selectedImages || !selectedImages.length} className="absolute left-0 z-1001 top-0 bg-white p-4 gap-2 rounded-br-xl flex flex-col max-h-8/10 overflow-scroll">
@@ -114,27 +114,34 @@ export default function MapCreationUi() {
 
                 </div>
             </div>
-            <div className="preview px-4 my-4 h-5/10 flex flex-row overflow-x-scroll gap-4">
-                {...images.map((e, i) => (
-                    <Card key={i} className="w-100! h-full" title={(
-                        <div>
-                            <span className="w-full flex items-center justify-center gap-1">
-                                <div className="w-0.5 bg-green-800 h-5 rounded"></div>
-                                <div className="w-0.5 bg-green-800 h-5 rounded"></div>
-                                <div className="w-0.5 bg-green-800 h-5 rounded"></div>
-                            </span>
-                            <span className="font-bold flex items-center justify-between">{e.externalId}
-                                <Button onClick={() => {
-                                    setImages(images.reduce((p, c) => c.id != e.id ? [...p, c] : p, new Array<Image>()) || null)
-                                }} className={`w-5 h-5 p-0! flex items-center align-center justify-center bg-white`}>
-                                    <Icon icon={faMinus}></Icon>
-                                </Button>
-                            </span>
-                        </div>)}>
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={getImageUrl(e.externalId, e.source)} alt="" className="w-full"></img>
-                    </Card>
-                ))}
+            <div className="w-full relative grow">
+                <div className="preview px-4 py-4 flex flex-row gap-4 absolute z-1002 top-0 bottom-0 left-0 right-0 overflow-x-scroll overflow-y-none">
+                    {...images.map((e, i) => (
+                        <Card key={i} imageCard className="w-100! min-w-100 h-full" title={(
+                            <div className="">
+                                <span className="font-bold h-full grid grid-rows-1 grid-cols-3 items-center">
+                                    <span className="justify-self-start">{e.externalId}</span>
+                                    <span className="justify-self-center cursor-grab">
+                                        <span hidden={!mapType} className="h-4 flex items-center justify-center w-min gap-1">
+                                            <div className="w-0.5 bg-green-800 h-full rounded"></div>
+                                            <div className="w-0.5 bg-green-800 h-full rounded"></div>
+                                            <div className="w-0.5 bg-green-800 h-full rounded"></div>
+                                        </span>
+                                    </span>
+                                    <span className="justify-self-end">
+                                        <Button onClick={() => {
+                                            setImages(images.reduce((p, c) => c.id != e.id ? [...p, c] : p, new Array<Image>()) || null)
+                                        }} className={`w-5 h-5 p-0! flex items-center align-center justify-center bg-white`}>
+                                            <Icon icon={faMinus}></Icon>
+                                        </Button>
+                                    </span>
+                                </span>
+                            </div>)}>
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={getImageUrl(e.externalId, e.source)} alt="" className="w-full"></img>
+                        </Card>
+                    ))}
+                </div>
             </div>
         </div>
     </div>
