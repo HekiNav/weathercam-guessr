@@ -12,6 +12,7 @@ export default function NavBar() {
 
     const items: {url: string, item: ReactNode}[] = [
         { url: "/play", item: "Play" },
+        { url: "/map/new", item: "Create" },
         { url: "https://github.com/HekiNav/weathercam-guessr", item: "GitHub" },
 
     ]
