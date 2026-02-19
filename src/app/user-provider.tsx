@@ -10,6 +10,7 @@ export const NotificationContext = createContext<[Notification[]| null, (() => v
 export default function UserProvider({ user, children, notifs }: userProviderProps) {
     const [lastUpdateTime, setLastUpdateTime] = useState(0)
     const [notifications, setNotifications] = useState(notifs)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => {
         if (lastUpdateTime != 0) return
         setLastUpdateTime(Date.now())

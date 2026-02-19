@@ -12,7 +12,7 @@ import { Layer, Map, MapRef } from "react-map-gl/maplibre"
 import { Image } from "@/app/actions/image"
 import Card from "@/components/card"
 import Icon from "@/components/icon"
-import { faGripLinesVertical, faMinus, faPlus } from "@fortawesome/free-solid-svg-icons"
+import { faMinus, faPlus } from "@fortawesome/free-solid-svg-icons"
 
 export default function MapCreationUi() {
     const user = useContext(UserContext)
@@ -41,27 +41,14 @@ export default function MapCreationUi() {
     if (!user) {
         redirect("/login?to/map/new/")
     }
-    return <div className="flex flex-col md:flex-row h-full w-screen">
-        <div className="menu h-min px-4 my-4 pb-4 border-b-3 border-green-600 w-full md:w-min md:border-0 md:border-r-3 md:h-full min-w-2/10 flex flex-col">
-            <input className="font-medium text-2xl w-full text-green-600 rounded p-1 border-2"
-                value={mapName} placeholder="New map" maxLength={40} onChange={e => setMapName(e.target.value)}></input>
-            <h1 className="font-medium text-xl mt-4">Options</h1>
-            <span className="font-bold mr-2 mt-2 text-lg">Map order:</span>
-            <div className="browser-mode px-4 mb-4 flex flex-row items-center">
-                Random
-                <Toggle noColors state={mapType} setState={setMapType}></Toggle>
-                Ordered
-            </div>
-            <Button className="justify-self-end">Create</Button>
-        </div>
-        <div className="main flex flex-col h-full w-full">
-            <div className="browser-mode px-4 my-4 flex flex-row items-center">
-                <span className="font-bold mr-2">Browser mode:</span>
+    return <div className="flex flex-col-reverse md:flex-row-reverse h-full w-screen">
+        <div className="main flex flex-col h-full w-full relative">
+            <div className="browser-mode px-4 py-2 flex flex-row items-center absolute bg-white top-0 right-0 z-1003">
                 Map
                 <Toggle noColors state={browserState} setState={setBrowserState}></Toggle>
                 List
             </div>
-            <div className="browser h-5/10 border-b-3 border-green-600 w-full">
+            <div className="browser h-4/10 border-b-3 border-green-600 w-full">
                 <div hidden={!browserState} className="list">list</div>
                 <div hidden={browserState} className="map h-10/10 relative">
                     <div hidden={!selectedImages || !selectedImages.length} className="absolute left-0 z-1001 top-0 bg-white p-4 gap-2 rounded-br-xl flex flex-col max-h-8/10 overflow-scroll">
@@ -117,7 +104,7 @@ export default function MapCreationUi() {
             <div className="w-full relative grow">
                 <div className="preview px-4 py-4 flex flex-row gap-4 absolute z-1002 top-0 bottom-0 left-0 right-0 overflow-x-scroll overflow-y-none">
                     {...images.map((e, i) => (
-                        <Card key={i} imageCard className="w-100! min-w-100 h-full" title={(
+                        <Card key={i} imageCard className="w-60! min-w-60 h-full" title={(
                             <div className="">
                                 <span className="font-bold h-full grid grid-rows-1 grid-cols-3 items-center">
                                     <span className="justify-self-start">{e.externalId}</span>
@@ -137,12 +124,26 @@ export default function MapCreationUi() {
                                     </span>
                                 </span>
                             </div>)}>
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={getImageUrl(e.externalId, e.source)} alt="" className="w-full"></img>
+                            <div className="relative w-full">
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img src={getImageUrl(e.externalId, e.source)} alt="" className="absolute left-0 right-0 top-0 hover:z-1009 hover:transform-[scale(2)] transition ease-in-out"></img>
+                            </div>
                         </Card>
                     ))}
                 </div>
             </div>
+        </div>
+         <div className="menu h-min px-4 py-4 pb-4 border-b-3 border-green-600 w-full md:w-fit md:border-0 md:border-r-3 md:h-full min-w-2/10 flex flex-col">
+            <input className="font-medium text-2xl w-full text-green-600 rounded p-1 border-2"
+                value={mapName} placeholder="New map" maxLength={40} onChange={e => setMapName(e.target.value)}></input>
+            <h1 className="font-medium text-xl mt-4">Options</h1>
+            <span className="font-bold mr-2 mt-2 text-lg">Map order:</span>
+            <div className="browser-mode mb-4 flex flex-row items-center">
+                Random
+                <Toggle noColors state={mapType} setState={setMapType}></Toggle>
+                Ordered
+            </div>
+            <Button className="justify-self-end">Create</Button>
         </div>
     </div>
 }

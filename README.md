@@ -17,4 +17,4 @@ A Geoguessr-like game based on the open road camera [API from Fintraffic](https:
     - Images can be reviewed by admins to set their location blur, difficulty levels and types
 - Daily challenges generated with a cron trigger
 - Modern UI
-- (soon) Custom maps
+- (almost there) Custom maps
