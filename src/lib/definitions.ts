@@ -145,12 +145,33 @@ function toRadians(deg: number) {
 }
 export const atLeastOneTrue = (shape: Record<string, z.ZodBoolean>, error: string) => z.object(shape).refine((obj) => !Object.values(obj).every(v => v == false), { error: error });
 
-export function getImageUrl(id: string, source: string) {
+export function getImageUrl(id: string, source: string, time?: number, timeImages?: { url: string, time: string }[]) {
   switch (source) {
     case "DIGITRAFFIC":
+      if (time && timeImages && timeImages.length && time >= 0) {
+        const timeOffset = getImageTimeOffset(time)
+        const image = timeImages.reduce((prev, curr) => {
+          const imageDate = new Date(curr.time)
+          const imageTime = imageDate.getTime() % (24 * 3600 * 1000)
+          return (Math.abs(imageTime - timeOffset) < Math.abs((prev.score || 0) - timeOffset) ? { ...curr, score: imageTime } : prev);
+        }, { url: "", time: 0 } as { url: string, time: string | number, score?: number })
+        return image.url
+      }
       return `https://weathercam.digitraffic.fi/${id}.jpg`
     default:
       return id
+  }
+}
+export function getImageTimeOffset(time: number) {
+  switch (time) {
+    case MapPlaceTimePresets.ACTUAL:
+      return -1
+    case MapPlaceTimePresets.DAY:
+      return 50400000
+    case MapPlaceTimePresets.NIGHT:
+      return 3600000
+    default:
+      return time
   }
 }
 
@@ -164,6 +185,11 @@ export enum MapVisibility {
 
 export enum UnclassifiedEnum {
   UNCLASSIFIED = "UNCLASSIFIED",
+}
+export enum MapPlaceTimePresets {
+  ACTUAL = -1,
+  DAY = -2,
+  NIGHT = -3
 }
 
 export enum ImageType {
@@ -220,15 +246,29 @@ export interface Notification {
   read: boolean,
   title: string
 }
-export function doServer(func: Promise<{ success: boolean; message: string; } | undefined>) {
-    return new Promise((res, rej) => {
-        func.then((data) => {
-            if (!data) return rej(data);
-            if (data.success) res(data);
-            else rej(data);
-        });
-    });
+export interface ImagePresetHistory {
+  id: string,
+  dataUpdatedTime: string,
+  presets: [{
+    dataUpdatedTime: string,
+    history: ImageHistoryPresetHistoryItem[],
+    id: string
+  }]
 }
-export function momentToTZ(x:string|number|Date) {
+export interface ImageHistoryPresetHistoryItem {
+  lastModified: string,
+  imageUrl: string,
+  sizeBytes: number
+}
+export function doServer(func: Promise<{ success: boolean; message: string; } | undefined>) {
+  return new Promise((res, rej) => {
+    func.then((data) => {
+      if (!data) return rej(data);
+      if (data.success) res(data);
+      else rej(data);
+    });
+  });
+}
+export function momentToTZ(x: string | number | Date) {
   return moment(new Date(0).setUTCMilliseconds(new Date(x).getTime() - (new Date().getTimezoneOffset() * 60_000)))
 }

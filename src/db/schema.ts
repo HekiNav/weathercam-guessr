@@ -31,7 +31,8 @@ export const map = sqliteTable("Map", {
 export const mapPlace = sqliteTable("MapPlaces", {
 	imageId: text().notNull().references(() => image.id, { onDelete: "cascade", onUpdate: "cascade" }),
 	mapId: text().notNull().references(() => map.id, { onDelete: "cascade", onUpdate: "cascade" }),
-	index: integer().notNull().default(0)
+	index: integer().notNull().default(0),
+	time: integer().notNull().default(-1)
 }, (t) => ([
 	primaryKey({columns: [t.mapId, t.imageId]})
 ]))

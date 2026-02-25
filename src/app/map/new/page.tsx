@@ -2,17 +2,19 @@
 import { UserContext } from "@/app/user-provider"
 import Button from "@/components/button"
 import Toggle from "@/components/toggle"
-import { distanceBetweenPoints, FINLAND_BOUNDS, getImageUrl } from "@/lib/definitions"
+import { distanceBetweenPoints, FINLAND_BOUNDS, getImageTimeOffset, getImageUrl, ImagePresetHistory } from "@/lib/definitions"
 import { Feature, FeatureCollection, Point } from "geojson"
 import { GeoJSONSource } from "maplibre-gl"
 import { redirect } from "next/navigation"
-import { useContext, useEffect, useRef, useState } from "react"
+import { Dispatch, SetStateAction, useContext, useEffect, useRef, useState } from "react"
 import toast from "react-hot-toast"
 import { Layer, Map, MapRef } from "react-map-gl/maplibre"
 import { Image } from "@/app/actions/image"
 import Card from "@/components/card"
 import Icon from "@/components/icon"
 import { faMinus, faPlus } from "@fortawesome/free-solid-svg-icons"
+import Dropdown from "@/components/dropdown"
+import ImageWithTime from "@/components/imagewithtime"
 
 export default function MapCreationUi() {
     const user = useContext(UserContext)
@@ -41,6 +43,8 @@ export default function MapCreationUi() {
     if (!user) {
         redirect("/login?to/map/new/")
     }
+
+
     return <div className="flex flex-col-reverse md:flex-row-reverse h-full w-screen">
         <div className="main flex flex-col h-full w-full relative">
             <div className="browser-mode px-4 py-2 flex flex-row items-center absolute bg-white top-0 right-0 z-1003">
@@ -104,36 +108,21 @@ export default function MapCreationUi() {
             <div className="w-full relative grow">
                 <div className="preview px-4 py-4 flex flex-row gap-4 absolute z-1002 top-0 bottom-0 left-0 right-0 overflow-x-scroll overflow-y-none">
                     {...images.map((e, i) => (
-                        <Card key={i} imageCard className="w-60! min-w-60 h-full" title={(
-                            <div className="">
-                                <span className="font-bold h-full grid grid-rows-1 grid-cols-3 items-center">
-                                    <span className="justify-self-start">{e.externalId}</span>
-                                    <span className="justify-self-center cursor-grab">
-                                        <span hidden={!mapType} className="h-4 flex items-center justify-center w-min gap-1">
-                                            <div className="w-0.5 bg-green-800 h-full rounded"></div>
-                                            <div className="w-0.5 bg-green-800 h-full rounded"></div>
-                                            <div className="w-0.5 bg-green-800 h-full rounded"></div>
-                                        </span>
-                                    </span>
-                                    <span className="justify-self-end">
-                                        <Button onClick={() => {
-                                            setImages(images.reduce((p, c) => c.id != e.id ? [...p, c] : p, new Array<Image>()) || null)
-                                        }} className={`w-5 h-5 p-0! flex items-center align-center justify-center bg-white`}>
-                                            <Icon icon={faMinus}></Icon>
-                                        </Button>
-                                    </span>
-                                </span>
-                            </div>)}>
-                            <div className="relative w-full">
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img src={getImageUrl(e.externalId, e.source)} alt="" className="absolute left-0 right-0 top-0 hover:z-1009 hover:transform-[scale(2)] transition ease-in-out"></img>
-                            </div>
-                        </Card>
+
+                        <ImageCard
+                            key={i}
+                            e={e}
+                            i={i}
+                            images={images}
+                            mapType={mapType}
+                            setImages={setImages}
+                        />
+
                     ))}
                 </div>
             </div>
         </div>
-         <div className="menu h-min px-4 py-4 pb-4 border-b-3 border-green-600 w-full md:w-fit md:border-0 md:border-r-3 md:h-full min-w-2/10 flex flex-col">
+        <div className="menu h-min px-4 py-4 pb-4 border-b-3 border-green-600 w-full md:w-fit md:border-0 md:border-r-3 md:h-full min-w-2/10 flex flex-col">
             <input className="font-medium text-2xl w-full text-green-600 rounded p-1 border-2"
                 value={mapName} placeholder="New map" maxLength={40} onChange={e => setMapName(e.target.value)}></input>
             <h1 className="font-medium text-xl mt-4">Options</h1>
@@ -147,3 +136,64 @@ export default function MapCreationUi() {
         </div>
     </div>
 }
+
+
+
+interface ImageCardProps {
+    e: Image;
+    i: number;
+    images: Image[];
+    mapType: boolean;
+    setImages: Dispatch<SetStateAction<Image[]>>;
+}
+
+
+function ImageCard({ e,
+    images,
+    mapType,
+    setImages }: ImageCardProps) {
+    const [imageTimeMode, setImageTimeMode] = useState(-1)
+    const [imageHistory, setImageHistory] = useState<ImagePresetHistory | null>(null)
+    if (!imageHistory) fetch(`https://tie.digitraffic.fi/api/weathercam/v1/stations/${e.externalId}/history`).then(res => res.json()).then(data => {
+        setImageHistory(data as ImagePresetHistory)
+    })
+    return (
+        <Card imageCard className="w-60! min-w-60 h-full" title={(
+            <div className="">
+                <span className="font-bold h-full grid grid-rows-1 grid-cols-3 items-center">
+                    <span className="justify-self-start">{e.externalId}</span>
+                    <span className="justify-self-center cursor-grab">
+                        <span hidden={!mapType} className="h-4 flex items-center justify-center w-min gap-1">
+                            <div className="w-0.5 bg-green-800 h-full rounded"></div>
+                            <div className="w-0.5 bg-green-800 h-full rounded"></div>
+                            <div className="w-0.5 bg-green-800 h-full rounded"></div>
+                        </span>
+                    </span>
+                    <span className="justify-self-end">
+                        <Button onClick={() => {
+                            setImages(images.reduce((p, c) => c.id != e.id ? [...p, c] : p, new Array<Image>()) || null)
+                        }} className={`w-5 h-5 p-0! flex items-center align-center justify-center bg-white`}>
+                            <Icon icon={faMinus}></Icon>
+                        </Button>
+                    </span>
+                </span>
+            </div>)}>
+            <div className="relative w-full">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={getImageUrl(e.externalId, e.source)} alt="" className="opacity-0"></img>
+                <ImageWithTime time={getImageTimeOffset(imageTimeMode)} presetHistory={imageHistory} image={e} alt="" className="absolute left-0 right-0 top-0 hover:z-1009 hover:transform-[scale(2)] transition ease-in-out"></ImageWithTime>
+            </div>
+            <div className="mt-2">
+                <Dropdown<number> small onSet={({ id }) => id && setImageTimeMode(id)} items={
+                    [   
+                        { content: "Current", id: -1 },
+                        { content: "Day", id: -2 },
+                        { content: "Night", id: -3 },
+                        { content: "Custom", id: -4 }
+                    ]
+                } initial={"Current"}></Dropdown>
+            </div>
+        </Card>
+    );
+}
+
