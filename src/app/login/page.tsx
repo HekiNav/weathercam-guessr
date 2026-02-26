@@ -47,7 +47,7 @@ export default function Login() {
 
   return (
     <div className="w-full h-full flex items-center grow justify-center">
-      <Card title="Login using OTP" className="transition-all ease-out duration-500">
+      <Card cardTitle="Login using OTP" className="transition-all ease-out duration-500">
 
         {step === "email" && (
           <>

@@ -125,7 +125,7 @@ function GamePageContent(gameMode: GameModeDef, user: User | null) {
     <div className="h-full w-full relative grow">
       {step != "game" && step != "results" && (
         <div className="h-full w-full flex justify-center items-center">
-          <Card title={title} className="h-min w-max">
+          <Card cardTitle={title} className="h-min w-max">
             {step == "leaderboard" && (
               <>
                 <h1 className="text-green-600 text-xl font-mono">Leaderboard</h1>
@@ -261,7 +261,7 @@ function GamePageContent(gameMode: GameModeDef, user: User | null) {
       }
       {step == "results" && selectedLocation && (
         <div className="h-full w-full flex justify-center items-center absolute top-0 z-1001">
-          <Card title={title} imageCard className="h-min w-150 opacity-100 bg-white z-1002">
+          <Card cardTitle={title} imageCard className="h-min w-150 opacity-100 bg-white z-1002">
             <div className="flex flex-col w-full">
               <div className="h-80 w-full">
                 <Map maplibreLogo={false} attributionControl={false} onLoad={() => {
@@ -415,7 +415,7 @@ function CheckboxGroup({ description, keys }: { description: string, keys: { [ke
   return (<div className="mb-2">
     <span className="font-medium text-lg">{description}</span>
     <div className="flex flex-row flex-wrap gap-2">
-      {states.length > 1 && <Checkbox containerClass="font-medium" onChange={(e) => states.forEach(([_value, setter]) => setter(((e.target as HTMLInputElement).checked)))} checked={all} setChecked={setAll}>All</Checkbox>}
+      {states.length > 1 && <Checkbox containerClass="font-medium" onChange={(e) => states.forEach(([, setter]) => setter(((e.target as HTMLInputElement).checked)))} checked={all} setChecked={setAll}>All</Checkbox>}
       {Object.values(keys).map(({ description, state }, i) => (
         <Checkbox key={i} checked={state[0]} setChecked={state[1]}>{description}</Checkbox>
       ))}

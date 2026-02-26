@@ -69,7 +69,7 @@ function ReviewPageContent() {
     ]
     return (
         <div className="w-full h-full flex items-center grow justify-center flex-row">
-            <Card className={`transition-all ease-out duration-500 capitalize font-sans ${step == "review" ? "grow h-full m-5" : ""}`} title={step || "unknown step"}>
+            <Card className={`transition-all ease-out duration-500 capitalize font-sans ${step == "review" ? "grow h-full m-5" : ""}`} cardTitle={step || "unknown step"}>
                 {step == "start" && (
                     <div>
                         <Button disabled={pending}

@@ -16,7 +16,7 @@ export default function Logout() {
 
   return (
     <div className="w-full h-full flex items-center grow justify-center">
-      <Card title="Logout">
+      <Card cardTitle="Logout">
         <h1 className="text-xl mt-2 mb-6">Are you sure you want to log out?</h1>
         <div>
           <Button className="bg-red-600 mr-2" onClick={() => {

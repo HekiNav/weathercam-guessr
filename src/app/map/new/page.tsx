@@ -16,7 +16,9 @@ import { faMinus, faPlus } from "@fortawesome/free-solid-svg-icons"
 import Dropdown, { DropdownItem } from "@/components/dropdown"
 import ImageWithTime from "@/components/imagewithtime"
 import moment from "moment"
-import { constants } from "node:buffer"
+import { closestCenter, DndContext, DragEndEvent } from "@dnd-kit/core"
+import { arrayMove, horizontalListSortingStrategy, SortableContext, useSortable } from "@dnd-kit/sortable"
+import { CSS } from "@dnd-kit/utilities"
 
 export default function MapCreationUi() {
     const user = useContext(UserContext)
@@ -32,7 +34,7 @@ export default function MapCreationUi() {
             redirect("/login")
         }
     })
-    const [images, setImages] = useState<Image[]>([])
+    const [images, setImages] = useState<(Image & {time?: number})[]>([])
     const [selectedImages, setSelectedImages] = useState<Image[] | null>(null)
 
     const [mapType, setMapType] = useState(false)
@@ -45,7 +47,19 @@ export default function MapCreationUi() {
     if (!user) {
         redirect("/login?to/map/new/")
     }
+    // handle sorting
+    function handleDragEnd(event: DragEndEvent) {
+        const { active, over } = event
 
+        if (!over || active.id === over.id) return
+
+        setImages((prev) => {
+            const oldIndex = prev.findIndex(img => img.id === active.id)
+            const newIndex = prev.findIndex(img => img.id === over.id)
+
+            return arrayMove(prev, oldIndex, newIndex)
+        })
+    }
 
     return <div className="flex flex-col-reverse md:flex-row-reverse h-full w-screen">
         <div className="main flex flex-col h-full w-full relative">
@@ -60,7 +74,7 @@ export default function MapCreationUi() {
                     <div hidden={!selectedImages || !selectedImages.length} className="absolute left-0 z-1001 top-0 bg-white p-4 gap-2 rounded-br-xl flex flex-col max-h-8/10 overflow-scroll">
                         <h3 className="font-medium text-lg text-green-600">Selected images</h3>
                         {...(selectedImages || []).map((e, i) => (
-                            <Card key={i} className="w-40!" small title={(<span className="font-bold flex items-center justify-between">{e.externalId}<Button disabled={images.some(i => i.id == e.id)} onClick={() => {
+                            <Card key={i} className="w-40!" small cardTitle={(<span className="font-bold flex items-center justify-between">{e.externalId}<Button disabled={images.some(i => i.id == e.id)} onClick={() => {
                                 setImages([...images, e])
                                 setSelectedImages(selectedImages?.reduce((p, c) => c.id != e.id ? [...p, c] : p, new Array<Image>()) || null)
                             }} className={`w-5 h-5 p-0! flex items-center align-center justify-center ${images.some(i => i.id == e.id) ? "" : "bg-white"}`}><Icon icon={faPlus}></Icon></Button></span>)}>
@@ -108,20 +122,24 @@ export default function MapCreationUi() {
                 </div>
             </div>
             <div className="w-full relative grow">
-                <div className="preview px-4 py-4 flex flex-row gap-4 absolute z-1002 top-0 bottom-0 left-0 right-0 overflow-x-scroll overflow-y-none">
-                    {...images.map((e, i) => (
+                <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                    <SortableContext items={images.map(i => i.id)} strategy={horizontalListSortingStrategy}>
+                        <ul className="list preview px-4 py-4 flex flex-row gap-4 absolute z-1002 top-0 bottom-0 left-0 right-0 overflow-x-scroll overflow-y-none">
+                            {...images.map((e, i) => (
+                                <ImageCard
+                                    draggable={mapType}
+                                    key={e.id}
+                                    e={e}
+                                    i={i}
+                                    images={images}
+                                    mapType={mapType}
+                                    setImages={setImages}
+                                />
 
-                        <ImageCard
-                            key={i}
-                            e={e}
-                            i={i}
-                            images={images}
-                            mapType={mapType}
-                            setImages={setImages}
-                        />
-
-                    ))}
-                </div>
+                            ))}
+                        </ul>
+                    </SortableContext>
+                </DndContext>
             </div>
         </div>
         <div className="menu h-min px-4 py-4 pb-4 border-b-3 border-green-600 w-full md:w-fit md:border-0 md:border-r-3 md:h-full min-w-2/10 flex flex-col">
@@ -144,17 +162,26 @@ export default function MapCreationUi() {
 interface ImageCardProps {
     e: Image;
     i: number;
-    images: Image[];
+    images: (Image & {time?: number})[];
     mapType: boolean;
-    setImages: Dispatch<SetStateAction<Image[]>>;
+    draggable: boolean;
+    setImages: Dispatch<SetStateAction<(Image & {time?: number})[]>>;
 }
 
 
 function ImageCard({ e,
     images,
     mapType,
+    draggable,
     setImages }: ImageCardProps) {
     const [imageTimeMode, setImageTimeMode] = useState(-1)
+
+    const { attributes,
+        listeners,
+        setNodeRef,
+        setActivatorNodeRef,
+        transform,
+        transition } = useSortable({ id: e.id, disabled: !draggable })
 
     const IMAGE_CUSTOM_TIME_INTERVAL_MINUTES = 30
     const imageCustomItems: DropdownItem<number>[] = []
@@ -168,17 +195,29 @@ function ImageCard({ e,
     }
     imageCustomItems.sort()
 
+    useEffect(() => {
+        setImages((prev)=> {
+            const index = prev.findIndex(i => i.id == e.id)
+            prev[index].time = getImageTimeOffset(imageTimeMode == -4 ? imageCustomTime : imageTimeMode)
+            return prev
+        })
+    })
+
     const [imageCustomTime, setImageCustomTime] = useState(0)
+    
     const [imageHistory, setImageHistory] = useState<ImagePresetHistory | null>(null)
     if (!imageHistory) fetch(`https://tie.digitraffic.fi/api/weathercam/v1/stations/${e.externalId}/history`).then(res => res.json()).then(data => {
         setImageHistory(data as ImagePresetHistory)
     })
     return (
-        <Card imageCard className="w-60! min-w-60 h-full" title={(
+        <Card style={{
+            transform: CSS.Transform.toString(transform),
+            transition: transition
+        }} ref={setNodeRef} imageCard className="w-60! min-w-60 h-full item bg-white" cardTitle={(
             <div className="">
                 <span className="font-bold h-full grid grid-rows-1 grid-cols-3 items-center">
                     <span className="justify-self-start">{e.externalId}</span>
-                    <span className="justify-self-center cursor-grab">
+                    <span ref={setActivatorNodeRef} {...listeners} {...attributes} className="justify-self-center cursor-grab">
                         <span hidden={!mapType} className="h-4 flex items-center justify-center w-min gap-1">
                             <div className="w-0.5 bg-green-800 h-full rounded"></div>
                             <div className="w-0.5 bg-green-800 h-full rounded"></div>

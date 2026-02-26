@@ -29,7 +29,7 @@ export default function UserUI({ user, isCurrentUser = false }: { user: User, is
                 <div className="flex flex-row flex-wrap gap-4">{
                     ...user.friends.filter(f => f.state != FriendState.REJECTED).map((f, i) => (
                         <Link key={i} href={`/user/${(f.user1id == user.id ? f.user2 : f.user1)?.id}/`}>
-                            <Card className="w-40!" small title={(<span className="font-bold">{(f.user1id == user.id ? f.user2 : f.user1)?.name}</span>)}>
+                            <Card className="w-40!" small cardTitle={(<span className="font-bold">{(f.user1id == user.id ? f.user2 : f.user1)?.name}</span>)}>
                                 <span className={`mt-2 text-sm ${f.state == FriendState.ACCEPTED ? "bg-green-600" : "bg-yellow-600"} rounded px-1 h-min ml-1`}>{f.state}</span>
                                 {f.state == FriendState.ACCEPTED && (<>
                                     <span className="px-1 mt-1 text-sm">Friends since: </span>

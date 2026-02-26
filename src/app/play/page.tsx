@@ -19,7 +19,7 @@ export default async function PlayPage() {
             </h1>
             <div className="flex flex-row overflow-y-scroll gap-2 p-10">
                 {...gameModes.map((m,i) => (
-                    <Card key={i} imageCard title={m.name} className="items-start w-50!">
+                    <Card key={i} imageCard cardTitle={m.name} className="items-start w-50!">
                         <div className="flex flex-col justify-between h-full grow">
                             <div className="flex flex-col mt-1">
                                 <PlaceholderImage />
