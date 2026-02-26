@@ -13,8 +13,10 @@ import { Image } from "@/app/actions/image"
 import Card from "@/components/card"
 import Icon from "@/components/icon"
 import { faMinus, faPlus } from "@fortawesome/free-solid-svg-icons"
-import Dropdown from "@/components/dropdown"
+import Dropdown, { DropdownItem } from "@/components/dropdown"
 import ImageWithTime from "@/components/imagewithtime"
+import moment from "moment"
+import { constants } from "node:buffer"
 
 export default function MapCreationUi() {
     const user = useContext(UserContext)
@@ -153,6 +155,20 @@ function ImageCard({ e,
     mapType,
     setImages }: ImageCardProps) {
     const [imageTimeMode, setImageTimeMode] = useState(-1)
+
+    const IMAGE_CUSTOM_TIME_INTERVAL_MINUTES = 30
+    const imageCustomItems: DropdownItem<number>[] = []
+    const tzOffset = new Date().getTimezoneOffset() * 60_000 - 3600_000
+    for (let i = tzOffset; i < 24 * 3600 * 1000 + tzOffset; i += IMAGE_CUSTOM_TIME_INTERVAL_MINUTES * 60_000) {
+        imageCustomItems.push({
+            content: moment(i).format("HH:mm"),
+            id: i - tzOffset
+        })
+
+    }
+    imageCustomItems.sort()
+
+    const [imageCustomTime, setImageCustomTime] = useState(0)
     const [imageHistory, setImageHistory] = useState<ImagePresetHistory | null>(null)
     if (!imageHistory) fetch(`https://tie.digitraffic.fi/api/weathercam/v1/stations/${e.externalId}/history`).then(res => res.json()).then(data => {
         setImageHistory(data as ImagePresetHistory)
@@ -181,17 +197,19 @@ function ImageCard({ e,
             <div className="relative w-full">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={getImageUrl(e.externalId, e.source)} alt="" className="opacity-0"></img>
-                <ImageWithTime time={getImageTimeOffset(imageTimeMode)} presetHistory={imageHistory} image={e} alt="" className="absolute left-0 right-0 top-0 hover:z-1009 hover:transform-[scale(2)] transition ease-in-out"></ImageWithTime>
+                <ImageWithTime time={getImageTimeOffset(imageTimeMode == -4 ? imageCustomTime : imageTimeMode)} presetHistory={imageHistory} image={e} alt="" className="absolute left-0 right-0 top-0 active:z-1009 active:transform-[scale(2)] transition ease-in-out"></ImageWithTime>
             </div>
-            <div className="mt-2">
-                <Dropdown<number> small onSet={({ id }) => id && setImageTimeMode(id)} items={
-                    [   
+            <div className="mt-2 text-green-600 font-medium">Image time</div>
+            <div className="mt-1 flex flex-row gap-2">
+                <Dropdown<number> top small onSet={({ id }) => id && setImageTimeMode(id)} items={
+                    [
                         { content: "Current", id: -1 },
                         { content: "Day", id: -2 },
                         { content: "Night", id: -3 },
                         { content: "Custom", id: -4 }
                     ]
                 } initial={"Current"}></Dropdown>
+                <Dropdown<number> hidden={imageTimeMode != -4} top small onSet={({ id }) => id && setImageCustomTime(id)} items={imageCustomItems} initial={"Unset"}></Dropdown>
             </div>
         </Card>
     );

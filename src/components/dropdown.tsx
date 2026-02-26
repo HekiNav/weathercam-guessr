@@ -3,7 +3,7 @@
 'use client'
 import React, { ReactNode, useState } from 'react';
 import Icon from './icon';
-import { faCaretDown } from '@fortawesome/free-solid-svg-icons';
+import { faCaretDown, faCaretUp } from '@fortawesome/free-solid-svg-icons';
 
 export interface DropdownProps<T extends string | number> extends React.HTMLAttributes<HTMLDivElement> {
     items: DropdownItem<T>[],
@@ -18,8 +18,10 @@ export interface DropdownItem<T extends string | number> {
 }
 
 export default function Dropdown<T extends string | number>(props: DropdownProps<T>) {
+    const {small = false, top = false, items, initial, onSet, ...otherProps} = props
+
     const [isOpen, setIsOpen] = useState(false);
-    const [selectedLanguage, setSelectedLanguage] = useState<DropdownItem<T>>({ id: null, content: props.initial });
+    const [selectedLanguage, setSelectedLanguage] = useState<DropdownItem<T>>({ id: null, content: initial });
 
     const toggleDropdown = () => {
         setIsOpen(!isOpen);
@@ -28,13 +30,12 @@ export default function Dropdown<T extends string | number>(props: DropdownProps
     const handleSelect = (item: DropdownItem<T>) => {
         setSelectedLanguage(item);
         setIsOpen(false);
-        if (props.onSet) props.onSet(item)
+        if (onSet) onSet(item)
     };
 
-    const small = props.small || false
 
     return (
-        <div className="relative inline-block text-left">
+        <div className="relative inline-block text-left" {...otherProps}>
             <button
                 type="button"
                 className={`inline-flex justify-center w-full
@@ -44,16 +45,16 @@ export default function Dropdown<T extends string | number>(props: DropdownProps
                 onClick={toggleDropdown}
             >
                 {selectedLanguage.content}
-                <Icon className="ml-1" icon={faCaretDown}></Icon>
+                <Icon className="ml-1" icon={top ? faCaretUp : faCaretDown}></Icon>
             </button>
 
             {isOpen && (
-                <div className={`origin-top-right absolute z-1000
-                                    left-0 mt-2 ${small ? "w-min" : "w-56"} rounded-md
+                <div className={`${top ? "origin-bottom-right bottom-[100%] mb-2" : "origin-top-right mt-2"} absolute z-1000
+                                    left-0 ${small ? "w-min max-h-40 overflow-scroll" : "w-56"} rounded
                                     shadow-lg bg-white ring-2 ring-green-600
                                     ring-opacity-5 focus:outline-none`}>
                     <div>
-                        {props.items.map(({ content, id }, index) => (
+                        {items.map(({ content, id }, index) => (
                             <a
                                 key={index}
                                 href="#"
