@@ -2,7 +2,7 @@
 import { UserContext } from "@/app/user-provider"
 import Button from "@/components/button"
 import Toggle from "@/components/toggle"
-import { distanceBetweenPoints, FINLAND_BOUNDS, getImageTimeOffset, getImageUrl, ImagePresetHistory } from "@/lib/definitions"
+import { distanceBetweenPoints, FINLAND_BOUNDS, getImageTimeOffset, getImageUrl, ImagePresetHistory, MapVisibility } from "@/lib/definitions"
 import { Feature, FeatureCollection, Point } from "geojson"
 import { GeoJSONSource } from "maplibre-gl"
 import { redirect } from "next/navigation"
@@ -19,6 +19,7 @@ import moment from "moment"
 import { closestCenter, DndContext, DragEndEvent } from "@dnd-kit/core"
 import { arrayMove, horizontalListSortingStrategy, SortableContext, useSortable } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
+import { getImages } from "@/lib/public"
 
 export default function MapCreationUi() {
     const user = useContext(UserContext)
@@ -34,11 +35,21 @@ export default function MapCreationUi() {
             redirect("/login")
         }
     })
-    const [images, setImages] = useState<(Image & {time?: number})[]>([])
+    const [images, setImages] = useState<(Image & { time?: number })[]>([])
     const [selectedImages, setSelectedImages] = useState<Image[] | null>(null)
 
     const [mapType, setMapType] = useState(false)
+    const [mapVisibility, setMapVisibility] = useState<MapVisibility>(MapVisibility.PRIVATE)
+    const [imageBlur, setImageBlur] = useState(true)
+    const [showGeojson, setShowGeojson] = useState(true)
     const [browserState, setBrowserState] = useState(false)
+
+
+    const [imageList, setImageList] = useState<Image[]|null>(null)
+
+    getImages().then((data) => {
+        setImageList(data?.features.map(f => f.properties) || null)
+    })
 
     useEffect(() => {
         mapRef.current?.resize()
@@ -63,13 +74,13 @@ export default function MapCreationUi() {
 
     return <div className="flex flex-col-reverse md:flex-row-reverse h-full w-screen">
         <div className="main flex flex-col h-full w-full relative">
-            <div className="browser-mode px-4 py-2 flex flex-row items-center absolute bg-white top-0 right-0 z-1003">
+            <div className="browser-mode px-4 py-2 flex flex-row items-center absolute bg-white top-0 right-0 z-1003 rounded-bl-xl">
                 Map
                 <Toggle noColors state={browserState} setState={setBrowserState}></Toggle>
                 List
             </div>
             <div className="browser h-4/10 border-b-3 border-green-600 w-full">
-                <div hidden={!browserState} className="list">list</div>
+                <div hidden={!browserState} className="list"></div>
                 <div hidden={browserState} className="map h-10/10 relative">
                     <div hidden={!selectedImages || !selectedImages.length} className="absolute left-0 z-1001 top-0 bg-white p-4 gap-2 rounded-br-xl flex flex-col max-h-8/10 overflow-scroll">
                         <h3 className="font-medium text-lg text-green-600">Selected images</h3>
@@ -147,12 +158,30 @@ export default function MapCreationUi() {
                 value={mapName} placeholder="New map" maxLength={40} onChange={e => setMapName(e.target.value)}></input>
             <h1 className="font-medium text-xl mt-4">Options</h1>
             <span className="font-bold mr-2 mt-2 text-lg">Map order:</span>
-            <div className="browser-mode mb-4 flex flex-row items-center">
+            <div className="browser-mode flex flex-row items-center">
                 Random
                 <Toggle noColors state={mapType} setState={setMapType}></Toggle>
                 Ordered
             </div>
-            <Button className="justify-self-end">Create</Button>
+            <span className="font-bold mr-2 mt-2 text-lg">Visibility:</span>
+            <Dropdown<MapVisibility> onSet={({ id }) => id && setMapVisibility(id)} items={
+                [
+                    { content: "Hidden (only accessible with link)", id: MapVisibility.HIDDEN },
+                    { content: "Friends only", id: MapVisibility.FRIENDS },
+                    { content: "Private", id: MapVisibility.PRIVATE },
+                    { content: "Public", id: MapVisibility.PUBLIC }
+                ]
+            } initial={"Private"}></Dropdown>
+            <span className="font-bold mr-2 mt-2 text-lg">Other:</span>
+            <div className="browser-mode flex flex-row items-center">
+                Blur image location info
+                <Toggle state={imageBlur} setState={setImageBlur}></Toggle>
+            </div>
+            <div className="browser-mode flex flex-row items-center">
+                Show available <br></br>locations on map
+                <Toggle state={showGeojson} setState={setShowGeojson}></Toggle>
+            </div>
+            <Button className="justify-self-end mt-4">Create</Button>
         </div>
     </div>
 }
@@ -162,10 +191,10 @@ export default function MapCreationUi() {
 interface ImageCardProps {
     e: Image;
     i: number;
-    images: (Image & {time?: number})[];
+    images: (Image & { time?: number })[];
     mapType: boolean;
     draggable: boolean;
-    setImages: Dispatch<SetStateAction<(Image & {time?: number})[]>>;
+    setImages: Dispatch<SetStateAction<(Image & { time?: number })[]>>;
 }
 
 
@@ -185,18 +214,19 @@ function ImageCard({ e,
 
     const IMAGE_CUSTOM_TIME_INTERVAL_MINUTES = 30
     const imageCustomItems: DropdownItem<number>[] = []
-    const tzOffset = new Date().getTimezoneOffset() * 60_000
-    for (let i = tzOffset; i < 24 * 3600 * 1000 + tzOffset; i += IMAGE_CUSTOM_TIME_INTERVAL_MINUTES * 60_000) {
+    const tzOffset = getOffset("Europe/Helsinki") * 60_000
+
+    for (let i = 0; i < 24 * 3600 * 1000; i += IMAGE_CUSTOM_TIME_INTERVAL_MINUTES * 60_000) {
         imageCustomItems.push({
-            content: moment(i - 3600_000).format("HH:mm"),
-            id: (i + 24 * 3600 * 1000) % (24 * 3600 * 1000)
+            content: `${Math.floor(i / 3600 / 1000).toString().padStart(2, "0")}:${Math.floor((i % 3600_000) / 60_000).toString().padStart(2, "0")}`,
+            id: (i - tzOffset + 24 * 3600 * 1000) % (24 * 3600 * 1000)
         })
 
     }
     imageCustomItems.sort()
 
     useEffect(() => {
-        setImages((prev)=> {
+        setImages((prev) => {
             const index = prev.findIndex(i => i.id == e.id)
             prev[index].time = getImageTimeOffset(imageTimeMode == -4 ? imageCustomTime : imageTimeMode)
             return prev
@@ -204,7 +234,7 @@ function ImageCard({ e,
     })
 
     const [imageCustomTime, setImageCustomTime] = useState(0)
-    
+
     const [imageHistory, setImageHistory] = useState<ImagePresetHistory | null>(null)
     if (!imageHistory) fetch(`https://tie.digitraffic.fi/api/weathercam/v1/stations/${e.externalId}/history`).then(res => res.json()).then(data => {
         setImageHistory(data as ImagePresetHistory)
@@ -254,3 +284,8 @@ function ImageCard({ e,
     );
 }
 
+function getOffset(timeZone = 'UTC', date = new Date()) {
+    const utcDate = new Date(date.toLocaleString('en-US', { timeZone: 'UTC' }));
+    const tzDate = new Date(date.toLocaleString('en-US', { timeZone }));
+    return (tzDate.getTime() - utcDate.getTime()) / 6e4;
+}

@@ -27,6 +27,7 @@ export const map = sqliteTable("Map", {
 	imageOrder: text().notNull().default("RANDOM"),
 	imageLocationBlurred: numeric().default("true").notNull(),
 	imageGeojsonAvailable: numeric().default("false").notNull(),
+	name: text()
 })
 export const mapPlace = sqliteTable("MapPlaces", {
 	imageId: text().notNull().references(() => image.id, { onDelete: "cascade", onUpdate: "cascade" }),

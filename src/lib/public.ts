@@ -1,9 +1,11 @@
 "use server"
 import { session, user } from "@/db/schema"
-import { createDB } from "./db"
+import { createDB, getBucket } from "./db"
 import { desc, eq, or } from "drizzle-orm"
 import { Friend, User } from "./definitions"
 import MiniSearch from "minisearch"
+import { FeatureCollection, Point } from "geojson"
+import { Image } from "@/app/actions/image"
 
 // public data functions for users
 export async function getUser(identifier: string) {
@@ -31,4 +33,9 @@ export async function searchUser(query: string): Promise<User[]> {
     return minisearch.search(query, {
         fuzzy: 0.6,
     }) as never
+}
+export async function getImages(){
+    const bucket = await getBucket()
+    const response = await bucket.get("weathercam-guessr-images.geojson")
+    return await response?.json() as FeatureCollection<Point, Image> | null
 }

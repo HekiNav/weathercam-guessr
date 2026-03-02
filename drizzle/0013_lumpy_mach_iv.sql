@@ -1,0 +1,1 @@
+ALTER TABLE `Map` ADD `name` text;

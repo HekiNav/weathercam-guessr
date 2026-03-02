@@ -85,6 +85,20 @@
       "when": 1770628123358,
       "tag": "0011_strange_magma",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "6",
+      "when": 1772438359877,
+      "tag": "0012_absurd_thunderbird",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "6",
+      "when": 1772439104141,
+      "tag": "0013_lumpy_mach_iv",
+      "breakpoints": true
     }
   ]
 }

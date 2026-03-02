@@ -1,0 +1,1 @@
+ALTER TABLE `MapPlaces` ADD `time` integer DEFAULT -1 NOT NULL;
