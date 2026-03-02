@@ -185,11 +185,11 @@ function ImageCard({ e,
 
     const IMAGE_CUSTOM_TIME_INTERVAL_MINUTES = 30
     const imageCustomItems: DropdownItem<number>[] = []
-    const tzOffset = new Date().getTimezoneOffset() * 60_000 - 3600_000
+    const tzOffset = new Date().getTimezoneOffset() * 60_000
     for (let i = tzOffset; i < 24 * 3600 * 1000 + tzOffset; i += IMAGE_CUSTOM_TIME_INTERVAL_MINUTES * 60_000) {
         imageCustomItems.push({
-            content: moment(i).format("HH:mm"),
-            id: i - tzOffset
+            content: moment(i - 3600_000).format("HH:mm"),
+            id: (i + 24 * 3600 * 1000) % (24 * 3600 * 1000)
         })
 
     }

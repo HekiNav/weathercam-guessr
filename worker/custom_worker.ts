@@ -7,6 +7,7 @@ import * as schema from "@/db/schema.js";
 import { drizzle } from "drizzle-orm/d1";
 import { image } from "@/db/schema.js";
 import { generateGeoJson } from "./generate_geojson.js";
+import { getImageTimeOffset, MapPlaceTimePresets } from "@/lib/definitions.js";
 
 export interface Env {
 	weathercam_guessr_prod: D1Database,
@@ -60,7 +61,8 @@ export default {
 				})
 				await db.insert(schema.mapPlace).values({
 					imageId: dailyImage?.id,
-					mapId: mapId
+					mapId: mapId,
+					time: getImageTimeOffset(MapPlaceTimePresets.DAY)
 				})
 				break;
 			case "0 11 * * 5":
