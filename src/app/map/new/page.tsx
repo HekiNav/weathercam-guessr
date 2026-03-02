@@ -15,11 +15,11 @@ import Icon from "@/components/icon"
 import { faMinus, faPlus } from "@fortawesome/free-solid-svg-icons"
 import Dropdown, { DropdownItem } from "@/components/dropdown"
 import ImageWithTime from "@/components/imagewithtime"
-import moment from "moment"
 import { closestCenter, DndContext, DragEndEvent } from "@dnd-kit/core"
 import { arrayMove, horizontalListSortingStrategy, SortableContext, useSortable } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
 import { getImages } from "@/lib/public"
+import * as NextImage from "next/image"
 
 export default function MapCreationUi() {
     const user = useContext(UserContext)
@@ -45,11 +45,13 @@ export default function MapCreationUi() {
     const [browserState, setBrowserState] = useState(false)
 
 
-    const [imageList, setImageList] = useState<Image[]|null>(null)
-
-    getImages().then((data) => {
-        setImageList(data?.features.map(f => f.properties) || null)
+    const [imageList, setImageList] = useState<Image[] | null>(null)
+    useEffect(() => {
+        if (!imageList) getImages().then((data) => {
+            setImageList(data?.features.map(f => f.properties) || [])
+        })
     })
+
 
     useEffect(() => {
         mapRef.current?.resize()
@@ -80,7 +82,24 @@ export default function MapCreationUi() {
                 List
             </div>
             <div className="browser h-4/10 border-b-3 border-green-600 w-full">
-                <div hidden={!browserState} className="list"></div>
+                <div hidden={!browserState} className="list flex flex-row overflow-y-scroll flex-wrap h-full gap-2 p-2">
+                    {...(imageList ? imageList.map((e, i) => (
+                        <Card key={i} className="w-40!" small cardTitle={(<span className="font-bold flex items-center justify-between">{e.externalId}<Button disabled={images.some(i => i.id == e.id)} onClick={() => {
+                            setImages([...images, e])
+                            setSelectedImages(selectedImages?.reduce((p, c) => c.id != e.id ? [...p, c] : p, new Array<Image>()) || null)
+                        }} className={`w-5 h-5 p-0! flex items-center align-center justify-center ${images.some(i => i.id == e.id) ? "" : "bg-white"}`}><Icon icon={faPlus}></Icon></Button></span>)}>
+                            <div className="relative h-25 w-full">
+                                <NextImage.default className="relative" objectFit="contain" fill loading="lazy" src={getImageUrl(e.externalId, e.source) + "?thumbnail=true"} alt=""></NextImage.default>
+                            </div>
+                        </Card>
+                    )) : [
+                        (
+                            <>
+                                Loading...
+                            </>
+                        )
+                    ])}
+                </div>
                 <div hidden={browserState} className="map h-10/10 relative">
                     <div hidden={!selectedImages || !selectedImages.length} className="absolute left-0 z-1001 top-0 bg-white p-4 gap-2 rounded-br-xl flex flex-col max-h-8/10 overflow-scroll">
                         <h3 className="font-medium text-lg text-green-600">Selected images</h3>
