@@ -2,11 +2,11 @@
 import { UserContext } from "@/app/user-provider"
 import Button from "@/components/button"
 import Toggle from "@/components/toggle"
-import { distanceBetweenPoints, FINLAND_BOUNDS, getImageTimeOffset, getImageUrl, ImagePresetHistory, MapVisibility } from "@/lib/definitions"
+import { distanceBetweenPoints, FINLAND_BOUNDS, getImageTimeOffset, getImageUrl, ImageOrder, ImagePresetHistory, MapVisibility } from "@/lib/definitions"
 import { Feature, FeatureCollection, Point } from "geojson"
 import { GeoJSONSource } from "maplibre-gl"
 import { redirect } from "next/navigation"
-import { Dispatch, SetStateAction, useContext, useEffect, useRef, useState } from "react"
+import { Dispatch, SetStateAction, startTransition, useActionState, useContext, useEffect, useRef, useState } from "react"
 import toast from "react-hot-toast"
 import { Layer, Map, MapRef } from "react-map-gl/maplibre"
 import { Image } from "@/app/actions/image"
@@ -20,6 +20,7 @@ import { arrayMove, horizontalListSortingStrategy, SortableContext, useSortable 
 import { CSS } from "@dnd-kit/utilities"
 import { getImages } from "@/lib/public"
 import * as NextImage from "next/image"
+import { createMap } from "@/app/actions/map"
 
 export default function MapCreationUi() {
     const user = useContext(UserContext)
@@ -52,10 +53,21 @@ export default function MapCreationUi() {
         })
     })
 
+    const [state, action, pending] = useActionState(createMap, {})
+
+    useEffect(() => {
+        if (state.step == "success" && state.mapId) {
+            redirect(`/map/${state.mapId}`)
+        }
+    }, [state])
 
     useEffect(() => {
         mapRef.current?.resize()
     }, [browserState])
+
+    useEffect(() => {
+        state.errors?.server?.forEach(m => toast.error(m))
+    }, [state.errors?.server])
 
     if (!user) {
         redirect("/login?to/map/new/")
@@ -134,7 +146,7 @@ export default function MapCreationUi() {
                             }, new Array<Feature<Point, Image & { distance: number }>>()).sort((a, b) =>
                                 a.properties.distance - b.properties.distance
                             )
-
+                            if (selectedImages?.every((e,i) => e.id == selectedFeatures[i].properties.id) && selectedImages.length) return
                             setSelectedImages(selectedFeatures.map(f => f.properties))
 
                         }} initialViewState={{ bounds: FINLAND_BOUNDS, fitBoundsOptions: { padding: 1 } }} ref={mapRef} mapStyle="/map_style.json">
@@ -158,6 +170,7 @@ export default function MapCreationUi() {
                             {...images.map((e, i) => (
                                 <ImageCard
                                     draggable={mapType}
+                                    error={state.errors?.images && state.errors.images[i]}
                                     key={e.id}
                                     e={e}
                                     i={i}
@@ -175,6 +188,7 @@ export default function MapCreationUi() {
         <div className="menu h-min px-4 py-4 pb-4 border-b-3 border-green-600 w-full md:w-fit md:border-0 md:border-r-3 md:h-full min-w-2/10 flex flex-col">
             <input className="font-medium text-2xl w-full text-green-600 rounded p-1 border-2"
                 value={mapName} placeholder="New map" maxLength={40} onChange={e => setMapName(e.target.value)}></input>
+            <div className="text-red-600">{state.errors?.name?.join(", ")}</div>
             <h1 className="font-medium text-xl mt-4">Options</h1>
             <span className="font-bold mr-2 mt-2 text-lg">Map order:</span>
             <div className="browser-mode flex flex-row items-center">
@@ -182,6 +196,8 @@ export default function MapCreationUi() {
                 <Toggle noColors state={mapType} setState={setMapType}></Toggle>
                 Ordered
             </div>
+            <div className="text-red-600">{state.errors?.order?.join(", ")}</div>
+
             <span className="font-bold mr-2 mt-2 text-lg">Visibility:</span>
             <Dropdown<MapVisibility> onSet={({ id }) => id && setMapVisibility(id)} items={
                 [
@@ -191,16 +207,27 @@ export default function MapCreationUi() {
                     { content: "Public", id: MapVisibility.PUBLIC }
                 ]
             } initial={"Private"}></Dropdown>
+            <div className="text-red-600">{state.errors?.visibility?.join(", ")}</div>
             <span className="font-bold mr-2 mt-2 text-lg">Other:</span>
             <div className="browser-mode flex flex-row items-center">
                 Blur image location info
                 <Toggle state={imageBlur} setState={setImageBlur}></Toggle>
+                <div className="text-red-600">{state.errors?.blur?.join(", ")}</div>
             </div>
             <div className="browser-mode flex flex-row items-center">
                 Show available <br></br>locations on map
                 <Toggle state={showGeojson} setState={setShowGeojson}></Toggle>
+                <div className="text-red-600">{state.errors?.geojson?.join(", ")}</div>
+
             </div>
-            <Button className="justify-self-end mt-4">Create</Button>
+            <Button disabled={pending} onClick={() => startTransition(() => action({
+                blur: imageBlur,
+                geojson: showGeojson,
+                images: images.map((e, i) => ({ time: e.time || -1, index: i, image: e.id })),
+                visibility: mapVisibility,
+                name: mapName,
+                order: mapType ? ImageOrder.ORDERED : ImageOrder.RANDOM
+            }))} className="justify-self-end mt-4">Create</Button>
         </div>
     </div>
 }
@@ -210,6 +237,11 @@ export default function MapCreationUi() {
 interface ImageCardProps {
     e: Image;
     i: number;
+    error?: {
+        index?: string[],
+        id?: string[],
+        time?: string[]
+    }
     images: (Image & { time?: number })[];
     mapType: boolean;
     draggable: boolean;
@@ -221,6 +253,7 @@ function ImageCard({ e,
     images,
     mapType,
     draggable,
+    error,
     setImages }: ImageCardProps) {
     const [imageTimeMode, setImageTimeMode] = useState(-1)
 
@@ -282,12 +315,15 @@ function ImageCard({ e,
                     </span>
                 </span>
             </div>)}>
+            <div className="text-red-600">{error?.id?.join(", ")}</div>
+            <div className="text-red-600">{error?.index?.join(", ")}</div>
             <div className="relative w-full">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={getImageUrl(e.externalId, e.source)} alt="" className="opacity-0"></img>
                 <ImageWithTime time={getImageTimeOffset(imageTimeMode == -4 ? imageCustomTime : imageTimeMode)} presetHistory={imageHistory} image={e} alt="" className="absolute left-0 right-0 top-0 active:z-1009 active:transform-[scale(2)] transition ease-in-out"></ImageWithTime>
             </div>
             <div className="mt-2 text-green-600 font-medium">Image time</div>
+            <div className="text-red-600">{error?.time?.join(", ")}</div>
             <div className="mt-1 flex flex-row gap-2">
                 <Dropdown<number> top small onSet={({ id }) => id && setImageTimeMode(id)} items={
                     [
