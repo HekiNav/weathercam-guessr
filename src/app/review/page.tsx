@@ -8,7 +8,7 @@ import { redirect } from "next/navigation"
 import { toast } from "react-hot-toast"
 import Dropdown, { DropdownItem } from "@/components/dropdown"
 import ImageWithBlur from "@/components/blurredimage"
-import { BlurRect, getImageUrl, ImageDifficulty, ImageType, UnclassifiedEnum } from "@/lib/definitions"
+import { BlurRect, getImageTimeOffset, getImageUrl, ImageDifficulty, ImageType, MapPlaceTimePresets, UnclassifiedEnum } from "@/lib/definitions"
 
 export default function ReviewPage() {
     const user = useContext(UserContext)
@@ -100,7 +100,7 @@ function ReviewPageContent() {
                                 <Button disabled={pending} className="mt-2" onClick={() => { startTransition(() => action({ type: "submit", imageDifficulty: difficulty, imageType: type, blurRect: blurRect })) }}>Submit</Button>
                             </div>
 
-                            <ImageWithBlur src={getImageUrl(currentImage?.externalId, currentImage?.source)} className="w-full h-full grow ml-2" alt="image" blur={tempBlurRect} onMouseMove={(e) => {
+                            <ImageWithBlur image={currentImage} time={getImageTimeOffset(MapPlaceTimePresets.DAY)} className="w-full h-full grow ml-2" blur={tempBlurRect} onMouseMove={(e) => {
                                 const el = (e.target as HTMLImageElement).classList.contains("image") ? (e.target as HTMLImageElement) : (e.target as HTMLImageElement).parentElement?.querySelector(".image")
                                 const rect = el?.getBoundingClientRect()
                                 if (!rect) return

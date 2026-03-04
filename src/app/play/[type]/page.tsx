@@ -1,5 +1,5 @@
 "use client"
-import game, { AnyGameData, GameMode, GamePlayState, GamePracticeBeginDataConfig, GameResultsState } from "@/app/actions/game"
+import game, { AnyGameData, AnyGameState, GameMode, GamePlayState, GamePracticeBeginDataConfig, GameResultsState, GameSetData } from "@/app/actions/game"
 import Card from "@/components/card"
 import Dropdown, { DropdownItem } from "@/components/dropdown"
 import { distanceBetweenPoints, FINLAND_BOUNDS, FIRST_DAILY_GAME, LeaderboardItem, GameModeDef, gameModes, getImageUrl, User } from "@/lib/definitions"
@@ -112,7 +112,7 @@ function GamePageContent(gameMode: GameModeDef, user: User | null) {
     })
   }, [selectedLocation])
 
-  const [state, action, pending] = useActionState(game, { step: "init", title: "Start game" })
+  const [state, action, pending] = useActionState(async (state: AnyGameState, data: AnyGameData | GameSetData) => data.type == "set_state" ? data.state : await game(state, data), { step: "init", title: "Start game" })
 
   const { errors, step, title } = state
 
@@ -183,6 +183,7 @@ function GamePageContent(gameMode: GameModeDef, user: User | null) {
       {step == "game" && (
         <div className="relative w-full h-full flex items-center justify-center overflow-hidden">
           <MovableImage
+            time={(state as GamePlayState).time}
             image={state.image}
             blur={state.config.blur}
           />
@@ -346,6 +347,9 @@ function GamePageContent(gameMode: GameModeDef, user: User | null) {
                     </div>
                   </>}
                 </>}
+                {(state as GameResultsState).nextImage && <>
+                  <Button onClick={() => startTransition(() => action({ type: "set_state", state: { ...state, step: "game", image: (state as GameResultsState).nextImage || state.image } }))} disabled={pending}>Next</Button>
+                </>}
               </div>
             </div>
           </Card>
@@ -441,11 +445,12 @@ function GameModeItem(m: GameModeDef) {
 
 interface MovableImageProps {
   image: Image,
-  blur: boolean
+  blur: boolean,
+  time: number
 }
 
 
-function MovableImage({ image, blur }: MovableImageProps) {
+function MovableImage({ image, blur, time }: MovableImageProps) {
   const ref = useRef<ReactZoomPanPinchRef>(null)
   const [resetButtonHidden, setResetButtonHidden] = useState(true)
 
@@ -464,7 +469,7 @@ function MovableImage({ image, blur }: MovableImageProps) {
             }} style={{
               zIndex: -10,
               transition: "0.5s ease-in-out",
-            }} alt="" blur={blur && image.rect ? image.rect : { height: 0, width: 0, x: 0, y: 0 }} src={getImageUrl(image?.externalId, image?.source)}></ImageWithBlur>
+            }} blur={blur && image.rect ? image.rect : { height: 0, width: 0, x: 0, y: 0 }} image={image} time={time}></ImageWithBlur>
           </div>
         </TransformComponent>
       </TransformWrapper>

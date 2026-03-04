@@ -59,7 +59,7 @@ export async function getMap(mapId: string): Promise<Map | null> {
             image: { ...p.image, available: p.image.available == "true" }
         }))
     } : null
-    if (mapData?.visibility == MapVisibility.PRIVATE) return null
+    if (mapData?.visibility == MapVisibility.PRIVATE && user?.id != mapData.createdById) return null
     if (mapData?.visibility == MapVisibility.FRIENDS && user?.id != mapData.createdById && !user?.friends?.some(f=> f.user1id == mapData.createdById || f.user2id == mapData.createdById)) return null
     return mapData
 

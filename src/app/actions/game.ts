@@ -32,6 +32,7 @@ export interface GamePracticePlayState extends GameState<"game" | "results"> {
 }
 export interface GamePlayState extends GamePracticePlayState {
     map: Map,
+    time: number,
     played: string[]
 }
 
@@ -41,6 +42,9 @@ export interface GameResultsState extends GamePlayState {
 
 export interface GameDailyInfoState extends GameState<"daily_info"> {
     lastGame?: LeaderboardItem
+}
+export interface GameSetData extends GameData<"set_state"> {
+    state: AnyGameState
 }
 export interface GameData<T extends string> {
     type: T
@@ -152,6 +156,7 @@ export default async function game(state: AnyGameState, data: AnyGameData): Prom
                             geojson: mapData.imageGeojsonAvailable == "true"
                         },
                         played: [],
+                        time: next.time,
                         map: {
                             ...mapData,
                             order: mapData.order as ImageOrder,
@@ -314,13 +319,16 @@ export default async function game(state: AnyGameState, data: AnyGameData): Prom
             return {
                 step: "results",
                 title: "Results",
+                played: played,
                 map: (state as GamePlayState).map,
                 config: (state as GamePlayState).config,
-                round: (state as GamePlayState).round,
+                round: (state as GamePlayState).round + 1,
                 points: ((state as GamePlayState).points || 0) + gameScore,
                 prevPoints: (state as GamePlayState).points,
                 image: { ...submittedImage, available: submittedImage.available == "true", rect: submittedImage.rect! },
-                nextImage: nextImage?.image || null
+                nextImage: nextImage?.image || null,
+                time: nextImage?.time,
+
             }
         case "leaderboard":
             const top10 = await db.query.leaderboard.findMany({
