@@ -2,7 +2,7 @@
 import { map, session, user } from "@/db/schema"
 import { createDB, getBucket } from "./db"
 import { desc, eq, or } from "drizzle-orm"
-import { Friend, User } from "./definitions"
+import { Friend, Map, MapType, MapVisibility, User } from "./definitions"
 import MiniSearch from "minisearch"
 import { FeatureCollection, Point } from "geojson"
 import { Image } from "@/app/actions/image"
@@ -39,10 +39,15 @@ export async function getImages(){
     const response = await bucket.get("weathercam-guessr-images.geojson")
     return await response?.json() as FeatureCollection<Point, Image> | null
 }
-export async function getMap(mapId: string){
+export async function getMap(mapId: string): Promise<Map | null>{
     const db = await createDB()
-    return await db.query.map.findFirst({
+    const data = await db.query.map.findFirst({
         where: eq(map.id, mapId),
         with: {places: {with: {image: {with: {rect: true}}}}, createdBy: {columns: {name: true, id: true}}}
     })
+    return data ? {...data, createdBy: data?.createdBy as User,
+         creationTime: data?.creationTime || 0, updateTime: data?.updateTime || 0, type: data?.type as MapType, visibility: data?.visibility as MapVisibility, places: data?.places.map(p => ({
+        ...p,
+        image: {...p.image, available: p.image.available == "true"}
+    }))} : null
 }

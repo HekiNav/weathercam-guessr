@@ -2,8 +2,7 @@
 import { map, mapPlace } from "@/db/schema";
 import { getCurrentUser } from "@/lib/auth";
 import { createDB } from "@/lib/db";
-import { FormState, ImageOrder, MapPlace, MapVisibility } from "@/lib/definitions";
-import { SQLiteInsertBase } from "drizzle-orm/sqlite-core";
+import { FormState, ImageOrder, MapVisibility } from "@/lib/definitions";
 import { redirect } from "next/navigation";
 import z from "zod";
 
@@ -65,7 +64,7 @@ export async function createMap(state: MapCreationState, submitted: MapCreationD
     await db.insert(map).values({
             id: mapId,
             name: data.name,
-            createdBy: user.id,
+            createdById: user.id,
             imageGeojsonAvailable: data.geojson ? "true" : "false",
             imageLocationBlurred: data.blur ? "true" : "false",
             imageOrder: data.order,

@@ -27,7 +27,7 @@ export interface Image {
     updateTime: number,
     reviewState: string
     available: boolean,
-    rect: BlurRect,
+    rect: BlurRect | null,
     lat: number,
     lon: number
 }

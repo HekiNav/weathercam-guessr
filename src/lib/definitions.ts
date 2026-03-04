@@ -48,7 +48,9 @@ export interface Map {
   updateTime: number,
   type: MapType, // USER_CREATED | DAILY_CHALLENGE
   id: string,
-  createdBy: string | null,
+  name: string | null,
+  createdBy: User | null,
+  createdById: string | null,
   visibility: MapVisibility,
   places?: MapPlace[]
 }
@@ -56,7 +58,9 @@ export interface MapPlace {
   image?: Image,
   imageId: string,
   mapId: string,
-  map?: Map
+  map?: Map,
+  time: number,
+  index: number
 }
 export interface LeaderboardItem {
   position?: number,

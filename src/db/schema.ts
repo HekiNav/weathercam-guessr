@@ -22,7 +22,7 @@ export const map = sqliteTable("Map", {
 	updateTime: integer().default(sql`(CURRENT_TIMESTAMP)`).notNull(),
 	type: text().default("USER_CREATED").notNull(), // USER_CREATED | DAILY_CHALLENGE
 	id: text().primaryKey().notNull(),
-	createdBy: text().references(() => user.id, { onDelete: "cascade", onUpdate: "cascade" }),
+	createdById: text().references(() => user.id, { onDelete: "cascade", onUpdate: "cascade" }),
 	visibility: text().notNull().default("PUBLIC"),
 	imageOrder: text().notNull().default("RANDOM"),
 	imageLocationBlurred: numeric().default("true").notNull(),
@@ -144,7 +144,7 @@ export const imageRelations = relations(image, ({ one }) => ({
 export const mapRelations = relations(map, ({ one, many }) => ({
 	places: many(mapPlace),
 	createdBy: one(user, {
-		fields: [map.createdBy],
+		fields: [map.createdById],
 		references: [user.id]
 	})
 }));
