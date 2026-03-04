@@ -49,10 +49,11 @@ export interface Map {
   type: MapType, // USER_CREATED | DAILY_CHALLENGE
   id: string,
   name: string | null,
-  createdBy: User | null,
+  createdBy?: User | null,
   createdById: string | null,
   visibility: MapVisibility,
   places?: MapPlace[]
+  order: ImageOrder
 }
 export interface MapPlace {
   image?: Image,
@@ -94,6 +95,11 @@ export const gameModes: GameModeDef[] = [{
   id: "practice",
   name: "Practice",
   description: "Practice your skills with a customizable, endless game",
+  available: true
+}, {
+  id: "custom",
+  name: "Custom",
+  description: "Play maps created by users",
   available: true
 }]
 

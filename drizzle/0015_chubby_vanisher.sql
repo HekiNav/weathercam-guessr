@@ -1,0 +1,1 @@
+ALTER TABLE `Map` RENAME COLUMN "imageOrder" TO "order";

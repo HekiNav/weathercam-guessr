@@ -4,7 +4,7 @@ import Card from "@/components/card"
 import Dropdown, { DropdownItem } from "@/components/dropdown"
 import { distanceBetweenPoints, FINLAND_BOUNDS, FIRST_DAILY_GAME, LeaderboardItem, GameModeDef, gameModes, getImageUrl, User } from "@/lib/definitions"
 import { Dispatch, SetStateAction, startTransition, use, useActionState, useContext, useEffect, useRef, useState } from "react"
-import { redirect } from "next/navigation"
+import { redirect, useSearchParams } from "next/navigation"
 import toast from "react-hot-toast"
 import Button from "@/components/button"
 import Checkbox from "@/components/checkbox"
@@ -121,6 +121,11 @@ function GamePageContent(gameMode: GameModeDef, user: User | null) {
   }, [errors?.server])
 
   const [selectedGameMode, setSelectedGameMode] = useState<GameMode>(gameMode.id)
+
+
+  const par = useSearchParams() 
+  const mapId = par.get("map")
+
   return (
     <div className="h-full w-full relative grow">
       {step != "game" && step != "results" && (
@@ -153,7 +158,7 @@ function GamePageContent(gameMode: GameModeDef, user: User | null) {
                 <span className="mx-3">
                   <Dropdown onSet={(i) => i.id && setSelectedGameMode(i.id)} initial={GameModeItem(gameMode)} items={gameModes.reduce((p, m) => m.available ? [...p, { content: GameModeItem(m), id: m.id }] : p, new Array<DropdownItem<GameMode>>())}></Dropdown>
                 </span>
-                <Button className="mt-6" onPress={() => startTransition(() => action({ type: "init", gameMode: selectedGameMode }))}
+                <Button className="mt-6" onPress={() => startTransition(() => action({ type: "init", gameMode: selectedGameMode, ...(selectedGameMode == "custom" ? {mapId: mapId || ""} : {}) } as AnyGameData))}
                   autoFocus disabled={pending}>Begin</Button>
               </>
             )}
@@ -457,7 +462,7 @@ function MovableImage({ image, blur }: MovableImageProps) {
             }} style={{
               zIndex: -10,
               transition: "0.5s ease-in-out",
-            }} alt="" blur={blur ? image.rect : { height: 0, width: 0, x: 0, y: 0 }} src={getImageUrl(image?.externalId, image?.source)}></ImageWithBlur>
+            }} alt="" blur={blur && image.rect ? image.rect : { height: 0, width: 0, x: 0, y: 0 }} src={getImageUrl(image?.externalId, image?.source)}></ImageWithBlur>
           </div>
         </TransformComponent>
       </TransformWrapper>

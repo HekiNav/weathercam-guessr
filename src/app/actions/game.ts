@@ -1,5 +1,5 @@
 "use server"
-import { atLeastOneTrue, FormState, LeaderboardItem, LatLonLike, Map, MapType, MapVisibility, score } from "@/lib/definitions";
+import { atLeastOneTrue, FormState, LeaderboardItem, LatLonLike, Map, MapType, MapVisibility, score, ImageOrder, MapPlace } from "@/lib/definitions";
 import { Image } from "./image";
 import { createDB } from "@/lib/db";
 import z from "zod";
@@ -31,7 +31,8 @@ export interface GamePracticePlayState extends GameState<"game" | "results"> {
     }
 }
 export interface GamePlayState extends GamePracticePlayState {
-    map: Map
+    map: Map,
+    played: string[]
 }
 
 export interface GameDailyInfoState extends GameState<"daily_info"> {
@@ -40,9 +41,13 @@ export interface GameDailyInfoState extends GameState<"daily_info"> {
 export interface GameData<T extends string> {
     type: T
 }
-export type GameMode = "practice" | "daily"
+export type GameMode = "practice" | "daily" | "custom"
 export interface GameInitData extends GameData<"init"> {
-    gameMode: GameMode
+    gameMode: "practice" | "daily",
+}
+export interface GameInitCustomData extends GameData<"init"> {
+    gameMode: "custom",
+    mapId: string
 }
 export interface GamePracticeBeginData extends GameData<"practice_begin"> {
     config: GamePracticeBeginDataConfig
@@ -76,7 +81,7 @@ export interface GamePracticeBeginDataConfig {
         geojson: boolean
     }
 }
-export type AnyGameData = GameInitData | GamePracticeBeginData | GamePracticeSubmitData | GameDailyBeginData | GameSubmitData | GameLeaderboardData
+export type AnyGameData = GameInitData | GameInitCustomData | GamePracticeBeginData | GamePracticeSubmitData | GameDailyBeginData | GameSubmitData | GameLeaderboardData
 export default async function game(state: AnyGameState, data: AnyGameData): Promise<AnyGameState> {
     const db = await createDB()
     const currentUser = await getCurrentUser()
@@ -104,7 +109,34 @@ export default async function game(state: AnyGameState, data: AnyGameData): Prom
                     return {
                         step: "daily_info",
                         title: "Play today's challenge",
-                        lastGame: lastGame ? { ...lastGame, map: { ...lastGame.map, type: lastGame.map.type as MapType, visibility: lastGame.map.type as MapVisibility } } : undefined
+                        lastGame: lastGame ? { ...lastGame, map: { ...lastGame.map, type: lastGame.map.type as MapType, order: ImageOrder.ORDERED, visibility: lastGame.map.type as MapVisibility } } : undefined
+                    }
+                case "custom":
+                    if (!currentUser) return {
+                        step: "login",
+                        title: "Log in"
+                    }
+                    const mapData = await db.query.map.findFirst({
+                        where: and(eq(map.type, MapType.USER_CREATED), eq(map.id, data.mapId)),
+                        with: { createdBy: true, places: { with: { image: { with: { rect: true } } } } },
+                        orderBy: (map, { desc }) => [desc(map.creationTime)]
+                    })
+                    if (!mapData) return {
+                        step: "init",
+                        title: state.title,
+                        errors: {
+                            server: [`Failed to load map with id ${data.mapId}`]
+                        }
+                    }
+                    const next = getNextImage(mapData,[])
+                    return {
+                        step: "game",
+                        config: {
+                            blur: mapData.imageLocationBlurred == "true",
+                            geojson: mapData.imageGeojsonAvailable == "true"
+                        },
+                        played: [],
+
                     }
             }
         case "daily_begin":
@@ -131,7 +163,7 @@ export default async function game(state: AnyGameState, data: AnyGameData): Prom
                     blur: true,
                     geojson: false
                 },
-                map: { ...dailyMap, places: [], type: dailyMap.type as MapType, visibility: dailyMap.visibility as MapVisibility },
+                map: { ...dailyMap, places: [], order: dailyMap.imageOrder as ImageOrder, createdBy: dailyMap.createdBy ? { ...dailyMap.createdBy, admin: false, id: dailyMap.createdById || "", name: dailyMap.createdBy?.name || null } : undefined, type: dailyMap.type as MapType, visibility: dailyMap.visibility as MapVisibility },
                 image: { ...newImage, lat: 0, lon: 0, available: newImage.available == "true", rect: newImage.rect! }
             }
         case "practice_begin":
@@ -274,7 +306,7 @@ export default async function game(state: AnyGameState, data: AnyGameData): Prom
             if (top10.some(e => e.userId == currentUser?.id)) return {
                 step: "leaderboard",
                 title: "Leaderboard",
-                items: top10.map(e => ({...e, user: {...e.user, email: "", admin: e.user.admin == "true"}}))
+                items: top10.map(e => ({ ...e, user: { ...e.user, email: "", admin: e.user.admin == "true" } }))
             }
             if (!currentUser) return {
                 step: state.step,
@@ -300,8 +332,15 @@ export default async function game(state: AnyGameState, data: AnyGameData): Prom
             return {
                 step: "leaderboard",
                 title: "Leaderboard",
-                items: [...top10, ...userScore].sort((a,b) => b.score - a.score).map(e => ({...e, user: {...e.user, email: "", admin: e.user.admin == "true"}}))
+                items: [...top10, ...userScore].sort((a, b) => b.score - a.score).map(e => ({ ...e, user: { ...e.user, email: "", admin: e.user.admin == "true" } }))
             }
 
     }
+}
+function getNextImage(map: Map, played: string[]): MapPlace | null {
+    const places = map.places?.filter(p => !played.some(id => id == p.imageId))
+    if (!places || !places.length) return null
+    if (map.order == ImageOrder.ORDERED) return places[0]
+    else if (map.order == ImageOrder.RANDOM) return places[Math.floor(Math.random() * places.length)]
+    return null
 }

@@ -36,7 +36,7 @@ export default async function MapPage({
                         <Button className="text-lg my-2">Play</Button>
                     </Link>
                     <br className="mb-2" />
-                    <h2 className="text-lg font-medium pl-4">Images ({(map.places?.length || 0) + 1})</h2>
+                    <h2 className="text-lg font-medium pl-4">Images ({(map.places?.length || 0)})</h2>
                     <div className="px-2 w-full">
                         <div className="flex flex-row overflow-y-scroll gap-2 w-full p-4 pt-2 pb-6">
                             {...(map.places || []).map((e, i) => (

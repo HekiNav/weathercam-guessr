@@ -24,7 +24,7 @@ export const map = sqliteTable("Map", {
 	id: text().primaryKey().notNull(),
 	createdById: text().references(() => user.id, { onDelete: "cascade", onUpdate: "cascade" }),
 	visibility: text().notNull().default("PUBLIC"),
-	imageOrder: text().notNull().default("RANDOM"),
+	order: text().notNull().default("RANDOM"),
 	imageLocationBlurred: numeric().default("true").notNull(),
 	imageGeojsonAvailable: numeric().default("false").notNull(),
 	name: text()
