@@ -53,7 +53,9 @@ export interface Map {
   createdById: string | null,
   visibility: MapVisibility,
   places?: MapPlace[]
-  order: ImageOrder
+  order: ImageOrder,
+  imageLocationBlurred: boolean
+  imageGeojsonAvailable: boolean
 }
 export interface MapPlace {
   image?: Image,

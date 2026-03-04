@@ -109,7 +109,8 @@ export default async function game(state: AnyGameState, data: AnyGameData): Prom
                     return {
                         step: "daily_info",
                         title: "Play today's challenge",
-                        lastGame: lastGame ? { ...lastGame, map: { ...lastGame.map, type: lastGame.map.type as MapType, order: ImageOrder.ORDERED, visibility: lastGame.map.type as MapVisibility } } : undefined
+                        lastGame: lastGame ? { ...lastGame, map: { ...lastGame.map, imageGeojsonAvailable: lastGame.map.imageGeojsonAvailable == "true",
+                            imageLocationBlurred: lastGame.map.imageLocationBlurred == "true", type: lastGame.map.type as MapType, order: ImageOrder.ORDERED, visibility: lastGame.map.type as MapVisibility } } : undefined
                     }
                 case "custom":
                     if (!currentUser) return {
@@ -128,7 +129,14 @@ export default async function game(state: AnyGameState, data: AnyGameData): Prom
                             server: [`Failed to load map with id ${data.mapId}`]
                         }
                     }
-                    const next = getNextImage(mapData,[])
+                    const next = getNextImage(mapData as never, [])
+                    if (!next || !next.image) return {
+                        step: "init",
+                        title: state.title,
+                        errors: {
+                            server: [`Failed to load image from map`]
+                        }
+                    }
                     return {
                         step: "game",
                         config: {
@@ -136,7 +144,18 @@ export default async function game(state: AnyGameState, data: AnyGameData): Prom
                             geojson: mapData.imageGeojsonAvailable == "true"
                         },
                         played: [],
-
+                        map: {
+                            ...mapData,
+                            order: mapData.order as ImageOrder,
+                            imageGeojsonAvailable: mapData.imageGeojsonAvailable == "true",
+                            imageLocationBlurred: mapData.imageLocationBlurred == "true",
+                            places: mapData.places.map(p => ({ ...p, image: { ...p.image, available: p.image.available == "true" } })),
+                            type: mapData.type as MapType, visibility: mapData.visibility as MapVisibility, createdBy: mapData.createdBy && { ...mapData.createdBy, admin: false }
+                        },
+                        image: next.image,
+                        points: 0,
+                        round: 1,
+                        title: mapData.name || "",
                     }
             }
         case "daily_begin":
@@ -163,7 +182,8 @@ export default async function game(state: AnyGameState, data: AnyGameData): Prom
                     blur: true,
                     geojson: false
                 },
-                map: { ...dailyMap, places: [], order: dailyMap.imageOrder as ImageOrder, createdBy: dailyMap.createdBy ? { ...dailyMap.createdBy, admin: false, id: dailyMap.createdById || "", name: dailyMap.createdBy?.name || null } : undefined, type: dailyMap.type as MapType, visibility: dailyMap.visibility as MapVisibility },
+                map: { ...dailyMap, places: [], order: dailyMap.order as ImageOrder,imageGeojsonAvailable: dailyMap.imageGeojsonAvailable == "true",
+                            imageLocationBlurred: dailyMap.imageLocationBlurred == "true", createdBy: dailyMap.createdBy ? { ...dailyMap.createdBy, admin: false, id: dailyMap.createdById || "", name: dailyMap.createdBy?.name || null } : undefined, type: dailyMap.type as MapType, visibility: dailyMap.visibility as MapVisibility },
                 image: { ...newImage, lat: 0, lon: 0, available: newImage.available == "true", rect: newImage.rect! }
             }
         case "practice_begin":

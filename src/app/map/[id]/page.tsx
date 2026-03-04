@@ -19,7 +19,7 @@ export default async function MapPage({
 
     if (!map) return (
         <>
-            <Toast type="error" message={`Could not find map with id ${id}`}></Toast>
+            <Toast type="error" message={`Could not access map with id ${id}. It may not exist, or you may not have access to it.`}></Toast>
         </>
     )
     console.log(map)

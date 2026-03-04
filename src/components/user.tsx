@@ -1,11 +1,15 @@
-import { FriendState, momentToTZ, User } from "@/lib/definitions";
+"use client"
+import { FriendState, MapVisibility, momentToTZ, User } from "@/lib/definitions";
 import CopyItem from "./copy";
 import moment from "moment"
 import Button from "./button";
 import Link from "next/link";
 import Card from "./card";
+import { useContext } from "react";
+import { UserContext } from "@/app/user-provider";
 
 export default function UserUI({ user, isCurrentUser = false }: { user: User, isCurrentUser?: boolean }) {
+    const currentUser = useContext(UserContext)
     return (
         <div className="flex flex-col p-4 pb-0 font-sans">
             <div className="flex flex-row bg-green-600 rounded-xl p-4 text-2xl font-mono text-white items-center">
@@ -18,7 +22,24 @@ export default function UserUI({ user, isCurrentUser = false }: { user: User, is
             </div>
             <h1 className="font-medium text-xl text-green-600">Maps</h1>
             {user.maps?.length ? (
-                <div></div>
+                <div className="flex flex-row flex-wrap gap-4">
+                    {...user.maps.filter(m => m.visibility == MapVisibility.PUBLIC || isCurrentUser || (m.visibility == MapVisibility.FRIENDS && currentUser?.friends?.some(f => f.user1id == m.createdById || f.user2id == m.createdById))).map((m, i) => (
+                        <Link key={i} href={`/map/${m.id}/`}>
+                            <Card className="w-40!" small cardTitle={(<span className="font-bold">{m.name}</span>)}>
+                                <span className={`mt-2 text-sm 
+                                    ${
+                                        m.visibility == MapVisibility.FRIENDS ? "bg-yellow-600" :
+                                        m.visibility == MapVisibility.HIDDEN ? "bg-blue-600" :
+                                        m.visibility == MapVisibility.PRIVATE ? "bg-red-600" :
+                                        m.visibility == MapVisibility.PUBLIC ? "bg-green-600" :
+                                        "bg-gray-300"
+                                    } 
+                                    rounded px-1 h-min ml-1`}>{m.visibility}</span>
+                                <span className="px-1 mt-1 text-sm">Last edit {momentToTZ(m.updateTime).fromNow()}</span>
+                            </Card>
+                        </Link>
+                    ))}
+                </div>
             ) : (
                 <>{isCurrentUser ? "You have" : "This user has"} no maps
                     {isCurrentUser && <Link href="/map/new/"><Button className="w-fit">Create one</Button></Link>}

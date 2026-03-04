@@ -67,7 +67,7 @@ export async function createMap(state: MapCreationState, submitted: MapCreationD
             createdById: user.id,
             imageGeojsonAvailable: data.geojson ? "true" : "false",
             imageLocationBlurred: data.blur ? "true" : "false",
-            imageOrder: data.order,
+            order: data.order,
             visibility: data.visibility
     })
 
