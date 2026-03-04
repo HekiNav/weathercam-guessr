@@ -13,7 +13,7 @@ export interface GameState<T extends string> extends FormState<["practiceConfig"
 
 }
 export type BasicGameState = GameState<"config_practice" | "init" | "login">
-export type AnyGameState = GamePlayState | GameDailyInfoState | BasicGameState | GamePracticePlayState | GameLeaderboardState
+export type AnyGameState = GamePlayState | GameDailyInfoState | BasicGameState | GameResultsState | GamePracticePlayState | GameLeaderboardState
 
 export interface GameLeaderboardState extends GameState<"leaderboard"> {
     items: LeaderboardItem[]
@@ -33,6 +33,10 @@ export interface GamePracticePlayState extends GameState<"game" | "results"> {
 export interface GamePlayState extends GamePracticePlayState {
     map: Map,
     played: string[]
+}
+
+export interface GameResultsState extends GamePlayState {
+    nextImage: Image | null
 }
 
 export interface GameDailyInfoState extends GameState<"daily_info"> {
@@ -81,7 +85,7 @@ export interface GamePracticeBeginDataConfig {
         geojson: boolean
     }
 }
-export type AnyGameData = GameInitData | GameInitCustomData | GamePracticeBeginData | GamePracticeSubmitData | GameDailyBeginData | GameSubmitData | GameLeaderboardData
+export type AnyGameData = GameInitData | GameInitCustomData  | GamePracticeBeginData | GamePracticeSubmitData | GameDailyBeginData | GameSubmitData | GameLeaderboardData
 export default async function game(state: AnyGameState, data: AnyGameData): Promise<AnyGameState> {
     const db = await createDB()
     const currentUser = await getCurrentUser()
@@ -109,8 +113,12 @@ export default async function game(state: AnyGameState, data: AnyGameData): Prom
                     return {
                         step: "daily_info",
                         title: "Play today's challenge",
-                        lastGame: lastGame ? { ...lastGame, map: { ...lastGame.map, imageGeojsonAvailable: lastGame.map.imageGeojsonAvailable == "true",
-                            imageLocationBlurred: lastGame.map.imageLocationBlurred == "true", type: lastGame.map.type as MapType, order: ImageOrder.ORDERED, visibility: lastGame.map.type as MapVisibility } } : undefined
+                        lastGame: lastGame ? {
+                            ...lastGame, map: {
+                                ...lastGame.map, imageGeojsonAvailable: lastGame.map.imageGeojsonAvailable == "true",
+                                imageLocationBlurred: lastGame.map.imageLocationBlurred == "true", type: lastGame.map.type as MapType, order: ImageOrder.ORDERED, visibility: lastGame.map.type as MapVisibility
+                            }
+                        } : undefined
                     }
                 case "custom":
                     if (!currentUser) return {
@@ -182,8 +190,10 @@ export default async function game(state: AnyGameState, data: AnyGameData): Prom
                     blur: true,
                     geojson: false
                 },
-                map: { ...dailyMap, places: [], order: dailyMap.order as ImageOrder,imageGeojsonAvailable: dailyMap.imageGeojsonAvailable == "true",
-                            imageLocationBlurred: dailyMap.imageLocationBlurred == "true", createdBy: dailyMap.createdBy ? { ...dailyMap.createdBy, admin: false, id: dailyMap.createdById || "", name: dailyMap.createdBy?.name || null } : undefined, type: dailyMap.type as MapType, visibility: dailyMap.visibility as MapVisibility },
+                map: {
+                    ...dailyMap, places: [], order: dailyMap.order as ImageOrder, imageGeojsonAvailable: dailyMap.imageGeojsonAvailable == "true",
+                    imageLocationBlurred: dailyMap.imageLocationBlurred == "true", createdBy: dailyMap.createdBy ? { ...dailyMap.createdBy, admin: false, id: dailyMap.createdById || "", name: dailyMap.createdBy?.name || null } : undefined, type: dailyMap.type as MapType, visibility: dailyMap.visibility as MapVisibility
+                },
                 image: { ...newImage, lat: 0, lon: 0, available: newImage.available == "true", rect: newImage.rect! }
             }
         case "practice_begin":
@@ -299,6 +309,8 @@ export default async function game(state: AnyGameState, data: AnyGameData): Prom
                 userId: currentUser.id,
                 id: crypto.randomUUID()
             })
+            const played = [...(state as GamePlayState).played, (state as GamePlayState).image.id]
+            const nextImage = getNextImage((state as GamePlayState).map, played)
             return {
                 step: "results",
                 title: "Results",
@@ -307,7 +319,8 @@ export default async function game(state: AnyGameState, data: AnyGameData): Prom
                 round: (state as GamePlayState).round,
                 points: ((state as GamePlayState).points || 0) + gameScore,
                 prevPoints: (state as GamePlayState).points,
-                image: { ...submittedImage, available: submittedImage.available == "true", rect: submittedImage.rect! }
+                image: { ...submittedImage, available: submittedImage.available == "true", rect: submittedImage.rect! },
+                nextImage: nextImage?.image || null
             }
         case "leaderboard":
             const top10 = await db.query.leaderboard.findMany({

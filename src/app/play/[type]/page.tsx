@@ -1,5 +1,5 @@
 "use client"
-import game, { AnyGameData, GameMode, GamePlayState, GamePracticeBeginDataConfig } from "@/app/actions/game"
+import game, { AnyGameData, GameMode, GamePlayState, GamePracticeBeginDataConfig, GameResultsState } from "@/app/actions/game"
 import Card from "@/components/card"
 import Dropdown, { DropdownItem } from "@/components/dropdown"
 import { distanceBetweenPoints, FINLAND_BOUNDS, FIRST_DAILY_GAME, LeaderboardItem, GameModeDef, gameModes, getImageUrl, User } from "@/lib/definitions"
@@ -123,7 +123,7 @@ function GamePageContent(gameMode: GameModeDef, user: User | null) {
   const [selectedGameMode, setSelectedGameMode] = useState<GameMode>(gameMode.id)
 
 
-  const par = useSearchParams() 
+  const par = useSearchParams()
   const mapId = par.get("map")
 
   return (
@@ -158,7 +158,7 @@ function GamePageContent(gameMode: GameModeDef, user: User | null) {
                 <span className="mx-3">
                   <Dropdown onSet={(i) => i.id && setSelectedGameMode(i.id)} initial={GameModeItem(gameMode)} items={gameModes.reduce((p, m) => m.available ? [...p, { content: GameModeItem(m), id: m.id }] : p, new Array<DropdownItem<GameMode>>())}></Dropdown>
                 </span>
-                <Button className="mt-6" onPress={() => startTransition(() => action({ type: "init", gameMode: selectedGameMode, ...(selectedGameMode == "custom" ? {mapId: mapId || ""} : {}) } as AnyGameData))}
+                <Button className="mt-6" onPress={() => startTransition(() => action({ type: "init", gameMode: selectedGameMode, ...(selectedGameMode == "custom" ? { mapId: mapId || "" } : {}) } as AnyGameData))}
                   autoFocus disabled={pending}>Begin</Button>
               </>
             )}
@@ -330,19 +330,21 @@ function GamePageContent(gameMode: GameModeDef, user: User | null) {
                 </div>
               </div>
               <div className="z-1002 flex flex-row justify-around w-full">
-                {gameMode.id == "practice" && <>
-                  <Button onClick={() => {
-                    startTransition(() => action({ type: "practice_begin", config: getConfig(practiceConfig) }))
-                    setSelectedLocation(null)
-                  }}>Play another round</Button>
-                  <Button onClick={() => startTransition(() => action({ type: "init", gameMode: "practice" }))}>Change configuration</Button>
-                  <Link href="/play"><Button>Switch modes</Button></Link>
-                </>}
-                {(state as GamePlayState).map && <>
-                  <div className="flex flex-row justify-around mx-4 mt-4 gap-4">
-                    <Button onClick={() => startTransition(() => action({ type: "leaderboard", mapId: (state as GamePlayState).map.id }))} disabled={pending}>View leaderboard</Button>
-                    <Link href="/play"><Button>Play another mode</Button></Link>
-                  </div>
+                {!(state as GameResultsState).nextImage && <>
+                  {gameMode.id == "practice" && <>
+                    <Button onClick={() => {
+                      startTransition(() => action({ type: "practice_begin", config: getConfig(practiceConfig) }))
+                      setSelectedLocation(null)
+                    }}>Play another round</Button>
+                    <Button onClick={() => startTransition(() => action({ type: "init", gameMode: "practice" }))}>Change configuration</Button>
+                    <Link href="/play"><Button>Switch modes</Button></Link>
+                  </>}
+                  {(state as GamePlayState).map && <>
+                    <div className="flex flex-row justify-around mx-4 mt-4 gap-4">
+                      <Button onClick={() => startTransition(() => action({ type: "leaderboard", mapId: (state as GamePlayState).map.id }))} disabled={pending}>View leaderboard</Button>
+                      <Link href="/play"><Button>Play another mode</Button></Link>
+                    </div>
+                  </>}
                 </>}
               </div>
             </div>
