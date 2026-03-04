@@ -10,6 +10,6 @@ export interface ImageWithTimeProps extends HTMLProps<HTMLImageElement> {
 export default function ImageWithTime({ presetHistory, time, image, ...elementProps }: ImageWithTimeProps) {
     return (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={getImageUrl(image.externalId, image.source, time, (presetHistory ? presetHistory.presets[0].history : []).map(p => ({ url: p.imageUrl, time: p.lastModified })))} {...{ ...elementProps, alt: elementProps.alt || "no alt text provided" }}></img>
+        <img src={getImageUrl(image.externalId, image.source, time, (presetHistory && presetHistory.presets && presetHistory.presets[0] ? presetHistory.presets[0].history : []).map(p => ({ url: p.imageUrl, time: p.lastModified })))} {...{ ...elementProps, alt: elementProps.alt || "no alt text provided" }}></img>
     )
 }

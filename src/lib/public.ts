@@ -1,5 +1,5 @@
 "use server"
-import { session, user } from "@/db/schema"
+import { map, session, user } from "@/db/schema"
 import { createDB, getBucket } from "./db"
 import { desc, eq, or } from "drizzle-orm"
 import { Friend, User } from "./definitions"
@@ -38,4 +38,11 @@ export async function getImages(){
     const bucket = await getBucket()
     const response = await bucket.get("weathercam-guessr-images.geojson")
     return await response?.json() as FeatureCollection<Point, Image> | null
+}
+export async function getMap(mapId: string){
+    const db = await createDB()
+    return await db.query.map.findFirst({
+        where: eq(map.id, mapId),
+        with: {places: {with: {image: {with: {rect: true}}}}, createdBy: {columns: {name: true, id: true}}}
+    })
 }

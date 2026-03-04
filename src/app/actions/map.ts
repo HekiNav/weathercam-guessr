@@ -2,7 +2,8 @@
 import { map, mapPlace } from "@/db/schema";
 import { getCurrentUser } from "@/lib/auth";
 import { createDB } from "@/lib/db";
-import { FormState, ImageOrder, MapVisibility } from "@/lib/definitions";
+import { FormState, ImageOrder, MapPlace, MapVisibility } from "@/lib/definitions";
+import { SQLiteInsertBase } from "drizzle-orm/sqlite-core";
 import { redirect } from "next/navigation";
 import z from "zod";
 
@@ -61,25 +62,25 @@ export async function createMap(state: MapCreationState, submitted: MapCreationD
     const db = await createDB()
 
     const mapId = crypto.randomUUID()
-
-    await db.batch([
-        db.insert(map).values({
-            // @ts-expect-error bugged id
-            id: crypto.randomUUID(),
+    await db.insert(map).values({
+            id: mapId,
             name: data.name,
             createdBy: user.id,
-            imageGeojsonAvailable: data.geojson,
-            imageLocationBlurred: data.blur,
+            imageGeojsonAvailable: data.geojson ? "true" : "false",
+            imageLocationBlurred: data.blur ? "true" : "false",
             imageOrder: data.order,
             visibility: data.visibility
-        }),
-        ...data.images.map(i =>
+    })
+
+    // @ts-expect-error  Zod verifies images length to be at least 1
+    await db.batch([
+        ...(data.images.map(i =>
             db.insert(mapPlace).values({
                 imageId: i.image,
                 index: i.index,
                 mapId: mapId,
                 time: i.time
-            })
+            }))
         )
     ])
 
