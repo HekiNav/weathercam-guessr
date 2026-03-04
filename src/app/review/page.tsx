@@ -24,7 +24,6 @@ export default function ReviewPage() {
 }
 function ReviewPageContent() {
     const [{ step, errors, currentImage, count }, action, pending] = useActionState(reviewImages, { currentImage: null, step: "start" } as ImageReviewFormState)
-
     const [difficulty, setDifficulty] = useState<ImageDifficulty | UnclassifiedEnum>((currentImage?.difficulty as ImageDifficulty) || UnclassifiedEnum.UNCLASSIFIED)
     const [type, setType] = useState<ImageType | UnclassifiedEnum>((currentImage?.type as ImageType) || UnclassifiedEnum.UNCLASSIFIED)
     const [blurRect, setBlurRect] = useState<BlurRect | null>((currentImage?.rect as BlurRect | undefined) || null)
