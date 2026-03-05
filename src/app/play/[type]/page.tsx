@@ -344,6 +344,7 @@ function GamePageContent(gameMode: GameModeDef, user: User | null) {
                     <div className="flex flex-row justify-around mx-4 mt-4 gap-4">
                       <Button onClick={() => startTransition(() => action({ type: "leaderboard", mapId: (state as GamePlayState).map.id }))} disabled={pending}>View leaderboard</Button>
                       <Link href="/play"><Button>Play another mode</Button></Link>
+                      <Link hidden={gameMode.id != "custom"} href={`/map/${mapId}`}><Button>View map</Button></Link>
                     </div>
                   </>}
                 </>}

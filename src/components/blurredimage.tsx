@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import ImageWithTime from "./imagewithtime";
 import { ImagePresetHistory } from "@/lib/definitions";
 import { Image } from "@/app/actions/image";
@@ -16,7 +16,7 @@ export interface ImageWithBlurProps extends React.HTMLAttributes<HTMLDivElement>
 
 export default function ImageWithBlur(props: ImageWithBlurProps) {
     const [imageHistory, setImageHistory] = useState<ImagePresetHistory | null>(null)
-    if (!imageHistory && props.time) fetch(`https://tie.digitraffic.fi/api/weathercam/v1/stations/${props.image.externalId}/history`).then(res => res.json()).then(data => {
+    if ((!imageHistory || (!imageHistory.presets || imageHistory.presets[0].id != props.image.externalId)) && props.time) fetch(`https://tie.digitraffic.fi/api/weathercam/v1/stations/${props.image.externalId}/history`).then(res => res.json()).then(data => {
         setImageHistory(data as ImagePresetHistory)
     })
     return (
