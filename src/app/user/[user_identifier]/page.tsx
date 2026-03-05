@@ -20,7 +20,7 @@ export default async function UserPage({ params }: { params: Promise<{ user_iden
 
     return (
         <div>
-            <UserUI user={{ ...user, email: "", admin: user.admin, maps: user.maps.map(m => ({...m, imageGeojsonAvailable: m.imageGeojsonAvailable == "true",
+            <UserUI user={{ ...user, email: "", admin: user.admin, maps: user.maps && user.maps.map(m => ({...m, imageGeojsonAvailable: m.imageGeojsonAvailable == "true",
             imageLocationBlurred: m.imageLocationBlurred == "true"})) as Map[] | undefined, sessions: [] }} isCurrentUser={currentUser?.id == user.id}></UserUI>
         </div>
     )
