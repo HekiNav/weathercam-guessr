@@ -14,6 +14,7 @@ export async function getCurrentUser(details = false): Promise<User | null> {
      where: and(eq(session.id, sessionId), gt(session.expiresAt, Date.now())), with: { user: details ? {with: {maps: true, friends1: {with: {user1: true, user2: true}}, friends2: {with: {user1: true, user2: true}}}} : true}
     })
 
-  return sessionData?.user ? { ...sessionData?.user, admin: sessionData?.user.admin == "true", lastSeen: sessionData.expiresAt, maps: sessionData.user.maps as Map[], friends: [...sessionData.user.friends1 || [], 
+  return sessionData?.user ? { ...sessionData?.user, admin: sessionData?.user.admin == "true", lastSeen: sessionData.expiresAt, maps: sessionData.user.maps.map(m => ({...m, imageGeojsonAvailable: m.imageGeojsonAvailable == "true",
+            imageLocationBlurred: m.imageLocationBlurred == "true"})) as Map[], friends: [...sessionData.user.friends1 || [], 
           ...sessionData.user.friends2 || []].map(f => ({...f, user1: {...f.user1, admin: f.user1.admin == "true"}, user2: {...f.user2, admin: f.user2.admin == "true"}})) as Friend[] } : null
 }
