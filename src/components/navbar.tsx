@@ -12,8 +12,10 @@ export default function NavBar() {
 
     const items: {url: string, item: ReactNode}[] = [
         { url: "/play", item: "Play" },
+        { url: "/play/daily/", item: "Daily" },
         { url: "/map/new", item: "Create" },
-        { url: "https://github.com/HekiNav/weathercam-guessr", item: "GitHub" },
+        { url: "/map/explore", item: "Explore" },
+        { url: "https://github.com/HekiNav/weathercam-guessr", item: (<span>GitHub</span>) },
 
     ]
     if (user?.admin) items.splice(items.length-1, 0, { url: "/review", item: (<span className="text-red-600">Review</span>) })

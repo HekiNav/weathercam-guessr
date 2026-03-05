@@ -30,20 +30,22 @@ export default async function RootLayout({
 	children: React.ReactNode;
 }>) {
 	const user = await getCurrentUser(true)
-	const notifications = user && await getNotifications({user: user.id})
+	const notifications = user && await getNotifications({ user: user.id })
 	return (
-		<html lang="en" style={{height: "100%"}}>
+		<html lang="en" style={{ height: "100%" }}>
 			<head>
 				<link rel="icon" href="/favicon.svg" type="image/svg+xml"></link>
 			</head>
 			<body className={`${karla.variable} ${shareTechMono.variable} antialiased bg-white h-full flex flex-col`}>
 				<Toaster position="top-right" containerClassName="mt-10"></Toaster>
 
-				<UserProvider user={user} notifs={notifications? notifications.map(n => ({...n, read: n.read == "true"})) : null}>
+				<UserProvider user={user} notifs={notifications ? notifications.map(n => ({ ...n, read: n.read == "true" })) : null}>
 					<div className="flex flex-col h-full min-h-screen overflow-y-scroll relative grow relative">
-						<div className="h-full shadow-lg/20 flex min-h-max flex-col grow shrink-0">
+						<div className="h-max shadow-lg/20 flex min-h-full flex-col grow shrink-0">
 							<NavBar></NavBar>
-							{children}
+							<div className="grow">
+								{children}
+							</div>
 						</div>
 						<footer className="p-8 w-full">
 							<span className="text-green-600 font-mono mr-2">Weathercam-guessr</span>	© Hekinav {new Date().getFullYear()}

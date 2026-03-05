@@ -60,7 +60,36 @@ export async function getMap(mapId: string): Promise<Map | null> {
         }))
     } : null
     if (mapData?.visibility == MapVisibility.PRIVATE && user?.id != mapData.createdById) return null
-    if (mapData?.visibility == MapVisibility.FRIENDS && user?.id != mapData.createdById && !user?.friends?.some(f=> f.user1id == mapData.createdById || f.user2id == mapData.createdById)) return null
+    if (mapData?.visibility == MapVisibility.FRIENDS && user?.id != mapData.createdById && !user?.friends?.some(f => f.user1id == mapData.createdById || f.user2id == mapData.createdById)) return null
     return mapData
 
+}
+export async function getMaps(): Promise<Map[] | null> {
+    const db = await createDB()
+    const user = await getCurrentUser(true)
+    const data = await db.query.map.findMany({
+        with: { places: { with: { image: { with: { rect: true } } } }, createdBy: { columns: { name: true, id: true } } }
+    })
+    const mapData = data ? data.reduce((prev, curr) => {
+        const map: Map = {
+            ...curr, createdBy: curr?.createdBy as User,
+            order: curr.order as ImageOrder,
+            imageGeojsonAvailable: curr.imageGeojsonAvailable == "true",
+            imageLocationBlurred: curr.imageLocationBlurred == "true",
+            creationTime: curr?.creationTime || 0, updateTime: curr?.updateTime || 0,
+            type: curr?.type as MapType,
+            visibility: curr?.visibility as MapVisibility,
+            places: curr?.places.map(p => ({
+                ...p,
+                image: { ...p.image, available: p.image.available == "true" }
+            }))
+        }
+        // hide if private and user not creator
+        if (map?.visibility == MapVisibility.PRIVATE && user?.id != map.createdById) return prev
+        // hide if frineds only and user not friend
+        if (map?.visibility == MapVisibility.FRIENDS && user?.id != map.createdById && 
+            !user?.friends?.some(f => f.user1id == map.createdById || f.user2id == map.createdById)) return prev
+        return [...prev,map]
+    }, new Array<Map>()) : null
+    return mapData
 }
