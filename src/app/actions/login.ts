@@ -3,11 +3,12 @@
 import crypto from "crypto";
 import { Resend } from "resend";
 import { cookies } from "next/headers";
-import { EmailSchema, OTPFormState, UsernameSchema } from "@/lib/definitions";
+import { EmailSchema, NotificationType, OTPFormState, UsernameSchema } from "@/lib/definitions";
 import z from "zod";
 import { createDB } from "@/lib/db";
 import { otpCode, session, user } from "@/db/schema";
 import { and, eq, gt } from "drizzle-orm";
+import { sendNotification } from "@/lib/notification";
 
 const resend = new Resend(process.env.RESEND_API_KEY!)
 
@@ -113,8 +114,8 @@ export async function login(state: OTPFormState, { type, email, otp, username }:
       step: "success"
     }
   } else if (type == "username") {
-
-    if (!(await db.query.user.findFirst({ where: eq(user.email, email) }))) return {
+    const userData = (await db.query.user.findFirst({ where: eq(user.email, email) }))
+    if (!userData) return {
       step: "email"
     }
 
@@ -129,7 +130,7 @@ export async function login(state: OTPFormState, { type, email, otp, username }:
     }
     try {
       await db.update(user).set({ name: data }).where(eq(user.email, email))
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       if (error.cause.toString().includes("UNIQUE constraint failed: User.name")) return {
         errors: {
@@ -146,7 +147,19 @@ export async function login(state: OTPFormState, { type, email, otp, username }:
         }
       }
     }
-
+    sendNotification({
+      message: `
+      <h1>Welcome ${username}!</h1>
+      <p>Here are some things you can do:</p>
+      <a href="/map/new"><button class="bg-green-600 cursor-pointer rounded shadow-xl/20 p-2">Create a map</button></a>
+      <a href="/play/daily"><button class="bg-green-600 cursor-pointer rounded shadow-xl/20 p-2">Attempt the daily challenge</button></a>
+      <a href="/user/me"><button class="bg-green-600 cursor-pointer rounded shadow-xl/20 p-2">View your profile</button></a>
+                      
+      `,
+      title: "Welcome to weathercam-guessr!",
+      recipient: userData.id,
+      type: NotificationType.TEXT
+    })
     return {
       step: "success"
     }

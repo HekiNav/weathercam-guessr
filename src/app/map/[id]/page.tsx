@@ -22,7 +22,6 @@ export default async function MapPage({
             <Toast type="error" message={`Could not access map with id ${id}. It may not exist, or you may not have access to it.`}></Toast>
         </>
     )
-    console.log(map)
     return (
         <div className="h-full w-full flex items-center justify-center">
             <Card className="w-6/10! items-start" cardTitle={map.name || "unnamed map"}>

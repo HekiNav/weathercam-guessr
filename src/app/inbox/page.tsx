@@ -18,7 +18,7 @@ export default function InboxPage() {
     const [notifs, reloadNotifs] = useContext(NotificationContext)
     const router = useRouter()
     return <div className="flex w-full h-full flex-col items-center py-10 px-10">
-        <Card cardTitle="inbox" className="lg:w-6/10! w-full!">
+        <Card cardTitle="inbox" className="lg:w-6/10! w-full! bg-white">
             <span className=" divide-y-2 w-full px-3">
                 {...(notifs || [])?.sort((a,b) =>  new Date(b.creationTime).getTime() - new Date(a.creationTime).getTime()).map((n, i) => (
                     <div key={i} className="px-1 py-2 w-full cursor-pointer flex flex-row justify-between items-center" >
@@ -43,7 +43,7 @@ export default function InboxPage() {
             {modalState && (
                 <Modal open={!!modalState} title={modalState.title} close={() => {
                     setModalState(null)
-                }} className="w-max">
+                }} className="w-max bg-white">
                     <div className="px-4 notification" dangerouslySetInnerHTML={{ __html: modalState.message }}></div>
                     {modalState.type == NotificationType.FRIEND_REQUEST && <div className="w-full flex justify-around mt-5">
                         <Button onClick={() => {
