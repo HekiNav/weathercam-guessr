@@ -7,7 +7,7 @@ import Toast from "@/components/toast"
 import { getCurrentUser } from "@/lib/auth"
 import { getImageTimeOffset, ImagePresetHistory, MapVisibility } from "@/lib/definitions"
 import { getMaps } from "@/lib/public"
-import moment from "moment"
+import dayjs from "dayjs"
 import Link from "next/link"
 
 export default async function MapExplorePage() {
@@ -41,8 +41,8 @@ export default async function MapExplorePage() {
                                 )}
                                 <h2 className="text-md font-medium pl-4 mt-2">{(m.places?.length || 0)} images</h2>
                                 <div className="px-4">
-                                    Created {moment(new Date(m.creationTime).getTime() - new Date().getTimezoneOffset() * 60_000).fromNow()} &middot;
-                                    last edit {moment(new Date(m.updateTime).getTime() - new Date().getTimezoneOffset() * 60_000).fromNow()}
+                                    Created {dayjs(new Date(m.creationTime).getTime() - new Date().getTimezoneOffset() * 60_000).fromNow()} &middot;
+                                    last edit {dayjs(new Date(m.updateTime).getTime() - new Date().getTimezoneOffset() * 60_000).fromNow()}
                                 </div>
                             </div>
                         </Card>

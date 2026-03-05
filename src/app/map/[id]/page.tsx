@@ -6,8 +6,11 @@ import ImageWithTime from "@/components/imagewithtime"
 import Toast from "@/components/toast"
 import { getImageTimeOffset, getImageUrl, ImagePresetHistory, MapPlace } from "@/lib/definitions"
 import { getMap } from "@/lib/public"
-import moment from "moment"
+import dayjs from "dayjs"
 import Link from "next/link"
+import RelativeTime from "dayjs/plugin/relativeTime"
+
+dayjs.extend(RelativeTime)
 
 export default async function MapPage({
     params,
@@ -28,8 +31,8 @@ export default async function MapPage({
                 <div className="w-full">
                     <div className="px-4">
                         A map by <Link className="text-green-600 underline" href={`/user/${map.createdBy?.id || ""}`}>{map.createdBy?.name}</Link> &middot;
-                        Created {moment(new Date(map.creationTime).getTime() - new Date().getTimezoneOffset() * 60_000).fromNow()} &middot;
-                        last edited {moment(new Date(map.updateTime).getTime() - new Date().getTimezoneOffset() * 60_000).fromNow()}
+                        Created {dayjs(new Date(map.creationTime).getTime() - new Date().getTimezoneOffset() * 60_000).fromNow()} &middot;
+                        last edited {dayjs(new Date(map.updateTime).getTime() - new Date().getTimezoneOffset() * 60_000).fromNow()}
                     </div>
                     <Link className="px-4" href={`/play/custom?map=${map.id}`}>
                         <Button className="text-lg my-2">Play</Button>

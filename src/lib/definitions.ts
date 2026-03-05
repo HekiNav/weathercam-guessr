@@ -1,8 +1,10 @@
 import { GameMode } from '@/app/actions/game';
 import { Image } from '@/app/actions/image';
-import moment from 'moment';
+import dayjs from 'dayjs';
 import { ReactNode } from 'react';
 import * as z from 'zod'
+import RelativeTime from "dayjs/plugin/relativeTime"
+dayjs.extend(RelativeTime)
 
 export const EmailSchema = z.email({ error: 'Please enter a valid email.' }).trim()
 export const UsernameSchema = z.string()
@@ -282,5 +284,5 @@ export function doServer(func: Promise<{ success: boolean; message: string; } | 
   });
 }
 export function momentToTZ(x: string | number | Date) {
-  return moment(new Date(0).setUTCMilliseconds(new Date(x).getTime() - (new Date().getTimezoneOffset() * 60_000)))
+  return dayjs(new Date(0).setUTCMilliseconds(new Date(x).getTime() - (new Date().getTimezoneOffset() * 60_000)))
 }
