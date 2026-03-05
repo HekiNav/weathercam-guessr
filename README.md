@@ -1,5 +1,5 @@
 # Weathercam-guessr
-A Geoguessr-like game based on the open road camera [API from Fintraffic](https://www.digitraffic.fi/tieliikenne/#kelikamerat) (so Finland only)
+A Geoguessr-like game based on the open road camera [API from Fintraffic](https://www.digitraffic.fi/tieliikenne/#kelikamerat) (Finland only)
 
 ## Features
 - User account system
@@ -17,4 +17,7 @@ A Geoguessr-like game based on the open road camera [API from Fintraffic](https:
     - Images can be reviewed by admins to set their location blur, difficulty levels and types
 - Daily challenges generated with a cron trigger
 - Modern UI
-- (almost there) Custom maps
+- Custom maps
+    - Creation
+    - [TODO] Editing
+    - Playing
