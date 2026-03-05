@@ -4,7 +4,6 @@ import { getCurrentUser } from "@/lib/auth";
 import { createDB } from "@/lib/db";
 import { EmailSchema, FriendState, NotificationType, UsernameSchema } from "@/lib/definitions";
 import { sendNotification } from "@/lib/notification";
-import { getUser } from "@/lib/public";
 import { and, eq, or } from "drizzle-orm";
 import { cookies } from "next/headers";
 import z from "zod";

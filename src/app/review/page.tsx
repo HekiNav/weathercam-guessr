@@ -8,7 +8,7 @@ import { redirect } from "next/navigation"
 import { toast } from "react-hot-toast"
 import Dropdown, { DropdownItem } from "@/components/dropdown"
 import ImageWithBlur from "@/components/blurredimage"
-import { BlurRect, getImageTimeOffset, getImageUrl, ImageDifficulty, ImageType, MapPlaceTimePresets, UnclassifiedEnum } from "@/lib/definitions"
+import { BlurRect, getImageTimeOffset, ImageDifficulty, ImageType, MapPlaceTimePresets, UnclassifiedEnum } from "@/lib/definitions"
 
 export default function ReviewPage() {
     const user = useContext(UserContext)

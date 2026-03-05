@@ -17,7 +17,7 @@ export default function Login() {
 
 
   const user = useContext(UserContext)
-  const [notifications, reloadNotifs] = useContext(NotificationContext)
+  const [, reloadNotifs] = useContext(NotificationContext)
 
   const [email, setEmail] = useState(user?.email || "")
   const [otp, setOtp] = useState("")
@@ -43,7 +43,7 @@ export default function Login() {
       router.push(successPath)
       router.refresh()
     }
-  }, [step, router, successPath, user?.id, user?.name, params])
+  }, [step, router, successPath, user?.id, user?.name, params, reloadNotifs])
 
   return (
     <div className="w-full h-full flex items-center grow justify-center">

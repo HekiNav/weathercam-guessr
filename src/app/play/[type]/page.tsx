@@ -2,7 +2,7 @@
 import game, { AnyGameData, AnyGameState, GameMode, GamePlayState, GamePracticeBeginDataConfig, GameResultsState, GameSetData } from "@/app/actions/game"
 import Card from "@/components/card"
 import Dropdown, { DropdownItem } from "@/components/dropdown"
-import { distanceBetweenPoints, FINLAND_BOUNDS, FIRST_DAILY_GAME, LeaderboardItem, GameModeDef, gameModes, getImageUrl, User } from "@/lib/definitions"
+import { distanceBetweenPoints, FINLAND_BOUNDS, FIRST_DAILY_GAME, LeaderboardItem, GameModeDef, gameModes, User } from "@/lib/definitions"
 import { Dispatch, SetStateAction, startTransition, use, useActionState, useContext, useEffect, useRef, useState } from "react"
 import { redirect, useSearchParams } from "next/navigation"
 import toast from "react-hot-toast"
