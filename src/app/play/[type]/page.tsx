@@ -125,6 +125,10 @@ function GamePageContent(gameMode: GameModeDef, user: User | null) {
 
   const par = useSearchParams()
   const mapId = par.get("map")
+  
+  useEffect(() => {
+    if (!mapId && gameMode.id == "custom") redirect("/map/explore")
+  }, [gameMode.id, mapId])
 
   return (
     <div className="h-full w-full relative grow">

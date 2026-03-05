@@ -89,7 +89,7 @@ export interface GamePracticeBeginDataConfig {
         geojson: boolean
     }
 }
-export type AnyGameData = GameInitData | GameInitCustomData  | GamePracticeBeginData | GamePracticeSubmitData | GameDailyBeginData | GameSubmitData | GameLeaderboardData
+export type AnyGameData = GameInitData | GameInitCustomData | GamePracticeBeginData | GamePracticeSubmitData | GameDailyBeginData | GameSubmitData | GameLeaderboardData
 export default async function game(state: AnyGameState, data: AnyGameData): Promise<AnyGameState> {
     const db = await createDB()
     const currentUser = await getCurrentUser()
@@ -308,14 +308,16 @@ export default async function game(state: AnyGameState, data: AnyGameData): Prom
                 },
                 image: (state as GamePlayState).image
             } as GamePlayState
-            await db.insert(leaderboard).values({
-                mapId: data.mapId,
-                score: gameScore,
-                userId: currentUser.id,
-                id: crypto.randomUUID()
-            })
             const played = [...(state as GamePlayState).played, (state as GamePlayState).image.id]
             const nextImage = getNextImage((state as GamePlayState).map, played)
+            if (!nextImage) {
+                await db.insert(leaderboard).values({
+                    mapId: data.mapId,
+                    score: ((state as GamePlayState).points || 0) + gameScore,
+                    userId: currentUser.id,
+                    id: crypto.randomUUID()
+                })
+            }
             return {
                 step: "results",
                 title: "Results",
@@ -382,6 +384,6 @@ function getNextImage(map: Map, played: string[]): MapPlace | null {
     const places = map.places?.filter(p => !played.some(id => id == p.imageId))
     if (!places || !places.length) return null
     if (map.order == ImageOrder.ORDERED) return places[0]
-    else if (map.order == ImageOrder.RANDOM) return places[Math.floor(Math.random() * places.length)]
+    else if (map.order == ImageOrder.RANDOM) return played.length < 10 ? places[Math.floor(Math.random() * places.length)] : null
     return null
 }
