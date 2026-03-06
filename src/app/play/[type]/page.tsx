@@ -125,7 +125,7 @@ function GamePageContent(gameMode: GameModeDef, user: User | null) {
 
   const par = useSearchParams()
   const mapId = par.get("map")
-  
+
   useEffect(() => {
     if (!mapId && gameMode.id == "custom") redirect("/map/explore")
   }, [gameMode.id, mapId])
@@ -150,8 +150,9 @@ function GamePageContent(gameMode: GameModeDef, user: User | null) {
                   </tbody>
 
                 </table>
-                <div className="flex flex-row justify-around mx-4 mt-4">
+                <div className="flex flex-row justify-around mx-4 mt-4 gap-2">
                   <Link href="/play"><Button>Play another game</Button></Link>
+                  <Link hidden={gameMode.id != "custom"} href={`/map/${mapId}`}><Button>View map</Button></Link>
                 </div>
               </>
             )}
@@ -162,8 +163,15 @@ function GamePageContent(gameMode: GameModeDef, user: User | null) {
                 <span className="mx-3">
                   <Dropdown onSet={(i) => i.id && setSelectedGameMode(i.id)} initial={GameModeItem(gameMode)} items={gameModes.reduce((p, m) => m.available ? [...p, { content: GameModeItem(m), id: m.id }] : p, new Array<DropdownItem<GameMode>>())}></Dropdown>
                 </span>
-                <Button className="mt-6" onPress={() => startTransition(() => action({ type: "init", gameMode: selectedGameMode, ...(selectedGameMode == "custom" ? { mapId: mapId || "" } : {}) } as AnyGameData))}
-                  autoFocus disabled={pending}>Begin</Button>
+                <div className="mt-6 flex gap-2">
+
+
+                  <Button onPress={() => startTransition(() => action({ type: "init", gameMode: selectedGameMode, ...(selectedGameMode == "custom" ? { mapId: mapId || "" } : {}) } as AnyGameData))}
+                    autoFocus disabled={pending}>Begin</Button>
+                  {mapId && (<Button onPress={() => startTransition(() => action({ type: "leaderboard", mapId: mapId } as AnyGameData))}
+                    autoFocus disabled={pending}>Leaderboard</Button>)}
+                </div>
+
               </>
             )}
             {step == "daily_info" && (

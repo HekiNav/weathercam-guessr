@@ -17,7 +17,7 @@ export default async function MapExplorePage() {
         <Toast message="Failed to load maps" type="error" />
     </>
     return (
-        <div className="w-full h-full flex flex-row justify-center flex-wrap p-4 gap-4">
+        <div className="w-full h-full flex flex-row justify-center flex-wrap p-4 gap-4  ">
             {...maps.filter(m => m.visibility == MapVisibility.PUBLIC || currentUser?.id == m.createdById || (m.visibility == MapVisibility.FRIENDS && currentUser?.friends?.some(f => f.user1id == m.createdById || f.user2id == m.createdById))).map(async (m, i) => {
                 const { image, time } = m.places && m.places[0] || {}
                 const imageHistory = image && await (await fetch(`https://tie.digitraffic.fi/api/weathercam/v1/stations/${image.externalId}/history`)).json() as ImagePresetHistory
@@ -32,7 +32,7 @@ export default async function MapExplorePage() {
                                             time={getImageTimeOffset(time || 0)}
                                             presetHistory={imageHistory || null}
                                             image={image} alt=""
-                                            className="absolute left-0 right-0 top-0">
+                                            className="w-full">
                                         </ImageWithTime>
                                     </>
                                 )}

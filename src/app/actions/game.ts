@@ -308,7 +308,7 @@ export default async function game(state: AnyGameState, data: AnyGameData): Prom
                 },
                 image: (state as GamePlayState).image
             } as GamePlayState
-            const played = [...(state as GamePlayState).played, (state as GamePlayState).image.id]
+            const played = [...((state as GamePlayState).played || []), (state as GamePlayState).image.id]
             const nextImage = getNextImage((state as GamePlayState).map, played)
             if (!nextImage) {
                 await db.insert(leaderboard).values({
