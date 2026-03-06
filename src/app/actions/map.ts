@@ -159,16 +159,15 @@ export async function editMap(state: MapEditingState, submitted: MapEditingDataT
     const newPlaces = data.images.map(img => ({
         imageId: img.image,
         index: img.index,
-        mapId: data.id,
+        mapId: mapData.id,
         time: img.time
     }))
 
     const batch: BatchItem<"sqlite">[] = []
 
     places.forEach(p => {
-        if (newPlaces.some(place => objectMatch(p, place))) return console.log("already exists")
+        if (newPlaces.some(place => objectMatch(p, place))) return 
         else if (newPlaces.some(place => place.imageId == p.imageId)) {
-            console.log("modified")
             batch.push(db.update(mapPlace).set(
                 newPlaces.find(place => place.imageId == p.imageId)!
             ).where(
@@ -178,11 +177,21 @@ export async function editMap(state: MapEditingState, submitted: MapEditingDataT
                 )
             ))
         } else {
-
+            batch.push(db.delete(mapPlace).where(
+                and(
+                    eq(mapPlace.imageId, p.imageId),
+                    eq(mapPlace.mapId, mapData.id)
+                )
+            ))
         }
+    })
+    newPlaces.forEach(p => {
+        if (places.some(place => place.imageId == p.imageId)) return 
+        batch.push(db.insert(mapPlace).values(p))
     })
     
     if (batch.length > 0) await db.batch(batch as [BatchItem<"sqlite">, ...BatchItem<"sqlite">[]])
+
     if ((data.visibility == MapVisibility.FRIENDS || data.visibility == MapVisibility.PUBLIC) && mapData.visibility != MapVisibility.PUBLIC && mapData.visibility != MapVisibility.FRIENDS) {
         user.friends?.forEach(f => {
             const friend = f.user1id == user.id ? f.user2 : f.user1

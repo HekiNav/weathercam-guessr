@@ -54,10 +54,11 @@ export async function getMap(mapId: string): Promise<Map | null> {
         order: data.order as ImageOrder,
         imageGeojsonAvailable: data.imageGeojsonAvailable == "true",
         imageLocationBlurred: data.imageLocationBlurred == "true",
-        creationTime: data?.creationTime || 0, updateTime: data?.updateTime || 0, type: data?.type as MapType, visibility: data?.visibility as MapVisibility, places: data?.places.map(p => ({
+        creationTime: data?.creationTime || 0, updateTime: data?.updateTime || 0, type: data?.type as MapType, visibility: data?.visibility as MapVisibility, 
+        places: data?.places.map(p => ({
             ...p,
             image: { ...p.image, available: p.image.available == "true" }
-        }))
+        })).sort((a,b) => a.index - b.index)
     } : null
     if (mapData?.visibility == MapVisibility.PRIVATE && user?.id != mapData.createdById) return null
     if (mapData?.visibility == MapVisibility.FRIENDS && user?.id != mapData.createdById && !user?.friends?.some(f => f.user1id == mapData.createdById || f.user2id == mapData.createdById)) return null

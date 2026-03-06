@@ -271,7 +271,7 @@ function ImageCard({ e,
     draggable,
     error,
     setImages }: ImageCardProps) {
-    const [imageTimeMode, setImageTimeMode] = useState(e.time && getImageTimePreset(e.time) || -1)
+    const [imageTimeMode, setImageTimeMode] = useState(e.time && getImageTimePreset(e.time) || -2)
 
     const { attributes,
         listeners,
