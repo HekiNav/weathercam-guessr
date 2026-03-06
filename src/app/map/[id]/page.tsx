@@ -9,6 +9,7 @@ import { getMap } from "@/lib/public"
 import dayjs from "dayjs"
 import Link from "next/link"
 import RelativeTime from "dayjs/plugin/relativeTime"
+import { getCurrentUser } from "@/lib/auth"
 
 dayjs.extend(RelativeTime)
 
@@ -19,6 +20,7 @@ export default async function MapPage({
 }) {
     const { id } = await params
     const map = await getMap(id)
+    const user = await getCurrentUser()
 
     if (!map) return (
         <>
@@ -34,8 +36,11 @@ export default async function MapPage({
                         Created {dayjs(new Date(map.creationTime).getTime() - new Date().getTimezoneOffset() * 60_000).fromNow()} &middot;
                         last edited {dayjs(new Date(map.updateTime).getTime() - new Date().getTimezoneOffset() * 60_000).fromNow()}
                     </div>
-                    <Link className="px-4" href={`/play/custom?map=${map.id}`}>
+                    <Link className="px-4 pr-1" href={`/play/custom?map=${map.id}`}>
                         <Button className="text-lg my-2">Play</Button>
+                    </Link>
+                    <Link hidden={user?.id != map.createdById} className="px-4 pl-1" href={`/map/${map.id}/edit`}>
+                        <Button className="text-lg my-2">Edit</Button>
                     </Link>
                     <br className="mb-2" />
                     <h2 className="text-lg font-medium pl-4">Images ({(map.places?.length || 0)})</h2>

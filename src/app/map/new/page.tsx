@@ -2,7 +2,7 @@
 import { UserContext } from "@/app/user-provider"
 import Button from "@/components/button"
 import Toggle from "@/components/toggle"
-import { distanceBetweenPoints, FINLAND_BOUNDS, getImageTimeOffset, getImageUrl, ImageOrder, ImagePresetHistory, MapVisibility } from "@/lib/definitions"
+import { distanceBetweenPoints, FINLAND_BOUNDS, getImageTimeOffset, getImageTimePreset, getImageUrl, ImageOrder, ImagePresetHistory, MapPlaceTimePresets, MapVisibility } from "@/lib/definitions"
 import { Feature, FeatureCollection, Point } from "geojson"
 import { GeoJSONSource } from "maplibre-gl"
 import { redirect } from "next/navigation"
@@ -20,15 +20,30 @@ import { arrayMove, horizontalListSortingStrategy, SortableContext, useSortable 
 import { CSS } from "@dnd-kit/utilities"
 import { getImages } from "@/lib/public"
 import * as NextImage from "next/image"
-import { createMap } from "@/app/actions/map"
+import { createMap, MapEditingDataType, MapEditingState } from "@/app/actions/map"
 
 export default function MapCreationUi() {
+    return <MapEditingUi saveFunc={createMap} />
+}
+
+export interface MapEditingUiProps {
+    saveFunc: (state: MapEditingState, data: MapEditingDataType) => Promise<MapEditingState>
+    images?: (Image & { time?: number })[]
+    order?: ImageOrder
+    name?: string | null
+    id?: string
+    visibility?: MapVisibility
+    imageGeojsonAvailable?: boolean
+    imageLocationBlurred?: boolean
+}
+
+export function MapEditingUi(props: MapEditingUiProps) {
     const user = useContext(UserContext)
 
     const mapRef = useRef<MapRef>(null)
 
 
-    const [mapName, setMapName] = useState("")
+    const [mapName, setMapName] = useState(props.name || "")
 
     useEffect(() => {
         if (!user) {
@@ -36,14 +51,14 @@ export default function MapCreationUi() {
             redirect("/login")
         }
     })
-    const [images, setImages] = useState<(Image & { time?: number })[]>([])
+    const [images, setImages] = useState<(Image & { time?: number })[]>(props.images || [])
     const [selectedImages, setSelectedImages] = useState<Image[] | null>(null)
 
-    const [mapType, setMapType] = useState(false)
+    const [mapType, setMapType] = useState<boolean>(props.order == ImageOrder.ORDERED || false)
     const [mapVisibility, setMapVisibility] = useState<MapVisibility>(MapVisibility.PRIVATE)
-    const [imageBlur, setImageBlur] = useState(true)
-    const [showGeojson, setShowGeojson] = useState(true)
-    const [browserState, setBrowserState] = useState(false)
+    const [imageBlur, setImageBlur] = useState<boolean>(props.imageLocationBlurred !== undefined ? props.imageLocationBlurred :true)
+    const [showGeojson, setShowGeojson] = useState<boolean>(props.imageGeojsonAvailable !== undefined ? props.imageGeojsonAvailable : true)
+    const [browserState, setBrowserState] = useState<boolean>(false)
 
 
     const [imageList, setImageList] = useState<Image[] | null>(null)
@@ -53,7 +68,7 @@ export default function MapCreationUi() {
         })
     })
 
-    const [state, action, pending] = useActionState(createMap, {})
+    const [state, action, pending] = useActionState(props.saveFunc, {})
 
     useEffect(() => {
         if (state.step == "success" && state.mapId) {
@@ -93,7 +108,7 @@ export default function MapCreationUi() {
                 <Toggle noColors state={browserState} setState={setBrowserState}></Toggle>
                 List
             </div>
-            <div className="browser h-4/10 border-b-3 border-green-600 w-full">
+            <div className="browser grow border-b-3 border-green-600 w-full">
                 <div hidden={!browserState} className="list flex flex-row overflow-y-scroll flex-wrap h-full gap-2 p-2">
                     {...(imageList ? imageList.map((e, i) => (
                         <Card key={i} className="w-40!" small cardTitle={(<span className="font-bold flex items-center justify-between">{e.externalId}<Button disabled={images.some(i => i.id == e.id)} onClick={() => {
@@ -146,7 +161,7 @@ export default function MapCreationUi() {
                             }, new Array<Feature<Point, Image & { distance: number }>>()).sort((a, b) =>
                                 a.properties.distance - b.properties.distance
                             )
-                            if (selectedImages?.every((e,i) => e.id == selectedFeatures[i].properties.id) && selectedImages.length) return
+                            if (selectedImages?.every((e, i) => e.id == selectedFeatures[i].properties.id) && selectedImages.length) return
                             setSelectedImages(selectedFeatures.map(f => f.properties))
 
                         }} initialViewState={{ bounds: FINLAND_BOUNDS, fitBoundsOptions: { padding: 1 } }} ref={mapRef} mapStyle="/map_style.json">
@@ -163,7 +178,7 @@ export default function MapCreationUi() {
 
                 </div>
             </div>
-            <div className="w-full relative grow">
+            <div className="w-full relative h-80">
                 <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
                     <SortableContext items={images.map(i => i.id)} strategy={horizontalListSortingStrategy}>
                         <ul className="list preview px-4 py-4 flex flex-row gap-4 absolute z-1002 top-0 bottom-0 left-0 right-0 overflow-x-scroll overflow-y-none">
@@ -221,13 +236,14 @@ export default function MapCreationUi() {
 
             </div>
             <Button disabled={pending} onClick={() => startTransition(() => action({
+                id: props.id,
                 blur: imageBlur,
                 geojson: showGeojson,
                 images: images.map((e, i) => ({ time: e.time || -1, index: i, image: e.id })),
                 visibility: mapVisibility,
                 name: mapName,
                 order: mapType ? ImageOrder.ORDERED : ImageOrder.RANDOM
-            }))} className="justify-self-end mt-4">Create</Button>
+            }))} className="justify-self-end mt-4">Save</Button>
         </div>
     </div>
 }
@@ -235,7 +251,7 @@ export default function MapCreationUi() {
 
 
 interface ImageCardProps {
-    e: Image;
+    e: (Image & { time?: number });
     i: number;
     error?: {
         index?: string[],
@@ -255,7 +271,7 @@ function ImageCard({ e,
     draggable,
     error,
     setImages }: ImageCardProps) {
-    const [imageTimeMode, setImageTimeMode] = useState(-1)
+    const [imageTimeMode, setImageTimeMode] = useState(e.time && getImageTimePreset(e.time) || -1)
 
     const { attributes,
         listeners,
@@ -263,6 +279,7 @@ function ImageCard({ e,
         setActivatorNodeRef,
         transform,
         transition } = useSortable({ id: e.id, disabled: !draggable })
+
 
     const IMAGE_CUSTOM_TIME_INTERVAL_MINUTES = 30
     const imageCustomItems: DropdownItem<number>[] = []
@@ -285,7 +302,14 @@ function ImageCard({ e,
         })
     })
 
-    const [imageCustomTime, setImageCustomTime] = useState(0)
+    const dayModes = [
+        { content: "Current", id: -1 },
+        { content: "Day", id: -2 },
+        { content: "Night", id: -3 },
+        { content: "Custom", id: -4 }
+    ]
+
+    const [imageCustomTime, setImageCustomTime] = useState((e.time && imageTimeMode == -4 && imageCustomItems.find(i => i.id == e.time)?.id) || 0)
 
     const [imageHistory, setImageHistory] = useState<ImagePresetHistory | null>(null)
     if (!imageHistory) fetch(`https://tie.digitraffic.fi/api/weathercam/v1/stations/${e.externalId}/history`).then(res => res.json()).then(data => {
@@ -326,14 +350,9 @@ function ImageCard({ e,
             <div className="text-red-600">{error?.time?.join(", ")}</div>
             <div className="mt-1 flex flex-row gap-2">
                 <Dropdown<number> top small onSet={({ id }) => id && setImageTimeMode(id)} items={
-                    [
-                        { content: "Current", id: -1 },
-                        { content: "Day", id: -2 },
-                        { content: "Night", id: -3 },
-                        { content: "Custom", id: -4 }
-                    ]
-                } initial={"Current"}></Dropdown>
-                <Dropdown<number> hidden={imageTimeMode != -4} top small onSet={({ id }) => id && setImageCustomTime(id)} items={imageCustomItems} initial={"Unset"}></Dropdown>
+                    dayModes
+                } initial={dayModes.find(m => m.id == imageTimeMode)?.content}></Dropdown>
+                <Dropdown<number> hidden={imageTimeMode != -4} top small onSet={({ id }) => id && setImageCustomTime(id)} items={imageCustomItems} initial={e.time && imageCustomItems.find(i => i.id == imageCustomTime)?.content||"Unset"}></Dropdown>
             </div>
         </Card>
     );

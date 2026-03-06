@@ -188,6 +188,18 @@ export function getImageTimeOffset(time: number) {
       return time
   }
 }
+export function getImageTimePreset(time: number) {
+  switch (time) {
+    case -1:
+      return MapPlaceTimePresets.ACTUAL 
+    case  50400000:
+      return MapPlaceTimePresets.DAY
+    case  3600000:
+      return MapPlaceTimePresets.NIGHT
+    default:
+      return -4
+  }
+}
 
 export enum MapVisibility {
   PUBLIC = "PUBLIC",
@@ -285,4 +297,12 @@ export function doServer(func: Promise<{ success: boolean; message: string; } | 
 }
 export function momentToTZ(x: string | number | Date) {
   return dayjs(new Date(0).setUTCMilliseconds(new Date(x).getTime() - (new Date().getTimezoneOffset() * 60_000)))
+}
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function objectMatch(x: Record<string, any>, y: Record<string, any>): boolean {
+  const ok = Object.keys, tx = typeof x, ty = typeof y;
+  return x && y && tx === 'object' && tx === ty ? (
+    ok(x).length === ok(y).length &&
+    ok(x).every(key => objectMatch(x[key], y[key]))
+  ) : (x === y);
 }
