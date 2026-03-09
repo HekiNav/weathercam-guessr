@@ -1,0 +1,1 @@
+ALTER TABLE `Map` ADD `roundLimit` integer DEFAULT 10 NOT NULL;

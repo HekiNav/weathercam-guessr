@@ -56,6 +56,7 @@ export interface Map {
   visibility: MapVisibility,
   places?: MapPlace[]
   order: ImageOrder,
+  roundLimit: number,
   imageLocationBlurred: boolean
   imageGeojsonAvailable: boolean
 }

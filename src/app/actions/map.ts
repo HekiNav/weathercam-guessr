@@ -4,6 +4,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { createDB } from "@/lib/db";
 import { FormState, ImageOrder, MapVisibility, NotificationType, objectMatch } from "@/lib/definitions";
 import { sendNotification } from "@/lib/notification";
+import dayjs from "dayjs";
 import { and, eq } from "drizzle-orm";
 import { BatchItem } from "drizzle-orm/batch";
 import { redirect } from "next/navigation";
@@ -16,6 +17,7 @@ const MapEditingData = z.object({
     geojson: z.boolean(),
     blur: z.boolean(),
     order: z.enum(ImageOrder),
+    roundLimit: z.number(),
     images: z.array(z.object({
         index: z.number(),
         image: z.string(),
@@ -67,6 +69,7 @@ export async function createMap(state: MapEditingState, submitted: MapEditingDat
         id: mapId,
         name: data.name,
         createdById: user.id,
+        roundLimit: data.roundLimit,
         imageGeojsonAvailable: data.geojson ? "true" : "false",
         imageLocationBlurred: data.blur ? "true" : "false",
         order: data.order,
@@ -132,29 +135,31 @@ export async function editMap(state: MapEditingState, submitted: MapEditingDataT
         }
     }
     const db = await createDB()
-
     const mapData = await db.query.map.findFirst({
         where: and(eq(map.id, data.id), eq(map.createdById, user.id)),
         with: {
             places: true
         }
     })
+    console.log(mapData)
     if (!mapData) return {
         errors: {
             server: ["Unable to find map"]
         }
     }
-    const { places, ...otherMapData } = mapData
+    const { places } = mapData
     const newMapData = {
         id: mapData.id,
         name: data.name,
         createdById: user.id,
+        roundLimit: data.roundLimit,
         imageGeojsonAvailable: data.geojson ? "true" : "false",
         imageLocationBlurred: data.blur ? "true" : "false",
         order: data.order,
-        visibility: data.visibility
+        visibility: data.visibility,
+        updateTime: Date.now() + (new Date().getTimezoneOffset() * 60_000)
     }
-    if (!objectMatch(otherMapData, newMapData)) await db.update(map).set(newMapData).where(eq(map.id, data.id))
+    await db.update(map).set(newMapData).where(eq(map.id, data.id))
 
     const newPlaces = data.images.map(img => ({
         imageId: img.image,

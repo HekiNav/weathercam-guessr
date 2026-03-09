@@ -26,6 +26,7 @@ export const map = sqliteTable("Map", {
 	visibility: text().notNull().default("PUBLIC"),
 	order: text().notNull().default("RANDOM"),
 	imageLocationBlurred: numeric().default("true").notNull(),
+	roundLimit: integer().default(10).notNull(),
 	imageGeojsonAvailable: numeric().default("false").notNull(),
 	name: text()
 })

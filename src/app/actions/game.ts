@@ -384,6 +384,6 @@ function getNextImage(map: Map, played: string[]): MapPlace | null {
     const places = map.places?.filter(p => !played.some(id => id == p.imageId))
     if (!places || !places.length) return null
     if (map.order == ImageOrder.ORDERED) return places[0]
-    else if (map.order == ImageOrder.RANDOM) return played.length < 10 ? places[Math.floor(Math.random() * places.length)] : null
+    else if (map.order == ImageOrder.RANDOM) return played.length < map.roundLimit ? places[Math.floor(Math.random() * places.length)] : null
     return null
 }

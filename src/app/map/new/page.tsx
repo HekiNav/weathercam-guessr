@@ -2,7 +2,7 @@
 import { UserContext } from "@/app/user-provider"
 import Button from "@/components/button"
 import Toggle from "@/components/toggle"
-import { distanceBetweenPoints, FINLAND_BOUNDS, getImageTimeOffset, getImageTimePreset, getImageUrl, ImageOrder, ImagePresetHistory, MapPlaceTimePresets, MapVisibility } from "@/lib/definitions"
+import { distanceBetweenPoints, FINLAND_BOUNDS, getImageTimeOffset, getImageTimePreset, getImageUrl, ImageOrder, ImagePresetHistory, MapVisibility } from "@/lib/definitions"
 import { Feature, FeatureCollection, Point } from "geojson"
 import { GeoJSONSource } from "maplibre-gl"
 import { redirect } from "next/navigation"
@@ -32,6 +32,7 @@ export interface MapEditingUiProps {
     order?: ImageOrder
     name?: string | null
     id?: string
+    roundLimit?: number
     visibility?: MapVisibility
     imageGeojsonAvailable?: boolean
     imageLocationBlurred?: boolean
@@ -55,7 +56,7 @@ export function MapEditingUi(props: MapEditingUiProps) {
     const [selectedImages, setSelectedImages] = useState<Image[] | null>(null)
 
     const [mapType, setMapType] = useState<boolean>(props.order == ImageOrder.ORDERED || false)
-    const [mapRoundLimit, setMapRoundLimit] = useState(2)
+    const [mapRoundLimit, setMapRoundLimit] = useState(Math.min(props.roundLimit || 0,images.length) || 2)
     const [mapVisibility, setMapVisibility] = useState<MapVisibility>(MapVisibility.PRIVATE)
     const [imageBlur, setImageBlur] = useState<boolean>(props.imageLocationBlurred !== undefined ? props.imageLocationBlurred : true)
     const [showGeojson, setShowGeojson] = useState<boolean>(props.imageGeojsonAvailable !== undefined ? props.imageGeojsonAvailable : true)
@@ -241,11 +242,12 @@ export function MapEditingUi(props: MapEditingUiProps) {
                 images: images.map((e, i) => ({ time: e.time || -1, index: i, image: e.id })),
                 visibility: mapVisibility,
                 name: mapName,
+                roundLimit: mapRoundLimit,
                 order: mapType ? ImageOrder.ORDERED : ImageOrder.RANDOM
             }))} className="justify-self-end mt-4">Save</Button>
             <span className="font-bold mr-2 mt-2 text-lg">Summary:</span>
             <p hidden={images.length == 0} className="text-wrap w-full">
-                The map will be called {mapName || "<empty string>"} and can be viewed and played by {(() => {
+                The map will be called &quot;{mapName || "<empty string>"}&quot; and can be viewed and played by {(() => {
                     switch (mapVisibility) {
                         case MapVisibility.FRIENDS:
                             return "you and your friends. "
@@ -267,6 +269,8 @@ export function MapEditingUi(props: MapEditingUiProps) {
                         {mapRoundLimit} of {images.length} images will be played in random order.
                     </>
                 }
+                {" "}
+                When playing, image locations {imageBlur ? "will" : "won't"} be blurred. Available locations {showGeojson ? "will" : "won't"} be shown on the map.
             </p>
 
         </div>
