@@ -55,9 +55,9 @@ export function MapEditingUi(props: MapEditingUiProps) {
     const [selectedImages, setSelectedImages] = useState<Image[] | null>(null)
 
     const [mapType, setMapType] = useState<boolean>(props.order == ImageOrder.ORDERED || false)
-    const [mapRoundLimit, setMapRoundLimit] = useState(5)
+    const [mapRoundLimit, setMapRoundLimit] = useState(2)
     const [mapVisibility, setMapVisibility] = useState<MapVisibility>(MapVisibility.PRIVATE)
-    const [imageBlur, setImageBlur] = useState<boolean>(props.imageLocationBlurred !== undefined ? props.imageLocationBlurred :true)
+    const [imageBlur, setImageBlur] = useState<boolean>(props.imageLocationBlurred !== undefined ? props.imageLocationBlurred : true)
     const [showGeojson, setShowGeojson] = useState<boolean>(props.imageGeojsonAvailable !== undefined ? props.imageGeojsonAvailable : true)
     const [browserState, setBrowserState] = useState<boolean>(false)
 
@@ -102,14 +102,14 @@ export function MapEditingUi(props: MapEditingUiProps) {
         })
     }
 
-    return <div className="flex flex-col-reverse md:flex-row-reverse h-full w-screen">
+    return <div className="flex flex-col-reverse md:flex-row-reverse h-full w-screen md:max-h-[calc(100vh-2em)]">
         <div className="main flex flex-col h-full w-full relative">
             <div className="browser-mode px-4 py-2 flex flex-row items-center absolute bg-white top-0 right-0 z-1003 rounded-bl-xl">
                 Map
                 <Toggle noColors state={browserState} setState={setBrowserState}></Toggle>
                 List
             </div>
-            <div className="browser grow border-b-3 border-green-600 w-full">
+            <div className="browser grow border-b-3 border-green-600 w-full min-h-40">
 
                 <ImageList
                     browserState={browserState}
@@ -171,7 +171,7 @@ export function MapEditingUi(props: MapEditingUiProps) {
 
                 </div>
             </div>
-            <div className="w-full relative h-80">
+            <div className="w-full relative h-80 min-h-80">
                 <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
                     <SortableContext items={images.map(i => i.id)} strategy={horizontalListSortingStrategy}>
                         <ul className="list preview px-4 py-4 flex flex-row gap-4 absolute z-1002 top-0 bottom-0 left-0 right-0 overflow-x-scroll overflow-y-none">
@@ -193,7 +193,7 @@ export function MapEditingUi(props: MapEditingUiProps) {
                 </DndContext>
             </div>
         </div>
-        <div className="menu h-min px-4 py-4 pb-4 border-b-3 border-green-600 w-full md:w-fit md:border-0 md:border-r-3 md:h-full min-w-2/10 flex flex-col md: overflow-scroll">
+        <div className="menu h-min px-4 py-4 pb-4 border-b-3 border-green-600 w-full md:w-60 md:border-0 md:border-r-3 md:h-full min-w-2/10 flex flex-col md:overflow-y-scroll">
             <input className="font-medium text-2xl w-full text-green-600 rounded p-1 border-2"
                 value={mapName} placeholder="New map" maxLength={40} onChange={e => setMapName(e.target.value)}></input>
             <div className="text-red-600">{state.errors?.name?.join(", ")}</div>
@@ -206,11 +206,11 @@ export function MapEditingUi(props: MapEditingUiProps) {
             </div>
             <div className="text-red-600">{state.errors?.order?.join(", ")}</div>
 
-            <RangeInput
+            {images.length > 1 && mapType == false && (<RangeInput
                 images={images}
                 mapRoundLimit={mapRoundLimit}
                 setMapRoundLimit={setMapRoundLimit}
-            />
+            />)}
 
             <span className="font-bold mr-2 mt-2 text-lg">Visibility:</span>
             <Dropdown<MapVisibility> onSet={({ id }) => id && setMapVisibility(id)} items={
@@ -243,6 +243,32 @@ export function MapEditingUi(props: MapEditingUiProps) {
                 name: mapName,
                 order: mapType ? ImageOrder.ORDERED : ImageOrder.RANDOM
             }))} className="justify-self-end mt-4">Save</Button>
+            <span className="font-bold mr-2 mt-2 text-lg">Summary:</span>
+            <p hidden={images.length == 0} className="text-wrap w-full">
+                The map will be called {mapName || "<empty string>"} and can be viewed and played by {(() => {
+                    switch (mapVisibility) {
+                        case MapVisibility.FRIENDS:
+                            return "you and your friends. "
+                        case MapVisibility.PRIVATE:
+                            return "only you. "
+                        case MapVisibility.PUBLIC:
+                            return "anyone. "
+                        case MapVisibility.HIDDEN:
+                            return "anyone with the link. "
+                        default:
+                            return "unknown. ";
+                    }
+                })()}
+                {(mapType == true || images.length < 2 || images.length == mapRoundLimit) ?
+                    <>
+                        All {images.length} images will be played in {mapType == false && "random"} order.
+                    </> :
+                    <>
+                        {mapRoundLimit} of {images.length} images will be played in random order.
+                    </>
+                }
+            </p>
+
         </div>
     </div>
 }
@@ -351,7 +377,7 @@ function ImageCard({ e,
                 <Dropdown<number> top small onSet={({ id }) => id && setImageTimeMode(id)} items={
                     dayModes
                 } initial={dayModes.find(m => m.id == imageTimeMode)?.content}></Dropdown>
-                <Dropdown<number> hidden={imageTimeMode != -4} top small onSet={({ id }) => id && setImageCustomTime(id)} items={imageCustomItems} initial={e.time && imageCustomItems.find(i => i.id == imageCustomTime)?.content||"Unset"}></Dropdown>
+                <Dropdown<number> hidden={imageTimeMode != -4} top small onSet={({ id }) => id && setImageCustomTime(id)} items={imageCustomItems} initial={e.time && imageCustomItems.find(i => i.id == imageCustomTime)?.content || "Unset"}></Dropdown>
             </div>
         </Card>
     );
@@ -379,7 +405,7 @@ function RangeInput({ images,
     return (
         <>
             <span className="font-bold mr-2 mt-2 text-md">Round limit: <output>{mapRoundLimit}</output></span>
-            <input value={mapRoundLimit} onChange={e => setMapRoundLimit(Number(e.target.value) || 0)} type="range" className="accent-green-600" min={0} max={images.length} />
+            <input value={mapRoundLimit} onChange={e => setMapRoundLimit(Number(e.target.value) || 0)} type="range" className="accent-green-600" min={1} max={images.length} />
 
         </>
     );
@@ -405,7 +431,7 @@ const ImageList = memo(function ImageList({ browserState,
     setImages,
     setSelectedImages }: ImageListProps) {
     return (
-        <div hidden={!browserState} className="list justify-center flex flex-row overflow-y-scroll flex-wrap h-full gap-2 p-2">
+        <div hidden={!browserState} className="list max-h-80 md:h-full justify-center flex flex-row overflow-y-scroll flex-wrap h-full gap-2 p-2">
             {...(imageList ? imageList.map((e, i) => (
                 <Card key={i} className="w-40!" small cardTitle={(<span className="font-bold flex items-center justify-between">{e.externalId}<Button disabled={images.some(i => i.id == e.id)} onClick={() => {
                     setImages([...images, e])
