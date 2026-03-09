@@ -13,6 +13,7 @@ import toast from "react-hot-toast"
 import { respondToFriendRequest } from "../actions/user"
 import { useRouter } from "next/navigation"
 
+
 export default function InboxPage() {
     const [modalState, setModalState] = useState<Notification | null>(null)
     const [notifs, reloadNotifs] = useContext(NotificationContext)

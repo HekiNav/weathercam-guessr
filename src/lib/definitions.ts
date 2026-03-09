@@ -1,8 +1,10 @@
 import { GameMode } from '@/app/actions/game';
 import { Image } from '@/app/actions/image';
-import moment from 'moment';
+import dayjs from 'dayjs';
 import { ReactNode } from 'react';
 import * as z from 'zod'
+import RelativeTime from "dayjs/plugin/relativeTime"
+dayjs.extend(RelativeTime)
 
 export const EmailSchema = z.email({ error: 'Please enter a valid email.' }).trim()
 export const UsernameSchema = z.string()
@@ -117,7 +119,7 @@ export function score(guess: LatLonLike, correct: LatLonLike) {
   const [east, south, west, north] = FINLAND_BOUNDS
   const size = distanceBetweenPoints([east, south], [west, north])
   const distance = distanceBetweenPoints(guess, correct)
-  return Math.round(5000 * Math.pow(Math.E, (-20 * distance / size)))
+  return Math.round(5000 * Math.pow(Math.E, (-20 * Math.max(distance - 100,0) / size)))
 }
 export interface LatLon {
   lat: number
@@ -184,6 +186,18 @@ export function getImageTimeOffset(time: number) {
       return 3600000
     default:
       return time
+  }
+}
+export function getImageTimePreset(time: number) {
+  switch (time) {
+    case -1:
+      return MapPlaceTimePresets.ACTUAL 
+    case  50400000:
+      return MapPlaceTimePresets.DAY
+    case  3600000:
+      return MapPlaceTimePresets.NIGHT
+    default:
+      return -4
   }
 }
 
@@ -282,5 +296,13 @@ export function doServer(func: Promise<{ success: boolean; message: string; } | 
   });
 }
 export function momentToTZ(x: string | number | Date) {
-  return moment(new Date(0).setUTCMilliseconds(new Date(x).getTime() - (new Date().getTimezoneOffset() * 60_000)))
+  return dayjs(new Date(0).setUTCMilliseconds(new Date(x).getTime() - (new Date().getTimezoneOffset() * 60_000)))
+}
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function objectMatch(x: Record<string, any>, y: Record<string, any>): boolean {
+  const ok = Object.keys, tx = typeof x, ty = typeof y;
+  return x && y && tx === 'object' && tx === ty ? (
+    ok(x).length === ok(y).length &&
+    ok(x).every(key => objectMatch(x[key], y[key]))
+  ) : (x === y);
 }

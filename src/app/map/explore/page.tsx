@@ -7,7 +7,7 @@ import Toast from "@/components/toast"
 import { getCurrentUser } from "@/lib/auth"
 import { getImageTimeOffset, ImagePresetHistory, MapVisibility } from "@/lib/definitions"
 import { getMaps } from "@/lib/public"
-import moment from "moment"
+import dayjs from "dayjs"
 import Link from "next/link"
 
 export default async function MapExplorePage() {
@@ -17,7 +17,7 @@ export default async function MapExplorePage() {
         <Toast message="Failed to load maps" type="error" />
     </>
     return (
-        <div className="w-full h-full flex flex-row justify-center flex-wrap p-4 gap-4">
+        <div className="w-full h-full flex flex-row justify-center flex-wrap p-4 gap-4  ">
             {...maps.filter(m => m.visibility == MapVisibility.PUBLIC || currentUser?.id == m.createdById || (m.visibility == MapVisibility.FRIENDS && currentUser?.friends?.some(f => f.user1id == m.createdById || f.user2id == m.createdById))).map(async (m, i) => {
                 const { image, time } = m.places && m.places[0] || {}
                 const imageHistory = image && await (await fetch(`https://tie.digitraffic.fi/api/weathercam/v1/stations/${image.externalId}/history`)).json() as ImagePresetHistory
@@ -32,7 +32,7 @@ export default async function MapExplorePage() {
                                             time={getImageTimeOffset(time || 0)}
                                             presetHistory={imageHistory || null}
                                             image={image} alt=""
-                                            className="absolute left-0 right-0 top-0">
+                                            className="w-full">
                                         </ImageWithTime>
                                     </>
                                 )}
@@ -41,8 +41,8 @@ export default async function MapExplorePage() {
                                 )}
                                 <h2 className="text-md font-medium pl-4 mt-2">{(m.places?.length || 0)} images</h2>
                                 <div className="px-4">
-                                    Created {moment(new Date(m.creationTime).getTime() - new Date().getTimezoneOffset() * 60_000).fromNow()} &middot;
-                                    last edit {moment(new Date(m.updateTime).getTime() - new Date().getTimezoneOffset() * 60_000).fromNow()}
+                                    Created {dayjs(new Date(m.creationTime).getTime() - new Date().getTimezoneOffset() * 60_000).fromNow()} &middot;
+                                    last edit {dayjs(new Date(m.updateTime).getTime() - new Date().getTimezoneOffset() * 60_000).fromNow()}
                                 </div>
                             </div>
                         </Card>

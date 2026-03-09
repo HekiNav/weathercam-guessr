@@ -54,11 +54,13 @@ export async function getMap(mapId: string): Promise<Map | null> {
         order: data.order as ImageOrder,
         imageGeojsonAvailable: data.imageGeojsonAvailable == "true",
         imageLocationBlurred: data.imageLocationBlurred == "true",
-        creationTime: data?.creationTime || 0, updateTime: data?.updateTime || 0, type: data?.type as MapType, visibility: data?.visibility as MapVisibility, places: data?.places.map(p => ({
+        creationTime: data?.creationTime || 0, updateTime: data?.updateTime || 0, type: data?.type as MapType, visibility: data?.visibility as MapVisibility, 
+        places: data?.places.map(p => ({
             ...p,
             image: { ...p.image, available: p.image.available == "true" }
-        }))
+        })).sort((a,b) => a.index - b.index)
     } : null
+    if (mapData?.type == MapType.DAILY_CHALLENGE) return null
     if (mapData?.visibility == MapVisibility.PRIVATE && user?.id != mapData.createdById) return null
     if (mapData?.visibility == MapVisibility.FRIENDS && user?.id != mapData.createdById && !user?.friends?.some(f => f.user1id == mapData.createdById || f.user2id == mapData.createdById)) return null
     return mapData
@@ -86,6 +88,8 @@ export async function getMaps(): Promise<Map[] | null> {
         }
         // hide if private and user not creator
         if (map?.visibility == MapVisibility.PRIVATE && user?.id != map.createdById) return prev
+        // hide daily challenge
+        if (map?.type == MapType.DAILY_CHALLENGE) return prev
         // hide if frineds only and user not friend
         if (map?.visibility == MapVisibility.FRIENDS && user?.id != map.createdById && 
             !user?.friends?.some(f => f.user1id == map.createdById || f.user2id == map.createdById)) return prev

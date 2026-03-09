@@ -2,13 +2,16 @@
 import { map, mapPlace } from "@/db/schema";
 import { getCurrentUser } from "@/lib/auth";
 import { createDB } from "@/lib/db";
-import { FormState, ImageOrder, MapVisibility, NotificationType } from "@/lib/definitions";
+import { FormState, ImageOrder, MapVisibility, NotificationType, objectMatch } from "@/lib/definitions";
 import { sendNotification } from "@/lib/notification";
+import { and, eq } from "drizzle-orm";
+import { BatchItem } from "drizzle-orm/batch";
 import { redirect } from "next/navigation";
 import z from "zod";
 
-const MapCreationData = z.object({
+const MapEditingData = z.object({
     name: z.string().min(3).max(20),
+    id: z.string().optional(),
     visibility: z.enum(MapVisibility),
     geojson: z.boolean(),
     blur: z.boolean(),
@@ -19,8 +22,8 @@ const MapCreationData = z.object({
         time: z.number()
     })).min(1, { error: "Please add at least one image" }).max(50, { error: "Please add a maximum of 50 images" })
 })
-export type MapCreationDataType = z.infer<typeof MapCreationData>
-interface MapCreationErrors {
+export type MapEditingDataType = z.infer<typeof MapEditingData>
+interface MapEditingErrors {
     name?: string[];
     visibility?: string[];
     geojson?: string[];
@@ -34,12 +37,12 @@ interface MapCreationErrors {
     }[];
 }
 
-export interface MapCreationState extends FormState<[]> {
+export interface MapEditingState extends FormState<[]> {
     mapId?: string,
-    errors?: MapCreationErrors
+    errors?: MapEditingErrors
 }
-export async function createMap(state: MapCreationState, submitted: MapCreationDataType): Promise<MapCreationState> {
-    const { success, data, error } = z.safeParse(MapCreationData, submitted)
+export async function createMap(state: MapEditingState, submitted: MapEditingDataType): Promise<MapEditingState> {
+    const { success, data, error } = z.safeParse(MapEditingData, submitted)
 
     const user = await getCurrentUser(true)
 
@@ -49,9 +52,8 @@ export async function createMap(state: MapCreationState, submitted: MapCreationD
 
     if (!success) {
         // @ts-expect-error foo
-        const errs: MapCreationErrors = Object.entries(z.treeifyError(error).properties || {}).reduce((p, [k, v]) => ({ ...p, [k]: v[k == "images" ? "items" : "errors"] }), {})
+        const errs: MapEditingErrors = Object.entries(z.treeifyError(error).properties || {}).reduce((p, [k, v]) => ({ ...p, [k]: v[k == "images" ? "items" : "errors"] }), {})
         return {
-            step: "create",
             errors: {
                 ...errs,
                 server: [...(errs.server || []), ...(z.treeifyError(error).errors || []), ...(z.treeifyError(error).properties?.images?.errors || [])]
@@ -103,5 +105,111 @@ export async function createMap(state: MapCreationState, submitted: MapCreationD
     return {
         step: "success",
         mapId: mapId
+    }
+}
+export async function editMap(state: MapEditingState, submitted: MapEditingDataType): Promise<MapEditingState> {
+    const { success, data, error } = z.safeParse(MapEditingData, submitted)
+
+    const user = await getCurrentUser(true)
+
+    if (!user) {
+        redirect("/login?to=/map/new")
+    }
+
+    if (!success) {
+        // @ts-expect-error foo
+        const errs: MapEditingErrors = Object.entries(z.treeifyError(error).properties || {}).reduce((p, [k, v]) => ({ ...p, [k]: v[k == "images" ? "items" : "errors"] }), {})
+        return {
+            errors: {
+                ...errs,
+                server: [...(errs.server || []), ...(z.treeifyError(error).errors || []), ...(z.treeifyError(error).properties?.images?.errors || [])]
+            }
+        }
+    }
+    if (!data.id) return {
+        errors: {
+            server: ["Unable to find map"]
+        }
+    }
+    const db = await createDB()
+
+    const mapData = await db.query.map.findFirst({
+        where: and(eq(map.id, data.id), eq(map.createdById, user.id)),
+        with: {
+            places: true
+        }
+    })
+    if (!mapData) return {
+        errors: {
+            server: ["Unable to find map"]
+        }
+    }
+    const { places, ...otherMapData } = mapData
+    const newMapData = {
+        id: mapData.id,
+        name: data.name,
+        createdById: user.id,
+        imageGeojsonAvailable: data.geojson ? "true" : "false",
+        imageLocationBlurred: data.blur ? "true" : "false",
+        order: data.order,
+        visibility: data.visibility
+    }
+    if (!objectMatch(otherMapData, newMapData)) await db.update(map).set(newMapData).where(eq(map.id, data.id))
+
+    const newPlaces = data.images.map(img => ({
+        imageId: img.image,
+        index: img.index,
+        mapId: mapData.id,
+        time: img.time
+    }))
+
+    const batch: BatchItem<"sqlite">[] = []
+
+    places.forEach(p => {
+        if (newPlaces.some(place => objectMatch(p, place))) return 
+        else if (newPlaces.some(place => place.imageId == p.imageId)) {
+            batch.push(db.update(mapPlace).set(
+                newPlaces.find(place => place.imageId == p.imageId)!
+            ).where(
+                and(
+                    eq(mapPlace.imageId, p.imageId),
+                    eq(mapPlace.mapId, mapData.id)
+                )
+            ))
+        } else {
+            batch.push(db.delete(mapPlace).where(
+                and(
+                    eq(mapPlace.imageId, p.imageId),
+                    eq(mapPlace.mapId, mapData.id)
+                )
+            ))
+        }
+    })
+    newPlaces.forEach(p => {
+        if (places.some(place => place.imageId == p.imageId)) return 
+        batch.push(db.insert(mapPlace).values(p))
+    })
+    
+    if (batch.length > 0) await db.batch(batch as [BatchItem<"sqlite">, ...BatchItem<"sqlite">[]])
+
+    if ((data.visibility == MapVisibility.FRIENDS || data.visibility == MapVisibility.PUBLIC) && mapData.visibility != MapVisibility.PUBLIC && mapData.visibility != MapVisibility.FRIENDS) {
+        user.friends?.forEach(f => {
+            const friend = f.user1id == user.id ? f.user2 : f.user1
+            console.log(friend)
+            if (friend) sendNotification({
+                message: `
+                <h1>User ${user.name} has just created a new msap called ${data.name}!</h1>
+                <a href="/map/${data.id}"><button class="bg-green-600 cursor-pointer rounded shadow-xl/20 p-2">View</button></a>
+                `,
+                type: NotificationType.TEXT,
+                recipient: friend.id,
+                title: `${user.name?.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')} has created a new map!`
+            })
+        })
+    }
+
+    return {
+        step: "success",
+        mapId: data.id
     }
 }
