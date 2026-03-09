@@ -6,7 +6,7 @@ import { distanceBetweenPoints, FINLAND_BOUNDS, getImageTimeOffset, getImageUrl,
 import { Feature, FeatureCollection, Point } from "geojson"
 import { GeoJSONSource } from "maplibre-gl"
 import { redirect } from "next/navigation"
-import { Dispatch, SetStateAction, startTransition, useActionState, useContext, useEffect, useRef, useState } from "react"
+import { Dispatch, memo, SetStateAction, startTransition, useActionState, useContext, useEffect, useRef, useState } from "react"
 import toast from "react-hot-toast"
 import { Layer, Map, MapRef } from "react-map-gl/maplibre"
 import { Image } from "@/app/actions/image"
@@ -40,6 +40,7 @@ export default function MapCreationUi() {
     const [selectedImages, setSelectedImages] = useState<Image[] | null>(null)
 
     const [mapType, setMapType] = useState(false)
+    const [mapRoundLimit, setMapRoundLimit] = useState(5)
     const [mapVisibility, setMapVisibility] = useState<MapVisibility>(MapVisibility.PRIVATE)
     const [imageBlur, setImageBlur] = useState(true)
     const [showGeojson, setShowGeojson] = useState(true)
@@ -94,24 +95,16 @@ export default function MapCreationUi() {
                 List
             </div>
             <div className="browser h-4/10 border-b-3 border-green-600 w-full">
-                <div hidden={!browserState} className="list flex flex-row overflow-y-scroll flex-wrap h-full gap-2 p-2">
-                    {...(imageList ? imageList.map((e, i) => (
-                        <Card key={i} className="w-40!" small cardTitle={(<span className="font-bold flex items-center justify-between">{e.externalId}<Button disabled={images.some(i => i.id == e.id)} onClick={() => {
-                            setImages([...images, e])
-                            setSelectedImages(selectedImages?.reduce((p, c) => c.id != e.id ? [...p, c] : p, new Array<Image>()) || null)
-                        }} className={`w-5 h-5 p-0! flex items-center align-center justify-center ${images.some(i => i.id == e.id) ? "" : "bg-white"}`}><Icon icon={faPlus}></Icon></Button></span>)}>
-                            <div className="relative h-25 w-full">
-                                <NextImage.default className="relative" objectFit="contain" fill loading="lazy" src={getImageUrl(e.externalId, e.source) + "?thumbnail=true"} alt=""></NextImage.default>
-                            </div>
-                        </Card>
-                    )) : [
-                        (
-                            <>
-                                Loading...
-                            </>
-                        )
-                    ])}
-                </div>
+
+                <ImageList
+                    browserState={browserState}
+                    imageList={imageList || []}
+                    images={images}
+                    selectedImages={selectedImages}
+                    setImages={setImages}
+                    setSelectedImages={setSelectedImages}
+                />
+
                 <div hidden={browserState} className="map h-10/10 relative">
                     <div hidden={!selectedImages || !selectedImages.length} className="absolute left-0 z-1001 top-0 bg-white p-4 gap-2 rounded-br-xl flex flex-col max-h-8/10 overflow-scroll">
                         <h3 className="font-medium text-lg text-green-600">Selected images</h3>
@@ -146,7 +139,7 @@ export default function MapCreationUi() {
                             }, new Array<Feature<Point, Image & { distance: number }>>()).sort((a, b) =>
                                 a.properties.distance - b.properties.distance
                             )
-                            if (selectedImages?.every((e,i) => e.id == selectedFeatures[i].properties.id) && selectedImages.length) return
+                            if (selectedImages?.every((e, i) => e.id == selectedFeatures[i].properties.id) && selectedImages.length) return
                             setSelectedImages(selectedFeatures.map(f => f.properties))
 
                         }} initialViewState={{ bounds: FINLAND_BOUNDS, fitBoundsOptions: { padding: 1 } }} ref={mapRef} mapStyle="/map_style.json">
@@ -185,7 +178,7 @@ export default function MapCreationUi() {
                 </DndContext>
             </div>
         </div>
-        <div className="menu h-min px-4 py-4 pb-4 border-b-3 border-green-600 w-full md:w-fit md:border-0 md:border-r-3 md:h-full min-w-2/10 flex flex-col">
+        <div className="menu h-min px-4 py-4 pb-4 border-b-3 border-green-600 w-full md:w-fit md:border-0 md:border-r-3 md:h-full min-w-2/10 flex flex-col md: overflow-scroll">
             <input className="font-medium text-2xl w-full text-green-600 rounded p-1 border-2"
                 value={mapName} placeholder="New map" maxLength={40} onChange={e => setMapName(e.target.value)}></input>
             <div className="text-red-600">{state.errors?.name?.join(", ")}</div>
@@ -197,6 +190,12 @@ export default function MapCreationUi() {
                 Ordered
             </div>
             <div className="text-red-600">{state.errors?.order?.join(", ")}</div>
+
+            <RangeInput
+                images={images}
+                mapRoundLimit={mapRoundLimit}
+                setMapRoundLimit={setMapRoundLimit}
+            />
 
             <span className="font-bold mr-2 mt-2 text-lg">Visibility:</span>
             <Dropdown<MapVisibility> onSet={({ id }) => id && setMapVisibility(id)} items={
@@ -344,3 +343,66 @@ function getOffset(timeZone = 'UTC', date = new Date()) {
     const tzDate = new Date(date.toLocaleString('en-US', { timeZone }));
     return (tzDate.getTime() - utcDate.getTime()) / 6e4;
 }
+
+
+
+
+interface RangeInputProps {
+    images: Image[];
+    mapRoundLimit: number;
+    setMapRoundLimit: Dispatch<SetStateAction<number>>;
+}
+
+
+function RangeInput({ images,
+    mapRoundLimit,
+    setMapRoundLimit }: RangeInputProps) {
+    return (
+        <>
+            <span className="font-bold mr-2 mt-2 text-md">Round limit: <output>{mapRoundLimit}</output></span>
+            <input value={mapRoundLimit} onChange={e => setMapRoundLimit(Number(e.target.value) || 0)} type="range" className="accent-green-600" min={0} max={images.length} />
+
+        </>
+    );
+}
+
+
+
+
+interface ImageListProps {
+    browserState: boolean;
+    imageList: Image[];
+    images: Image[];
+    selectedImages: Image[] | null;
+    setImages: Dispatch<SetStateAction<Image[]>>;
+    setSelectedImages: Dispatch<SetStateAction<Image[] | null>>;
+}
+
+
+const ImageList = memo(function ImageList({ browserState,
+    imageList,
+    images,
+    selectedImages,
+    setImages,
+    setSelectedImages }: ImageListProps) {
+    return (
+        <div hidden={!browserState} className="list justify-center flex flex-row overflow-y-scroll flex-wrap h-full gap-2 p-2">
+            {...(imageList ? imageList.map((e, i) => (
+                <Card key={i} className="w-40!" small cardTitle={(<span className="font-bold flex items-center justify-between">{e.externalId}<Button disabled={images.some(i => i.id == e.id)} onClick={() => {
+                    setImages([...images, e])
+                    setSelectedImages(selectedImages?.reduce((p, c) => c.id != e.id ? [...p, c] : p, new Array<Image>()) || null)
+                }} className={`w-5 h-5 p-0! flex items-center align-center justify-center ${images.some(i => i.id == e.id) ? "" : "bg-white"}`}><Icon icon={faPlus}></Icon></Button></span>)}>
+                    <div className="relative h-25 w-full">
+                        <NextImage.default className="relative" objectFit="contain" fill loading="lazy" src={getImageUrl(e.externalId, e.source) + "?thumbnail=true"} alt=""></NextImage.default>
+                    </div>
+                </Card>
+            )) : [
+                (
+                    <>
+                        Loading...
+                    </>
+                )
+            ])}
+        </div>
+    );
+})
